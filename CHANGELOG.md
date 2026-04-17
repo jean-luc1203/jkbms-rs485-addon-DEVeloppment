@@ -1,3 +1,12 @@
+## v3.8.3 - 2026-04-17
+### 📦 - Enhanced
+
+- Implementation of the Premium version by Tapion69
+- Automatic addition of custom dashboards
+
+##  _______________________________________________________
+
+
 ## v3.7.5 - 2026-04-11
 ### 🐞  Bug Fix
 - Remove the serial port compilation to avoid version conflict issues on ARM64/aarch64
