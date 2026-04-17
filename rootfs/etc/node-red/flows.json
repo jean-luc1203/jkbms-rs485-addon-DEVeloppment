@@ -663,7 +663,7 @@
         ],
         "x": 34,
         "y": 19,
-        "w": 652,
+        "w": 662,
         "h": 242
     },
     {
@@ -856,6 +856,160 @@
         "y": 299,
         "w": 1112,
         "h": 322
+    },
+    {
+        "id": "a2beb2806ab9cf69",
+        "type": "group",
+        "z": "a0472de35efa2448",
+        "name": "Configuration du port USB RS485",
+        "style": {
+            "stroke": "#000000",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "7ff0a25cda07b741",
+            "3931566ef5421726",
+            "ee1b626c45c062ff",
+            "1d7f951bd071cd58",
+            "2b065a54b3134d06"
+        ],
+        "x": 54,
+        "y": 299,
+        "w": 1052,
+        "h": 82
+    },
+    {
+        "id": "9ce0bc0457b95911",
+        "type": "group",
+        "z": "a0472de35efa2448",
+        "name": "Initialisation des variables",
+        "style": {
+            "stroke": "#000000",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "bdcf6d01535ae3fa",
+            "89ef45bb6105f137",
+            "1b1d9614039e69ec"
+        ],
+        "x": 8,
+        "y": 19,
+        "w": 1064,
+        "h": 268
+    },
+    {
+        "id": "4a862962688ba34a",
+        "type": "group",
+        "z": "a0472de35efa2448",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "56a8b5a050a09ef1",
+            "c7f86a73b32f0135"
+        ],
+        "x": 814,
+        "y": 1249.199951171875,
+        "w": 312,
+        "h": 131.800048828125
+    },
+    {
+        "id": "09996f14584ed69b",
+        "type": "group",
+        "z": "a0472de35efa2448",
+        "name": "Définir la possibilité de modifier ou pas les paramètres. Utile si modification involontaire",
+        "style": {
+            "stroke": "#3f93cf",
+            "label": true,
+            "color": "#001f60"
+        },
+        "nodes": [],
+        "x": 10,
+        "y": 990,
+        "w": 548,
+        "h": 40
+    },
+    {
+        "id": "dd7a825d81fb64f6",
+        "type": "group",
+        "z": "a0472de35efa2448",
+        "name": "Permettre ou pas la modification des divers paramètres de manière globale",
+        "style": {
+            "stroke": "#0070c0",
+            "label": true,
+            "color": "#001f60"
+        },
+        "nodes": [
+            "159d4d8ae4519fc4",
+            "03debae70178dd63",
+            "bf0c518c0ea0d569",
+            "8ce97d6ae00945b6",
+            "84bb37c8cafd3ef9",
+            "12daf381210d6738",
+            "047fc80bccc35d25"
+        ],
+        "x": 14,
+        "y": 1051,
+        "w": 1092,
+        "h": 170
+    },
+    {
+        "id": "efba8ed57d775316",
+        "type": "group",
+        "z": "a0472de35efa2448",
+        "name": "URL Dashboard Node Red",
+        "style": {
+            "label": true,
+            "stroke": "#0070c0",
+            "color": "#001f60"
+        },
+        "nodes": [
+            "768673d5e59ba09e",
+            "99ae80fc4c3579a4",
+            "88d41cf1ecab0a85",
+            "09650ff00a1328d1"
+        ],
+        "x": 144,
+        "y": 439,
+        "w": 642,
+        "h": 122
+    },
+    {
+        "id": "c8d15147224b6645",
+        "type": "group",
+        "z": "a0472de35efa2448",
+        "name": "MQTT définitions + controle du status",
+        "style": {
+            "stroke": "#000000",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "befb9c9c89380194",
+            "109fb8db5a42e532",
+            "15955bdb057dec93",
+            "0acdca19f482a1cf",
+            "be101fa284e9cb56",
+            "2246b0047b3949e1",
+            "d38d80ddd744bdff",
+            "30c26ea216b08d19",
+            "da1bc88f2a09d111",
+            "e48355f52d5c70db",
+            "ef9dfc5e4bccae63",
+            "a20c112eb5d63d0a"
+        ],
+        "x": 254,
+        "y": 599,
+        "w": 772,
+        "h": 242
     },
     {
         "id": "6c7dc100130a10bc",
@@ -1206,160 +1360,6 @@
         "y": 1219,
         "w": 1382,
         "h": 122
-    },
-    {
-        "id": "a2beb2806ab9cf69",
-        "type": "group",
-        "z": "a0472de35efa2448",
-        "name": "Configuration du port USB RS485",
-        "style": {
-            "stroke": "#000000",
-            "label": true,
-            "color": "#000000"
-        },
-        "nodes": [
-            "7ff0a25cda07b741",
-            "3931566ef5421726",
-            "ee1b626c45c062ff",
-            "1d7f951bd071cd58",
-            "2b065a54b3134d06"
-        ],
-        "x": 54,
-        "y": 299,
-        "w": 1052,
-        "h": 82
-    },
-    {
-        "id": "9ce0bc0457b95911",
-        "type": "group",
-        "z": "a0472de35efa2448",
-        "name": "Initialisation des variables",
-        "style": {
-            "stroke": "#000000",
-            "label": true,
-            "color": "#000000"
-        },
-        "nodes": [
-            "bdcf6d01535ae3fa",
-            "89ef45bb6105f137",
-            "1b1d9614039e69ec"
-        ],
-        "x": 8,
-        "y": 19,
-        "w": 1064,
-        "h": 268
-    },
-    {
-        "id": "4a862962688ba34a",
-        "type": "group",
-        "z": "a0472de35efa2448",
-        "style": {
-            "stroke": "#999999",
-            "stroke-opacity": "1",
-            "fill": "none",
-            "fill-opacity": "1",
-            "label": true,
-            "label-position": "nw",
-            "color": "#a4a4a4"
-        },
-        "nodes": [
-            "56a8b5a050a09ef1",
-            "c7f86a73b32f0135"
-        ],
-        "x": 814,
-        "y": 1249.199951171875,
-        "w": 312,
-        "h": 131.800048828125
-    },
-    {
-        "id": "09996f14584ed69b",
-        "type": "group",
-        "z": "a0472de35efa2448",
-        "name": "Définir la possibilité de modifier ou pas les paramètres. Utile si modification involontaire",
-        "style": {
-            "stroke": "#3f93cf",
-            "label": true,
-            "color": "#001f60"
-        },
-        "nodes": [],
-        "x": 10,
-        "y": 990,
-        "w": 548,
-        "h": 40
-    },
-    {
-        "id": "dd7a825d81fb64f6",
-        "type": "group",
-        "z": "a0472de35efa2448",
-        "name": "Permettre ou pas la modification des divers paramètres de manière globale",
-        "style": {
-            "stroke": "#0070c0",
-            "label": true,
-            "color": "#001f60"
-        },
-        "nodes": [
-            "159d4d8ae4519fc4",
-            "03debae70178dd63",
-            "bf0c518c0ea0d569",
-            "8ce97d6ae00945b6",
-            "84bb37c8cafd3ef9",
-            "12daf381210d6738",
-            "047fc80bccc35d25"
-        ],
-        "x": 14,
-        "y": 1051,
-        "w": 1092,
-        "h": 170
-    },
-    {
-        "id": "efba8ed57d775316",
-        "type": "group",
-        "z": "a0472de35efa2448",
-        "name": "URL Dashboard Node Red",
-        "style": {
-            "label": true,
-            "stroke": "#0070c0",
-            "color": "#001f60"
-        },
-        "nodes": [
-            "768673d5e59ba09e",
-            "99ae80fc4c3579a4",
-            "88d41cf1ecab0a85",
-            "09650ff00a1328d1"
-        ],
-        "x": 144,
-        "y": 439,
-        "w": 642,
-        "h": 122
-    },
-    {
-        "id": "c8d15147224b6645",
-        "type": "group",
-        "z": "a0472de35efa2448",
-        "name": "MQTT définitions + controle du status",
-        "style": {
-            "stroke": "#000000",
-            "label": true,
-            "color": "#000000"
-        },
-        "nodes": [
-            "befb9c9c89380194",
-            "109fb8db5a42e532",
-            "15955bdb057dec93",
-            "0acdca19f482a1cf",
-            "be101fa284e9cb56",
-            "2246b0047b3949e1",
-            "d38d80ddd744bdff",
-            "30c26ea216b08d19",
-            "da1bc88f2a09d111",
-            "e48355f52d5c70db",
-            "ef9dfc5e4bccae63",
-            "a20c112eb5d63d0a"
-        ],
-        "x": 254,
-        "y": 599,
-        "w": 772,
-        "h": 242
     },
     {
         "id": "1b1d9614039e69ec",
@@ -2033,7 +2033,7 @@
         "z": "a0472de35efa2448",
         "g": "1b1d9614039e69ec",
         "name": "traitement des variables",
-        "func": "// Récupération des données du payload\nconst data = msg.payload;\n\n// Fonction pour traiter les champs contenant \":\"\nfunction processAddressPortFields(data) {\n    const processedData = {...data}; // Copie de l'objet original\n    \n    // Liste des champs à traiter (ceux qui peuvent contenir adresse:port)\n    const fieldsToProcess = [\n        { field: 'gateway_ip_port', addressField: 'gateway_ip', portField: 'gateway_port' },\n        { field: 'mqttadresse_port', addressField: 'mqttadresse', portField: 'mqttport' },\n        { field: 'cloud_broker_adress_port', addressField: 'cloud_broker_adress', portField: 'cloud_broker_port' }\n    ];\n    \n    fieldsToProcess.forEach(config => {\n        if (processedData[config.field] && typeof processedData[config.field] === 'string') {\n            const value = processedData[config.field];\n            \n            // Vérifier si le champ contient \":\"\n            if (value.includes(':')) {\n                const lastColonIndex = value.lastIndexOf(':'); // Utilise le dernier \":\" pour gérer les IPv6\n                const address = value.substring(0, lastColonIndex);\n                const port = value.substring(lastColonIndex + 1);\n                \n                // Ajouter les champs séparés\n                processedData[config.addressField] = address;\n                processedData[config.portField] = parseInt(port, 10);\n                \n                node.log(`Champ '${config.field}' traité: ${address}:${port}`);\n            }\n            \n            // Supprimer le champ original avec \"_port\" \n            delete processedData[config.field];\n        }\n    });\n    \n    return processedData;\n}\n\n// Extraction et stockage des variables globales\ntry {\n    // Traitement préalable des champs avec \":\"\n    const processedData = processAddressPortFields(data);\n    \n    // Configuration JK-BMS principale\n    if (processedData.jkbms_path) {\n        global.set(\"path\", processedData.jkbms_path);\n        node.log(\"Variable globale 'path' = \" + processedData.jkbms_path);\n    }\n    \n    if (processedData.jkbms_count) {\n        global.set(\"nb_jkbms\", processedData.jkbms_count);\n        node.log(\"Variable globale 'nb_jkbms' = \" + processedData.jkbms_count);\n    }\n    \n    // Configuration Gateway\n    if (processedData.use_gateway !== undefined) {\n        global.set(\"use_gateway\", processedData.use_gateway);\n        node.log(\"Variable globale 'use_gateway' = \" + processedData.use_gateway);\n    }\n    \n    if (processedData.gateway_ip !== undefined) {\n        global.set(\"gateway_ip\", processedData.gateway_ip);\n        node.log(\"Variable globale 'gateway_ip' = \" + processedData.gateway_ip);\n    }\n    \n    if (processedData.gateway_port !== undefined) {\n        global.set(\"gateway_port\", processedData.gateway_port);\n        node.log(\"Variable globale 'gateway_port' = \" + processedData.gateway_port);\n    }\n    \n    if (processedData.communication_debug !== undefined) {\n        global.set(\"communication_debug\", processedData.communication_debug);\n        node.log(\"Variable globale 'communication_debug' = \" + processedData.communication_debug);\n    }\n     \n    if (processedData.bms_broadcasting !== undefined) {\n        global.set(\"bms_broadcasting\", processedData.bms_broadcasting);\n        node.log(\"Variable globale 'bms_broadcasting' = \" + processedData.bms_broadcasting);\n    }\n\n    if (processedData.non_broadcasting_data_interval_s !== undefined) {\n        global.set(\"non_broadcasting_data_interval_s\", processedData.non_broadcasting_data_interval_s);\n        node.log(\"Variable globale 'non_broadcasting_data_interval_s' = \" + processedData.non_broadcasting_data_interval_s);\n    }\n   \n    if (processedData.CAN_bus_usage !== undefined) {\n        global.set(\"CAN_bus_usage\", processedData.CAN_bus_usage);\n        node.log(\"Variable globale 'CAN_bus_usage' = \" + processedData.CAN_bus_usage);\n    }\n\n    // Paramètres MQTT\n    if (processedData.mqttadresse) {\n        global.set(\"mqttadresse\", processedData.mqttadresse);\n        node.log(\"Variable globale 'mqttadresse' = \" + processedData.mqttadresse);\n    }\n    \n    if (processedData.mqttport) {\n        global.set(\"mqttport\", processedData.mqttport);\n        node.log(\"Variable globale 'mqttport' = \" + processedData.mqttport);\n    }\n    \n    if (processedData.mqttuser) {\n        global.set(\"mqttuser\", processedData.mqttuser);\n        node.log(\"Variable globale 'mqttuser' = \" + processedData.mqttuser);\n    }\n    \n    if (processedData.mqttpass) {\n        global.set(\"mqttpass\", processedData.mqttpass);\n        node.log(\"Variable globale 'mqttpass' = •••••••••\");\n    }\n\n    if (processedData.Send_bip !== undefined) {\n        global.set(\"Send_bip\", processedData.Send_bip);\n        node.log(\"Variable globale 'Send_bip' = \" + processedData.Send_bip);\n    }\n\n        // =========================================================\n    // DASHBOARD LANGUAGE\n    // =========================================================\n    function sanitizeDashboardLanguage(v) {\n        const s = String(v || \"\").trim().toLowerCase();\n        return s === \"fr\" ? \"fr\" : \"en\";\n    }\n\n    function toBool(v) {\n        return v === true;\n    }\n\n    const dashboardLanguage = sanitizeDashboardLanguage(processedData.dashboard_language || \"en\");\n    const dashboardCustomCardsInstalled = toBool(processedData.dashboard_custom_cards_installed);\n    const premiumKey = String(processedData.premium_key || \"\").trim();\n    const premiumKeyConfigured = premiumKey.length > 0;\n\n    global.set(\"dashboard.language\", dashboardLanguage);\n    global.set(\"config.dashboardLanguage\", dashboardLanguage);\n\n    global.set(\"dashboard.custom_cards_installed\", dashboardCustomCardsInstalled);\n    global.set(\"config.dashboardCustomCardsInstalled\", dashboardCustomCardsInstalled);\n\n    // =========================================================\n    // PREMIUM CONFIG\n    // =========================================================\n    const instanceId = String(env.get(\"SMART_JKBMS_INSTANCE_ID\") || \"\").trim();\n    const premiumKeyEnv = String(env.get(\"SMART_JKBMS_PREMIUM_KEY\") || \"\").trim();\n\n    global.set(\"premium.key\", premiumKey);\n    global.set(\"premium.key_configured\", premiumKeyConfigured);\n    global.set(\"premium.instance_id\", instanceId);\n    global.set(\"premium.env_key_present\", premiumKeyEnv.length > 0);\n\n    // état par défaut avant validation\n    global.set(\"premium.active\", false);\n    global.set(\"premium.status\", premiumKeyConfigured ? \"pending_validation\" : \"missing_key\");\n    global.set(\"premium.tier\", null);\n\n    node.log(\"Variable globale 'config.dashboardLanguage' = \" + dashboardLanguage);\n    node.log(\"Variable globale 'config.dashboardCustomCardsInstalled' = \" + dashboardCustomCardsInstalled);\n    node.log(\"Variable globale 'premium.key_configured' = \" + premiumKeyConfigured);\n    node.log(\"Variable globale 'premium.instance_id' = \" + (instanceId || \"null\"));\n\n    // =========================================================\n    // PAYLOAD DE SORTIE - enrichissement premium/dashboard\n    // =========================================================\n    if (!msg.payload || typeof msg.payload !== \"object\") {\n        msg.payload = {};\n    }\n\n    msg.payload.dashboardLanguage = dashboardLanguage;\n    msg.payload.dashboardCustomCardsInstalled = dashboardCustomCardsInstalled;\n    msg.payload.premium = {\n        instance_id: instanceId || null,\n        key_configured: premiumKeyConfigured,\n        status: premiumKeyConfigured ? \"pending_validation\" : \"missing_key\"\n    };\n\n    // Message de confirmation\n    msg.payload = {\n        status: \"success\",\n        message: \"Variables globales créées avec succès\",\n        variables: {\n            path: global.get(\"path\"),\n            nb_jkbms: global.get(\"nb_jkbms\"),\n            use_gateway: global.get(\"use_gateway\"),\n            gateway_ip: global.get(\"gateway_ip\"),\n            gateway_port: global.get(\"gateway_port\"),\n            communication_debug: global.get(\"communication_debug\"),\n            bms_broadcasting: global.get(\"bms_broadcasting\"),\n            non_broadcasting_data_interval_s: global.get(\"non_broadcasting_data_interval_s\"),\n            mqttadresse: global.get(\"mqttadresse\"),\n            mqttport: global.get(\"mqttport\"),\n            mqttuser: global.get(\"mqttuser\"),\n            mqttpass: global.get(\"mqttpass\"),\n            CAN_bus_usage: global.get(\"CAN_bus_usage\"),\n            Send_bip: global.get(\"Send_bip\")\n        },\n        processedData: processedData // Pour debugging\n    };\n\n} catch (error) {\n    node.error(\"Erreur lors de la création des variables globales: \" + error.message);\n    msg.payload = {\n        status: \"error\",\n        message: error.message\n    };\n}\n\nreturn msg;",
+        "func": "// Récupération des données du payload\nconst data = msg.payload;\n\n// Fonction pour traiter les champs contenant \":\"\nfunction processAddressPortFields(data) {\n    const processedData = {...data}; // Copie de l'objet original\n    \n    // Liste des champs à traiter (ceux qui peuvent contenir adresse:port)\n    const fieldsToProcess = [\n        { field: 'gateway_ip_port', addressField: 'gateway_ip', portField: 'gateway_port' },\n        { field: 'mqttadresse_port', addressField: 'mqttadresse', portField: 'mqttport' },\n        { field: 'cloud_broker_adress_port', addressField: 'cloud_broker_adress', portField: 'cloud_broker_port' }\n    ];\n    \n    fieldsToProcess.forEach(config => {\n        if (processedData[config.field] && typeof processedData[config.field] === 'string') {\n            const value = processedData[config.field];\n            \n            // Vérifier si le champ contient \":\"\n            if (value.includes(':')) {\n                const lastColonIndex = value.lastIndexOf(':'); // Utilise le dernier \":\" pour gérer les IPv6\n                const address = value.substring(0, lastColonIndex);\n                const port = value.substring(lastColonIndex + 1);\n                \n                // Ajouter les champs séparés\n                processedData[config.addressField] = address;\n                processedData[config.portField] = parseInt(port, 10);\n                \n                node.log(`Champ '${config.field}' traité: ${address}:${port}`);\n            }\n            \n            // Supprimer le champ original avec \"_port\" \n            delete processedData[config.field];\n        }\n    });\n    \n    return processedData;\n}\n\n// Extraction et stockage des variables globales\ntry {\n    // Traitement préalable des champs avec \":\"\n    const processedData = processAddressPortFields(data);\n    \n    // Configuration JK-BMS principale\n    if (processedData.jkbms_path) {\n        global.set(\"jkbms_path\", processedData.jkbms_path);\n        node.log(\"Variable globale 'path' = \" + processedData.jkbms_path);\n    }\n    \n    if (processedData.jkbms_count) {\n        global.set(\"nb_jkbms\", processedData.jkbms_count);\n        node.log(\"Variable globale 'nb_jkbms' = \" + processedData.jkbms_count);\n    }\n    \n    // Configuration Gateway\n    if (processedData.use_gateway !== undefined) {\n        global.set(\"use_gateway\", processedData.use_gateway);\n        node.log(\"Variable globale 'use_gateway' = \" + processedData.use_gateway);\n    }\n    \n    if (processedData.gateway_ip !== undefined) {\n        global.set(\"gateway_ip\", processedData.gateway_ip);\n        node.log(\"Variable globale 'gateway_ip' = \" + processedData.gateway_ip);\n    }\n    \n    if (processedData.gateway_port !== undefined) {\n        global.set(\"gateway_port\", processedData.gateway_port);\n        node.log(\"Variable globale 'gateway_port' = \" + processedData.gateway_port);\n    }\n    \n    if (processedData.communication_debug !== undefined) {\n        global.set(\"communication_debug\", processedData.communication_debug);\n        node.log(\"Variable globale 'communication_debug' = \" + processedData.communication_debug);\n    }\n     \n    if (processedData.bms_broadcasting !== undefined) {\n        global.set(\"bms_broadcasting\", processedData.bms_broadcasting);\n        node.log(\"Variable globale 'bms_broadcasting' = \" + processedData.bms_broadcasting);\n    }\n\n    if (processedData.non_broadcasting_data_interval_s !== undefined) {\n        global.set(\"non_broadcasting_data_interval_s\", processedData.non_broadcasting_data_interval_s);\n        node.log(\"Variable globale 'non_broadcasting_data_interval_s' = \" + processedData.non_broadcasting_data_interval_s);\n    }\n   \n    if (processedData.CAN_bus_usage !== undefined) {\n        global.set(\"CAN_bus_usage\", processedData.CAN_bus_usage);\n        node.log(\"Variable globale 'CAN_bus_usage' = \" + processedData.CAN_bus_usage);\n    }\n\n    // Paramètres MQTT\n    if (processedData.mqttadresse) {\n        global.set(\"mqttadresse\", processedData.mqttadresse);\n        node.log(\"Variable globale 'mqttadresse' = \" + processedData.mqttadresse);\n    }\n    \n    if (processedData.mqttport) {\n        global.set(\"mqttport\", processedData.mqttport);\n        node.log(\"Variable globale 'mqttport' = \" + processedData.mqttport);\n    }\n    \n    if (processedData.mqttuser) {\n        global.set(\"mqttuser\", processedData.mqttuser);\n        node.log(\"Variable globale 'mqttuser' = \" + processedData.mqttuser);\n    }\n    \n    if (processedData.mqttpass) {\n        global.set(\"mqttpass\", processedData.mqttpass);\n        node.log(\"Variable globale 'mqttpass' = •••••••••\");\n    }\n\n    if (processedData.Send_bip !== undefined) {\n        global.set(\"Send_bip\", processedData.Send_bip);\n        node.log(\"Variable globale 'Send_bip' = \" + processedData.Send_bip);\n    }\n\n        // =========================================================\n    // DASHBOARD LANGUAGE\n    // =========================================================\n    function sanitizeDashboardLanguage(v) {\n        const s = String(v || \"\").trim().toLowerCase();\n        return s === \"fr\" ? \"fr\" : \"en\";\n    }\n\n    function toBool(v) {\n        return v === true;\n    }\n\n    const dashboardLanguage = sanitizeDashboardLanguage(processedData.dashboard_language || \"en\");\n    const dashboardCustomCardsInstalled = toBool(processedData.dashboard_custom_cards_installed);\n    const premiumKey = String(processedData.premium_key || \"\").trim();\n    const premiumKeyConfigured = premiumKey.length > 0;\n\n    global.set(\"dashboard.language\", dashboardLanguage);\n    global.set(\"config.dashboardLanguage\", dashboardLanguage);\n\n    global.set(\"dashboard.custom_cards_installed\", dashboardCustomCardsInstalled);\n    global.set(\"config.dashboardCustomCardsInstalled\", dashboardCustomCardsInstalled);\n\n    // =========================================================\n    // PREMIUM CONFIG\n    // =========================================================\n    const instanceId = String(env.get(\"SMART_JKBMS_INSTANCE_ID\") || \"\").trim();\n    const premiumKeyEnv = String(env.get(\"SMART_JKBMS_PREMIUM_KEY\") || \"\").trim();\n\n    global.set(\"premium.key\", premiumKey);\n    global.set(\"premium.key_configured\", premiumKeyConfigured);\n    global.set(\"premium.instance_id\", instanceId);\n    global.set(\"premium.env_key_present\", premiumKeyEnv.length > 0);\n\n    // état par défaut avant validation\n    global.set(\"premium.active\", false);\n    global.set(\"premium.status\", premiumKeyConfigured ? \"pending_validation\" : \"missing_key\");\n    global.set(\"premium.tier\", null);\n\n    node.log(\"Variable globale 'config.dashboardLanguage' = \" + dashboardLanguage);\n    node.log(\"Variable globale 'config.dashboardCustomCardsInstalled' = \" + dashboardCustomCardsInstalled);\n    node.log(\"Variable globale 'premium.key_configured' = \" + premiumKeyConfigured);\n    node.log(\"Variable globale 'premium.instance_id' = \" + (instanceId || \"null\"));\n\n    // =========================================================\n    // PAYLOAD DE SORTIE - enrichissement premium/dashboard\n    // =========================================================\n    if (!msg.payload || typeof msg.payload !== \"object\") {\n        msg.payload = {};\n    }\n\n    msg.payload.dashboardLanguage = dashboardLanguage;\n    msg.payload.dashboardCustomCardsInstalled = dashboardCustomCardsInstalled;\n    msg.payload.premium = {\n        instance_id: instanceId || null,\n        key_configured: premiumKeyConfigured,\n        status: premiumKeyConfigured ? \"pending_validation\" : \"missing_key\"\n    };\n\n    // Message de confirmation\n    msg.payload = {\n        status: \"success\",\n        message: \"Variables globales créées avec succès\",\n        variables: {\n            jkbms_path: global.get(\"jkbms_path\"),\n            nb_jkbms: global.get(\"nb_jkbms\"),\n            use_gateway: global.get(\"use_gateway\"),\n            gateway_ip: global.get(\"gateway_ip\"),\n            gateway_port: global.get(\"gateway_port\"),\n            communication_debug: global.get(\"communication_debug\"),\n            bms_broadcasting: global.get(\"bms_broadcasting\"),\n            non_broadcasting_data_interval_s: global.get(\"non_broadcasting_data_interval_s\"),\n            mqttadresse: global.get(\"mqttadresse\"),\n            mqttport: global.get(\"mqttport\"),\n            mqttuser: global.get(\"mqttuser\"),\n            mqttpass: global.get(\"mqttpass\"),\n            CAN_bus_usage: global.get(\"CAN_bus_usage\"),\n            Send_bip: global.get(\"Send_bip\")\n        },\n        processedData: processedData // Pour debugging\n    };\n\n} catch (error) {\n    node.error(\"Erreur lors de la création des variables globales: \" + error.message);\n    msg.payload = {\n        status: \"error\",\n        message: error.message\n    };\n}\n\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -2595,7 +2595,7 @@
         "z": "a0472de35efa2448",
         "g": "1b1d9614039e69ec",
         "name": "PREMIUM STORAGE INIT",
-        "func": "const crypto = global.get(\"crypto\");\nconst fs = global.get(\"fs\");\nconst path = global.get(\"path\");\n\nfunction normStr(v) {\n    return (v ?? \"\").toString().trim();\n}\n\nfunction generateInstallId() {\n    if (crypto && typeof crypto.randomUUID === \"function\") {\n        return crypto.randomUUID();\n    }\n\n    return \"sjk-\" +\n        Date.now().toString(36) +\n        \"-\" +\n        Math.random().toString(36).slice(2, 10);\n}\n\nconst installDir = \"/data\";\nconst installFile = \"/data/smart_jkbms_premium.json\";\n\nlet installId = \"\";\nlet payload = {};\n\ntry {\n    if (fs && fs.existsSync(installFile)) {\n        const raw = fs.readFileSync(installFile, \"utf8\");\n        payload = JSON.parse(raw || \"{}\");\n    }\n\n    installId = normStr(payload.install_id);\n\n    if (!installId) {\n        installId = generateInstallId();\n        payload.install_id = installId;\n\n        if (fs) {\n            fs.writeFileSync(installFile, JSON.stringify(payload, null, 2), \"utf8\");\n        }\n    }\n\n    global.set(\"premium.install_id\", installId);\n    global.set(\"premium.storage_file\", installFile);\n\n    node.status({\n        fill: \"green\",\n        shape: \"dot\",\n        text: \"install_id ready\"\n    });\n\n    node.warn(\"JK PREMIUM STORAGE INIT -> \" + JSON.stringify({\n        install_id: installId,\n        file: installFile\n    }));\n\n    msg.payload = {\n        install_id: installId,\n        file: installFile\n    };\n\n    return msg;\n\n} catch (err) {\n    node.error(\"PREMIUM STORAGE INIT error: \" + err.message, msg);\n    node.status({\n        fill: \"red\",\n        shape: \"ring\",\n        text: \"storage init error\"\n    });\n    return null;\n}",
+        "func": "const crypto = global.get(\"crypto\");\nconst fs = global.get(\"fs\");\nconst path = global.get(\"path\");\n\nfunction normStr(v) {\n    return (v ?? \"\").toString().trim();\n}\n\nfunction generateInstallId() {\n    if (crypto && typeof crypto.randomUUID === \"function\") {\n        return crypto.randomUUID();\n    }\n\n    return \"sjk-\" +\n        Date.now().toString(36) +\n        \"-\" +\n        Math.random().toString(36).slice(2, 10);\n}\n\nconst installDir = \"/data\";\nconst installFile = \"/data/smart_jkbms_premium.json\";\n\nlet installId = \"\";\nlet payload = {};\n\ntry {\n    if (!fs.existsSync(installDir)) {\n        fs.mkdirSync(installDir, { recursive: true });\n    }\n\n    if (fs.existsSync(installFile)) {\n        const raw = fs.readFileSync(installFile, \"utf8\");\n        payload = JSON.parse(raw || \"{}\");\n    }\n\n    installId = normStr(payload.install_id);\n\n    if (!installId) {\n        installId = generateInstallId();\n        payload.install_id = installId;\n        fs.writeFileSync(installFile, JSON.stringify(payload, null, 2), \"utf8\");\n    }\n\n    global.set(\"premium.install_id\", installId);\n    global.set(\"premium.storage_file\", installFile);\n\n    node.status({ fill: \"green\", shape: \"dot\", text: \"install_id ready\" });\n\n    msg.payload = {\n        install_id: installId,\n        file: installFile\n    };\n\n    return msg;\n\n} catch (err) {\n    node.error(\"PREMIUM STORAGE INIT error: \" + err.message, msg);\n    node.status({ fill: \"red\", shape: \"ring\", text: \"storage init error\" });\n    return null;\n}",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -2616,7 +2616,7 @@
         "z": "a0472de35efa2448",
         "g": "1b1d9614039e69ec",
         "name": "premium init",
-        "func": "/* =========================\n   PREMIUM INIT JK-BMS\n\n   Format licence :\n   SJK|premium|INSTALL_ID|SIGNATURE\n   ========================= */\n\nconst crypto = global.get(\"crypto\");\n\nfunction normStr(v) {\n    return (v ?? \"\").toString().trim();\n}\n\nconst LICENSE_SECRET = \"SJK_2026_9f7c2e51b4d84f38a1e9c7b6d5e4f301_ULTRA_LONG_SECRET\";\n\nfunction signPayload(payload) {\n    return crypto\n        .createHmac(\"sha256\", LICENSE_SECRET)\n        .update(payload, \"utf8\")\n        .digest(\"hex\");\n}\n\nfunction safeEqual(a, b) {\n    const aa = Buffer.from(String(a || \"\"), \"utf8\");\n    const bb = Buffer.from(String(b || \"\"), \"utf8\");\n\n    if (aa.length !== bb.length) return false;\n    return crypto.timingSafeEqual(aa, bb);\n}\n\nconst premiumKey = normStr(global.get(\"premium.key\"));\nconst installId = normStr(global.get(\"premium.install_id\"));\n\nlet premiumActive = false;\nlet premiumStatus = \"missing_key\";\nlet premiumTier = null;\n\nif (!crypto) {\n    premiumStatus = \"crypto_missing\";\n}\nelse if (!installId) {\n    premiumStatus = \"missing_install_id\";\n}\nelse if (!premiumKey) {\n    premiumStatus = \"missing_key\";\n}\nelse {\n    const parts = premiumKey.split(\"|\");\n\n    if (parts.length !== 4) {\n        premiumStatus = \"invalid_format\";\n    } else {\n        const prefix = normStr(parts[0]);\n        const tier = normStr(parts[1]);\n        const licenseInstallId = normStr(parts[2]);\n        const signature = normStr(parts[3]);\n\n        if (prefix !== \"SJK\") {\n            premiumStatus = \"invalid_prefix\";\n        }\n        else if (tier !== \"premium\") {\n            premiumStatus = \"invalid_tier\";\n        }\n        else if (!licenseInstallId) {\n            premiumStatus = \"missing_license_install_id\";\n        }\n        else if (!signature) {\n            premiumStatus = \"missing_signature\";\n        }\n        else if (licenseInstallId !== installId) {\n            premiumStatus = \"install_id_mismatch\";\n        }\n        else {\n            const payload = `${prefix}|${tier}|${licenseInstallId}`;\n            const expected = signPayload(payload);\n\n            if (!safeEqual(signature, expected)) {\n                premiumStatus = \"invalid_signature\";\n            } else {\n                premiumActive = true;\n                premiumStatus = \"valid\";\n                premiumTier = \"premium\";\n                global.set(\"premium.last_valid\", Date.now());\n            }\n        }\n    }\n}\n\nglobal.set(\"premium.active\", premiumActive);\nglobal.set(\"premium.status\", premiumStatus);\nglobal.set(\"premium.tier\", premiumTier);\n\nconst premiumState = {\n    install_id: installId || null,\n    active: premiumActive,\n    status: premiumStatus,\n    tier: premiumTier\n};\n\nif (premiumActive) {\n    node.status({\n        fill: \"green\",\n        shape: \"dot\",\n        text: \"Premium active\"\n    });\n} else if (\n    premiumStatus === \"invalid_format\" ||\n    premiumStatus === \"invalid_prefix\" ||\n    premiumStatus === \"invalid_tier\" ||\n    premiumStatus === \"missing_license_install_id\" ||\n    premiumStatus === \"missing_signature\" ||\n    premiumStatus === \"install_id_mismatch\" ||\n    premiumStatus === \"invalid_signature\" ||\n    premiumStatus === \"crypto_missing\"\n) {\n    node.status({\n        fill: \"red\",\n        shape: \"ring\",\n        text: \"Premium \" + premiumStatus\n    });\n} else {\n    node.status({\n        fill: \"yellow\",\n        shape: \"ring\",\n        text: \"Free / \" + premiumStatus\n    });\n}\n\nif (premiumActive) {\n    node.warn(\"🟢 JK PREMIUM STATE -> \" + JSON.stringify(premiumState));\n}\nelse if (\n    premiumStatus === \"invalid_format\" ||\n    premiumStatus === \"invalid_prefix\" ||\n    premiumStatus === \"invalid_tier\" ||\n    premiumStatus === \"missing_license_install_id\" ||\n    premiumStatus === \"missing_signature\" ||\n    premiumStatus === \"install_id_mismatch\" ||\n    premiumStatus === \"invalid_signature\" ||\n    premiumStatus === \"crypto_missing\"\n) {\n    node.error(\"🔴 JK PREMIUM STATE -> \" + JSON.stringify(premiumState));\n}\nelse {\n    node.warn(\"🟠 JK PREMIUM STATE -> \" + JSON.stringify(premiumState));\n}\n\nif (!msg.payload || typeof msg.payload !== \"object\") {\n    msg.payload = {};\n}\n\nmsg.payload.premium = premiumState;\n\nreturn msg;",
+        "func": "const crypto = global.get(\"crypto\");\n\nfunction normStr(v) {\n    return (v ?? \"\").toString().trim();\n}\n\nconst LICENSE_SECRET = \"SJK_2026_9f7c2e51b4d84f38a1e9c7b6d5e4f301_ULTRA_LONG_SECRET\";\n\nfunction signPayload(payload) {\n    return crypto\n        .createHmac(\"sha256\", LICENSE_SECRET)\n        .update(payload, \"utf8\")\n        .digest(\"hex\");\n}\n\nconst premiumKey = normStr(global.get(\"premium.key\"));\nconst installId = normStr(global.get(\"premium.install_id\"));\n\nlet premiumActive = false;\nlet premiumStatus = \"missing_key\";\nlet premiumTier = null;\n\nif (!crypto) {\n    premiumStatus = \"crypto_missing\";\n} else if (!installId) {\n    premiumStatus = \"missing_install_id\";\n} else if (!premiumKey) {\n    premiumStatus = \"missing_key\";\n} else {\n    const parts = premiumKey.split(\"|\");\n\n    if (parts.length !== 4) {\n        premiumStatus = \"invalid_format\";\n    } else {\n        const prefix = normStr(parts[0]);\n        const tier = normStr(parts[1]);\n        const licenseInstallId = normStr(parts[2]);\n        const signature = normStr(parts[3]);\n\n        if (prefix !== \"SJK\") {\n            premiumStatus = \"invalid_prefix\";\n        } else if (tier !== \"premium\") {\n            premiumStatus = \"invalid_tier\";\n        } else if (licenseInstallId !== installId) {\n            premiumStatus = \"install_id_mismatch\";\n        } else {\n            const payload = `${prefix}|${tier}|${licenseInstallId}`;\n            const expected = signPayload(payload);\n\n            if (signature !== expected) {\n                premiumStatus = \"invalid_signature\";\n            } else {\n                premiumActive = true;\n                premiumStatus = \"valid\";\n                premiumTier = \"premium\";\n                global.set(\"premium.last_valid\", Date.now());\n            }\n        }\n    }\n}\n\nglobal.set(\"premium.active\", premiumActive);\nglobal.set(\"premium.status\", premiumStatus);\nglobal.set(\"premium.tier\", premiumTier);\n\nconst premiumState = {\n    install_id: installId || null,\n    active: premiumActive,\n    status: premiumStatus,\n    tier: premiumTier\n};\n\nnode.warn(\"JK PREMIUM STATE -> \" + JSON.stringify(premiumState));\n\nmsg.payload = { premium: premiumState };\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -14519,7 +14519,7 @@
         "filenameType": "msg",
         "appendNewline": false,
         "createDir": true,
-        "overwriteFile": "false",
+        "overwriteFile": "true",
         "encoding": "utf8",
         "x": 750,
         "y": 60,
@@ -14533,7 +14533,7 @@
         "id": "4958e54e37486201",
         "type": "exec",
         "z": "4f84673227fd11f2",
-        "command": "node /addon/dashboard_sync.js upsert /config/dashboards/smart_jkbms.json",
+        "command": "node /etc/node-red/dashboard_sync.js upsert /config/dashboards/smart_jkbms.json",
         "addpay": "",
         "append": "",
         "useSpawn": "false",
@@ -14573,7 +14573,7 @@
         "id": "a8a9839d1cae86fe",
         "type": "exec",
         "z": "4f84673227fd11f2",
-        "command": "node /addon/dashboard_sync.js delete /config/dashboards/smart_jkbms.json",
+        "command": "node /etc/node-red/dashboard_sync.js delete /config/dashboards/smart_jkbms.json",
         "addpay": "",
         "append": "",
         "useSpawn": "false",
