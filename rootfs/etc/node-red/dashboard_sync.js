@@ -21,18 +21,17 @@ if (typeof WebSocket === "undefined") {
 
 let input = null;
 
-if (action !== "delete") {
-  if (!fs.existsSync(filePath)) {
-    console.error(JSON.stringify({ ok: false, error: `Dashboard file not found: ${filePath}` }));
-    process.exit(1);
-  }
-
+// ✅ Correction : on lit aussi le fichier en mode delete si il existe
+if (fs.existsSync(filePath)) {
   try {
     input = JSON.parse(fs.readFileSync(filePath, "utf8"));
   } catch (e) {
     console.error(JSON.stringify({ ok: false, error: `Invalid dashboard JSON in file: ${filePath}` }));
     process.exit(1);
   }
+} else if (action !== "delete") {
+  console.error(JSON.stringify({ ok: false, error: `Dashboard file not found: ${filePath}` }));
+  process.exit(1);
 }
 
 const dashboardMeta = input?.dashboard_meta || {};
@@ -67,6 +66,7 @@ function finishErr(error) {
   console.error(JSON.stringify({
     ok: false,
     action,
+    dashboard: urlPath,
     error: String(error || "Unknown error")
   }));
   try { ws.close(); } catch (_) {}
@@ -123,7 +123,10 @@ async function deleteDashboard() {
       url_path: urlPath
     });
 
-    return { deleted: true };
+    return {
+      deleted: true,
+      file: filePath
+    };
   } catch (err) {
     const msg = String(err?.message || err || "").toLowerCase();
 
@@ -136,7 +139,8 @@ async function deleteDashboard() {
     ) {
       return {
         deleted: false,
-        already_missing: true
+        already_missing: true,
+        file: filePath
       };
     }
 
