@@ -61,6 +61,7 @@ options:
   dashboard_section: "────────── DASHBOARD ──────────"
   dashboard_custom_cards_installed: false
   dashboard_language: "fr"
+  dashboard_mode: "legacy"
 
 schema:
   # JK-BMS Configuration
@@ -84,7 +85,7 @@ schema:
   dashboard_section: str?
   dashboard_custom_cards_installed: bool
   dashboard_language: list(fr|en)
+  dashboard_mode: list(legacy|html|both)
 
   # Telemetry
   Send_bip: bool
-
