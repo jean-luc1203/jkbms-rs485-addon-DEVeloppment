@@ -3,7 +3,7 @@
 
 const fs = require("fs");
 
-const action = process.argv[2] || "upsert";
+const action = String(process.argv[2] || "upsert").toLowerCase();
 const filePath = process.argv[3] || "/config/dashboards/smart_jkbms.json";
 
 const token = process.env.SUPERVISOR_TOKEN;
@@ -21,7 +21,6 @@ if (typeof WebSocket === "undefined") {
 
 let input = null;
 
-// ✅ Correction : on lit aussi le fichier en mode delete si il existe
 if (fs.existsSync(filePath)) {
   try {
     input = JSON.parse(fs.readFileSync(filePath, "utf8"));
@@ -35,7 +34,8 @@ if (fs.existsSync(filePath)) {
 }
 
 const dashboardMeta = input?.dashboard_meta || {};
-const dashboardConfig = input?.config || {};
+const dashboardConfig = input?.config || input || {};
+
 const urlPath = dashboardMeta.url_path || "smart-jkbms";
 const title = dashboardMeta.title || "Smart JK-BMS";
 const icon = dashboardMeta.icon || "mdi:battery";
@@ -50,12 +50,16 @@ let finished = false;
 function finishOk(extra = {}) {
   if (finished) return;
   finished = true;
+
   console.log(JSON.stringify({
     ok: true,
     action,
     dashboard: urlPath,
+    title,
+    file: filePath,
     ...extra
   }));
+
   try { ws.close(); } catch (_) {}
   process.exit(0);
 }
@@ -63,12 +67,16 @@ function finishOk(extra = {}) {
 function finishErr(error) {
   if (finished) return;
   finished = true;
+
   console.error(JSON.stringify({
     ok: false,
     action,
     dashboard: urlPath,
+    title,
+    file: filePath,
     error: String(error || "Unknown error")
   }));
+
   try { ws.close(); } catch (_) {}
   process.exit(1);
 }
@@ -81,9 +89,27 @@ function call(type, payload = {}) {
   });
 }
 
-async function createOrUpdateDashboard() {
-  let createdDashboard = false;
+function isAlreadyExistsError(err) {
+  const msg = String(err?.message || err || "").toLowerCase();
+  return (
+    msg.includes("exists") ||
+    msg.includes("already") ||
+    msg.includes("configured")
+  );
+}
 
+function isMissingError(err) {
+  const msg = String(err?.message || err || "").toLowerCase();
+  return (
+    msg.includes("not found") ||
+    msg.includes("unknown") ||
+    msg.includes("does not exist") ||
+    msg.includes("no config") ||
+    msg.includes("not configured")
+  );
+}
+
+async function createDashboardIfNeeded() {
   try {
     await call("lovelace/dashboards/create", {
       url_path: urlPath,
@@ -93,27 +119,54 @@ async function createOrUpdateDashboard() {
       require_admin: requireAdmin,
       mode: "storage"
     });
-    createdDashboard = true;
-  } catch (err) {
-    const msg = String(err?.message || err || "").toLowerCase();
-    if (
-      !msg.includes("exists") &&
-      !msg.includes("already") &&
-      !msg.includes("configured")
-    ) {
-      throw err;
-    }
-  }
 
+    return true;
+  } catch (err) {
+    if (isAlreadyExistsError(err)) {
+      return false;
+    }
+
+    throw err;
+  }
+}
+
+async function updateDashboardInfoIfPossible() {
+  try {
+    await call("lovelace/dashboards/update", {
+      url_path: urlPath,
+      title,
+      icon,
+      show_in_sidebar: showInSidebar,
+      require_admin: requireAdmin,
+      mode: "storage"
+    });
+
+    return true;
+  } catch (err) {
+    // Certaines versions HA n’acceptent pas update ou refusent mode.
+    // Ce n’est pas bloquant : le save config suffit.
+    return false;
+  }
+}
+
+async function saveDashboardConfig() {
   await call("lovelace/config/save", {
     url_path: urlPath,
     config: dashboardConfig
   });
 
+  return true;
+}
+
+async function createOrUpdateDashboard() {
+  const createdDashboard = await createDashboardIfNeeded();
+  const updatedDashboard = await updateDashboardInfoIfPossible();
+  const saved = await saveDashboardConfig();
+
   return {
     created_dashboard: createdDashboard,
-    saved: true,
-    file: filePath
+    updated_dashboard: updatedDashboard,
+    saved
   };
 }
 
@@ -125,22 +178,13 @@ async function deleteDashboard() {
 
     return {
       deleted: true,
-      file: filePath
+      already_missing: false
     };
   } catch (err) {
-    const msg = String(err?.message || err || "").toLowerCase();
-
-    if (
-      msg.includes("not found") ||
-      msg.includes("unknown") ||
-      msg.includes("does not exist") ||
-      msg.includes("no config") ||
-      msg.includes("not configured")
-    ) {
+    if (isMissingError(err)) {
       return {
         deleted: false,
-        already_missing: true,
-        file: filePath
+        already_missing: true
       };
     }
 
@@ -154,6 +198,7 @@ ws.onerror = (event) => {
 
 ws.onmessage = async (event) => {
   let msg;
+
   try {
     msg = JSON.parse(event.data.toString());
   } catch (e) {
@@ -188,6 +233,7 @@ ws.onmessage = async (event) => {
     } catch (err) {
       finishErr(err?.message || err);
     }
+
     return;
   }
 
