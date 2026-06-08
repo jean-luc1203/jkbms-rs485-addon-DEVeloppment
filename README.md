@@ -74,11 +74,8 @@ No expensive proprietary software is required.
 
 Supported JK-BMS models include:
 
-- PB2A16S20P
-- PB2A16S15P
-- PB1A16S15P
-- PB1A16S10P
-- All compatible models with FW:19
+- PB2A16S20P - PB2A16S15P - PB1A16S15P - PB1A16S10P - PB2A16S30P
+- All compatible models with FW: 14 - 15 - 19
 - Battery packs from 1S to 16S
 
 ---
