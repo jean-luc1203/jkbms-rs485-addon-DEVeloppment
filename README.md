@@ -175,25 +175,6 @@ Currently supported:
 
 ---
 
-## 🧩 Smartphoton Modular Dashboard Architecture
-
-The dashboard system is modular.
-
-It automatically detects installed Smartphoton modules and generates the appropriate interface.
-
-Examples:
-
-| Installed Smartphoton Modules | Generated Interface |
-|-------------------------------|---------------------|
-| JK-BMS only | JK-BMS dashboard |
-| Voltronic only | Voltronic dashboard |
-| Smart Energy Finance only | Finance dashboard |
-| JK-BMS + Voltronic | Unified energy dashboard |
-| JK-BMS + Voltronic + Finance | Complete Smartphoton energy dashboard |
-
-When a new Smartphoton module is installed later, the dashboard can extend itself while preserving existing sections.
-
----
 
 ## 🔗 Smartphoton Ecosystem
 
@@ -202,6 +183,7 @@ Smartphoton JK-BMS is part of a larger ecosystem for Home Assistant energy manag
 Compatible Smartphoton modules include:
 
 - 🔋 Smartphoton JK-BMS
+- 🔋 Pylontech 
 - ⚡ Smartphoton Voltronic
 - 💰 Smart Energy Finance
 - 🌐 Smartphoton HTML Dashboard
