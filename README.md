@@ -180,7 +180,7 @@ Smartphoton JK-BMS is part of a larger ecosystem for Home Assistant energy manag
 Compatible Smartphoton modules include:
 
 - 🔋 Smartphoton JK-BMS
-- 🔋 [!Pylontech / Pelio](https://github.com/jean-luc1203/Pylontech-rs232-haos)
+- 🔋 [Pylontech / Pelio](https://github.com/jean-luc1203/Pylontech-rs232-haos)
 - ⚡ Smartphoton Voltronic
 - 💰 Smart Energy Finance
 - 🌐 Smartphoton HTML Dashboard
