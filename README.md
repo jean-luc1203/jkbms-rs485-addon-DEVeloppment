@@ -16,7 +16,10 @@ Business, professional or commercial use requires a separate commercial license.
 
 # Smartphoton JK-BMS RS485 & CAN Bus Add-on
 
-> **4800+ installations** · **50+ daily clones** · **Community-driven development** · **Professional Home Assistant integration**
+> **7500+ installations** · **67+ daily clones** · **Community-driven development** · **Professional Home Assistant integration**
+
+[![Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y8Y3YHYZP)
+[![Donate with PayPal](https://raw.githubusercontent.com/jean-luc1203/jkbms-rs485-addon/main/images/paypal.png)](https://www.paypal.com/ncp/payment/PSQPALQJT9UBW)
 
 Smartphoton JK-BMS is a professional Home Assistant add-on for monitoring, controlling and integrating JK-BMS battery management systems through **RS485**, **TCP/IP gateways** or **CAN Bus**.
 
@@ -43,9 +46,6 @@ The add-on now supports battery packs with any cell count from **1S to 16S**.
 Until now, many users with non-16-cell battery packs could see incorrect cell statistics because unused cell slots were still present in the frame layout.
 
 This feature makes the add-on cell-count aware, which is a major improvement for real-world battery installations.
-
-[![Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y8Y3YHYZP)
-[![Donate with PayPal](https://raw.githubusercontent.com/jean-luc1203/jkbms-rs485-addon/main/images/paypal.png)](https://www.paypal.com/ncp/payment/PSQPALQJT9UBW)
 
 ---
 
@@ -186,6 +186,9 @@ Compatible Smartphoton modules include:
 - 🌐 Smartphoton HTML Dashboard
 
 Together, these modules can provide a unified view of batteries, inverters, energy flows, financial savings and system diagnostics.
+
+[![Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y8Y3YHYZP)
+[![Donate with PayPal](https://raw.githubusercontent.com/jean-luc1203/jkbms-rs485-addon/main/images/paypal.png)](https://www.paypal.com/ncp/payment/PSQPALQJT9UBW)
 
 ---
 
