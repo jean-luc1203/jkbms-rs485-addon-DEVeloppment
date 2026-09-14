@@ -44,21 +44,14 @@ The current development lab validation is **5 packs / 12 BMS** with mixed TCP + 
 
 ## 🎬 Legacy vs Multi-Pack
 
-See how SmartPhoton JK-BMS evolves from the historical Legacy architecture
-to the new Multi-Pack architecture.
+Click the animation to watch the full video.
 
-<a href="https://raw.githubusercontent.com/jean-luc1203/jkbms-rs485-addon-DEVeloppment/main/images/SmartPhoton-JK-BMS-Legacy-vs-MultiPack-English-39s-v2.mp4">
+<a href="https://jean-luc1203.github.io/jkbms-rs485-addon-DEVeloppment/video.html">
   <img
     src="images/SmartPhoton-JK-BMS-Legacy-vs-MultiPack-English-short-readme-v2.gif"
     alt="SmartPhoton JK-BMS — Legacy vs Multi-Pack"
     width="900">
 </a>
-
-<p>
-  ▶️ <a href="https://raw.githubusercontent.com/jean-luc1203/jkbms-rs485-addon-DEVeloppment/main/images/SmartPhoton-JK-BMS-Legacy-vs-MultiPack-English-39s-v2.mp4">
-  Watch the full video
-  </a>
-</p>
 
 ---
 
