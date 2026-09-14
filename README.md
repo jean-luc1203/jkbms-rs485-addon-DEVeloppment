@@ -42,6 +42,17 @@ It supports one or many BMS units, alarm monitoring, Home Assistant entities, sa
 Each pack is isolated and can independently use **TCP/IP** or **USB/RS485** in Broadcasting mode.  
 The current development lab validation is **5 packs / 12 BMS** with mixed TCP + real USB/RS485; **80 BMS is the supported architecture limit, not the number physically validated in the lab.**
 
+## 🎬 Legacy vs Multi-Pack
+
+Click the animation to watch the full video.
+
+<a href="images/SmartPhoton-JK-BMS-Legacy-vs-MultiPack-English-39s-v2.mp4">
+  <img
+    src="images/SmartPhoton-JK-BMS-Legacy-vs-MultiPack-English-short-readme-v2.gif"
+    alt="SmartPhoton JK-BMS — Legacy vs Multi-Pack"
+    width="900">
+</a>
+
 ---
 
 ## v4.2.68 — Multi-Pack test release
