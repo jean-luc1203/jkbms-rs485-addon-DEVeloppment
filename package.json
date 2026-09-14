@@ -11,13 +11,14 @@
   },
   "dependencies": {
     "bcryptjs": "*",
+    "ws": "*",
     "js-yaml": "*",
     "node-red": "*",
     "@flowfuse/node-red-dashboard": "*",
     "node-red-contrib-os": "*",
     "node-red-node-serialport": "*",
-    "node-red-contrib-tcp-client2":"*",
-    "node-red-contrib-buffer-parser":"*"
+    "node-red-contrib-tcp-client2": "*",
+    "node-red-contrib-buffer-parser": "*"
   },
   "engines": {
     "node": ">=16"

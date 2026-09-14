@@ -1,66 +1,84 @@
 ---
 configuration:
-  # Section de configuration du JK-BMS
-  jkbms_path:
-    name: "🟪 JK-BMS → Chemin du port série"
-    description: "Chemin vers le port série où le JK-BMS est connecté (Menu : Paramètres-Matériel-Tout le matériel)."
-    
-  jkbms_count:
-    name: "🟪 JK-BMS → Nombre de modules BMS"
-    description: "Nombre de modules JK-BMS à interroger. Ils doivent être connectés au bus RS485 (valeur : 1 à 15)."
-    
-  use_gateway:
-    name: "🟨 JK-BMS → Utiliser une passerelle TCP"
-    description: "Activer la communication via une passerelle IP (Passerelle TCP) au lieu du port série local."
-    
-  gateway_ip_port:
-    name: "🟨 JK-BMS → Adresse IP de la passerelle + Port"
-    description: "Adresse IP + port de la passerelle réseau pour l'accès à distance au JK-BMS (ex: 192.168.1.100:5000)."
-    
   communication_debug:
-    name: "🔴 JK-BMS → Débogage de la communication"
-    description: "Activer l'affichage détaillé des journaux de communication (pour le diagnostic ou le support)."
-    
+    name: 🔴 JK-BMS → Débogage de la communication
+    description: Activer l'affichage détaillé des journaux de communication pour le diagnostic et le support.
   bms_broadcasting:
-    name: "🔴 JK-BMS → Diffusion BMS (Broadcasting)"
-    description: "Dans ce mode, le BMS publie lui-même les données agrégées. Il doit être configuré en Maître (commutateur sur 0000)."
-
+    name: 🔴 JK-BMS → Diffusion BMS (Broadcasting)
+    description: Activer le mode Broadcasting du JK-BMS. Le Multi-Pack nécessite actuellement le Broadcasting.
+  multi_pack_section:
+    name: ────────── MULTI-PACK ──────────
+    description: Configuration de plusieurs packs JK-BMS indépendants.
+  multi_pack_enabled:
+    name: 🔷 Multi-Pack → Activer
+    description: Activer le mode Multi-Pack. Recommandé pour les nouvelles installations en Broadcasting, même avec un seul pack. Chaque pack possède une identité technique stable et son propre transport.
+  multi_pack_packs:
+    name: 🔷 Multi-Pack → Packs
+    description: Configurer jusqu'à cinq packs indépendants. Chaque pack peut utiliser TCP/IP ou USB/RS485.
+    fields:
+      id:
+        name: ID du pack
+        description: Identifiant technique stable de pack_1 à pack_5. Ne pas le changer après la mise en service.
+      name:
+        name: Nom du pack
+        description: Nom convivial affiché dans les dashboards.
+      transport:
+        name: Transport
+        description: Utiliser tcp pour une passerelle RS485 TCP/IP ou serial pour un adaptateur USB/RS485 local.
+      gateway_ip_port:
+        name: IP passerelle + port
+        description: Obligatoire pour un pack TCP, par exemple 192.168.1.101:5000.
+      path:
+        name: Chemin série
+        description: Obligatoire pour un pack série. Utiliser de préférence /dev/serial/by-id/....
+  legacy_section:
+    name: ────────── LEGACY / MONO-BUS ──────────
+    description: Configuration de compatibilité pour l'ancien bus RS485 unique.
+  jkbms_path:
+    name: 🟪 JK-BMS → Chemin du port série
+    description: Chemin USB/RS485 persistant utilisé en Legacy et comme repli de compatibilité pour un pack série Multi-Pack.
+  jkbms_count:
+    name: 🟪 JK-BMS → Nombre de modules BMS
+    description: Nombre total de modules JK-BMS sur le bus RS485 Legacy (1 à 15).
+  use_gateway:
+    name: 🟨 JK-BMS → Utiliser une passerelle TCP
+    description: Utiliser une passerelle TCP/IP au lieu de l'interface USB/RS485 locale en mode Legacy.
+  gateway_ip_port:
+    name: 🟨 JK-BMS → Adresse IP de la passerelle + port
+    description: Adresse IP et port TCP de la passerelle JK-BMS Legacy, par exemple 192.168.1.100:5000.
   non_broadcasting_data_interval_s:
-    name: "⏱️ JK-BMS → Intervalle de données hors diffusion (s)"
-    description: "Délai entre chaque cycle d'interrogation des données lorsque le mode diffusion du BMS est désactivé. Plage autorisée : 1 à 30 secondes."
-    
+    name: ⏱️ JK-BMS → Intervalle Active Polling (s)
+    description: 'Délai entre les cycles LIVE lorsque le Broadcasting est désactivé. Plage autorisée : 1 à 30 secondes.'
   CAN_bus_usage:
-    name: "🔴 JK-BMS → Utilisation du bus CAN"
-    description: "Activer la communication et la transmission de données sur le bus CAN (si connecté physiquement)."
-
-  # Section de configuration MQTT
-  mqttadresse_port: 
-    name: "🚩 MQTT → Adresse du Broker + Port"
-    description: "Adresse du broker MQTT + port (ex: core-mosquitto.local.hass.io:1883 ou IP locale + port)."
-    
+    name: 🔴 JK-BMS → Utilisation du bus CAN
+    description: Activer la communication et la transmission CAN lorsqu'une interface CAN est physiquement connectée.
+  mqttadresse_port:
+    name: 🚩 MQTT → Adresse du broker + port
+    description: Adresse et port du broker MQTT, par exemple core-mosquitto.local.hass.io:1883.
   mqttuser:
-    name: "🚩 MQTT → Nom d'utilisateur"
-    description: "Nom d'utilisateur pour se connecter au broker MQTT."
-    
+    name: 🚩 MQTT → Nom d'utilisateur
+    description: Nom d'utilisateur utilisé pour se connecter au broker MQTT.
   mqttpass:
-    name: "🚩 MQTT → Mot de passe"
-    description: "Mot de passe associé à l'utilisateur MQTT."
-
+    name: 🚩 MQTT → Mot de passe
+    description: Mot de passe utilisé pour se connecter au broker MQTT.
   Send_bip:
-    name: "📊 Utilisation de l'Add-on"
-    description: "Activer l'envoi d'un bip au démarrage. Aucune donnée privée n'est transmise. Le traitement est conforme au RGPD."
-
-  dashboard_section:
-    name: ────────── DASHBOARD ──────────
-  dashboard_custom_cards_installed:
-    name: Cartes personnalisées du dashboard installées
-  dashboard_language:
-    name: Langue du dashboard
-
+    name: 📊 Statistiques d'utilisation anonymes
+    description: Envoyer un ping d'utilisation anonyme au démarrage. Aucune donnée privée n'est transmise.
   premium_section:
     name: ────────── PREMIUM ──────────
+    description: Licence SmartPhoton Premium et fonctions Premium.
   premium_key:
-    name: Clé Premium
-
-
-
+    name: 👑 Premium → Clé de licence
+    description: Clé de licence SmartPhoton Premium. Laisser vide si Premium n'est pas utilisé.
+  dashboard_section:
+    name: ────────── DASHBOARD ──────────
+    description: Paramètres des dashboards SmartPhoton.
+  dashboard_custom_cards_installed:
+    name: 🎨 Dashboard → Cartes personnalisées installées
+    description: Activer lorsque les cartes personnalisées Home Assistant nécessaires sont installées.
+  dashboard_language:
+    name: 🎨 Dashboard → Langue
+    description: Langue utilisée par les dashboards SmartPhoton Premium.
+  dashboard_mode:
+    name: 🎨 Dashboard → Mode
+    description: 'Mode Legacy uniquement : legacy = Home Assistant/Lovelace, html = dashboard HTML, both = les deux. En Multi-Pack Premium, le dashboard Multi-Pack dédié est utilisé.'

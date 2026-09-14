@@ -1,19 +1,9 @@
-# ⚠️ DEVELOPMENT / TESTING VERSION
-
-> **This repository contains the development version of SmartPhoton JK-BMS.**
->
-> It is intended for testing and validation before release to the production repository.
-> Features, configuration and dashboards may still change.
->
-> **Do not use this repository for a critical production installation without a backup.**
->
-> Current test focus: **Multi-Pack Broadcasting — up to 5 packs / 80 JK-BMS, TCP/IP and USB/RS485.**
 ⭐ **If this add-on is useful to you, please star this repository!**  
 It helps other Home Assistant users discover the project and supports future development.
 
 [![GitHub stars](https://img.shields.io/github/stars/jean-luc1203/jkbms-rs485-addon?style=social)](https://github.com/jean-luc1203/jkbms-rs485-addon/stargazers)
-[![Installations](https://img.shields.io/badge/installations-14000+-brightgreen)](https://github.com/jean-luc1203/jkbms-rs485-addon)
-[![Countries](https://img.shields.io/badge/countries-72+-blue)](https://github.com/jean-luc1203/jkbms-rs485-addon)
+[![Active installations](https://img.shields.io/badge/active_installations-8300+-brightgreen)](https://github.com/jean-luc1203/jkbms-rs485-addon)
+[![Countries](https://img.shields.io/badge/countries-67+-blue)](https://github.com/jean-luc1203/jkbms-rs485-addon)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-Compatible-41BDF5)](https://www.home-assistant.io/)
 [![MQTT](https://img.shields.io/badge/MQTT-Compatible-green)](https://mqtt.org/)
 [![Docker](https://img.shields.io/badge/Docker-Supported-blue)](https://github.com/jean-luc1203/jkbms-rs485-addon/tree/main/standalone)
@@ -27,30 +17,19 @@ It helps other Home Assistant users discover the project and supports future dev
 
 [![Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/s/b704b5561d)
 
-> **SmartPhoton Premium is available exclusively through Ko-fi.**
-
 **SmartPhoton JK-BMS** integrates JK-BMS battery management systems into Home Assistant through **RS485 USB**, **RS485 TCP/IP gateways**, **CAN Bus**, **MQTT Discovery**, advanced diagnostics and optional **SmartPhoton Premium dashboards**.
 
 It supports one or many BMS units, alarm monitoring, Home Assistant entities, safer operating modes, automatic dashboard generation and the SmartPhoton energy ecosystem. No expensive proprietary monitoring software is required.
 
 ---
 
-## ⚡ Multi-Pack: up to 80 JK-BMS
-
-> **5 independent RS485 packs × up to 16 JK-BMS per pack = up to 80 BMS managed by one SmartPhoton add-on instance.**
-
-Each pack is isolated and can independently use **TCP/IP** or **USB/RS485** in Broadcasting mode.  
-The current development lab validation is **5 packs / 12 BMS** with mixed TCP + real USB/RS485; **80 BMS is the supported architecture limit, not the number physically validated in the lab.**
-
----
-
-## v4.2.68 — Multi-Pack test release
+## v4.2.67 — Multi-Pack test release
 
 The current test release introduces the new **Multi-Pack architecture** while preserving the historical **Legacy** mode.
 
 Key points:
 
-- Up to **5 independent RS485 battery packs**, with up to **16 JK-BMS per pack** — **80 BMS maximum** in Multi-Pack Broadcasting mode.
+- Up to **5 independent RS485 battery packs** in Multi-Pack Broadcasting mode.
 - Each pack can independently use **TCP/IP** or a local **USB/RS485 serial adapter**.
 - Mixed TCP + USB installations are supported.
 - Stable pack identities: `pack_1` to `pack_5`.
@@ -67,7 +46,7 @@ Key points:
 
 ## Recommended architecture for new installations
 
-For a **new installation using Broadcasting**, start directly with **Multi-Pack**, even if you currently have only **one battery pack**. This keeps the installation on the scalable architecture from day one and allows growth up to **5 packs / 80 BMS** without changing the overall runtime model.
+For a **new installation using Broadcasting**, start directly with **Multi-Pack**, even if you currently have only **one battery pack**.
 
 This gives you a stable pack identity, explicit TCP/USB transport and a direct upgrade path if a second or third pack is added later.
 
@@ -83,7 +62,7 @@ Use **Legacy mode** mainly for:
 
 | Architecture | Recommended use | Transport | Current polling support |
 |---|---|---|---|
-| **Multi-Pack** | Recommended for new Broadcasting installations, from 1 to 5 packs | Per pack: TCP or USB/RS485 | Up to 16 BMS/pack, 80 BMS total; Active Polling planned |
+| **Multi-Pack** | New Broadcasting installations, including one-pack systems | Per pack: TCP or USB/RS485 | Broadcasting now; Active Polling planned |
 | **Legacy** | Existing installations and Active Polling | One USB/RS485 bus or one TCP gateway | Broadcasting + Active Polling |
 
 Multi-Pack is an architecture, not a fourth RS485 protocol mode. The communication modes remain Active Polling, Broadcasting and CAN Bus.
@@ -103,12 +82,7 @@ https://youtu.be/IA0ijoGuG54
 
 Supported JK-BMS models include:
 
-- PB2A16S20P
-- PB2A16S15P
-- PB1A16S15P
-- PB1A16S10P
-- PB2A16S30P
-- Compatible models using firmware 14, 15 or 19
+- All PB* Compatible models using firmware 14, 15 or 19
 - Battery packs from **1S to 16S**
 
 ---
@@ -121,7 +95,7 @@ Supported JK-BMS models include:
 | RS485 USB | Local USB/RS485 adapters with persistent `/dev/serial/by-id/...` paths |
 | RS485 TCP/IP | Ethernet/Wi-Fi transparent gateways |
 | Multi-BMS | Legacy single-bus operation and new independent Multi-Pack buses |
-| Multi-Pack | Up to 5 independent packs × up to 16 BMS each = **80 BMS maximum**, each pack TCP or serial/USB in Broadcasting mode |
+| Multi-Pack | Up to 5 independent packs, each TCP or serial/USB in Broadcasting mode |
 | CAN Bus | Direct CAN communication on compatible JK-BMS hardware |
 | MQTT Discovery | Automatic Home Assistant devices and entities |
 | Alarm monitoring | RS485 alarm monitoring and global alarm aggregation |
@@ -218,10 +192,6 @@ multi_pack_packs:
 ```
 
 Each serial pack must have its **own physical USB/RS485 adapter and unique path**. The same serial path cannot be assigned to two packs.
-
-### Multi-Pack capacity
-
-Each independent Multi-Pack RS485 bus can contain **1 Master plus up to 15 additional JK-BMS addresses**, for **up to 16 BMS per pack**. With five packs configured, one add-on instance can therefore manage **up to 80 BMS**.
 
 ### Multi-Pack fields
 
@@ -483,6 +453,7 @@ Many SmartPhoton JK-BMS installations are located in Germany.
 This add-on is developed and maintained in free time. Support helps fund new JK-BMS hardware, compatibility testing, bug fixes, documentation, dashboard improvements and community support.
 
 [![Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y8Y3YHYZP)
+[![PayPal](https://raw.githubusercontent.com/jean-luc1203/jkbms-rs485-addon/main/images/paypal.png)](https://www.paypal.com/donate/?hosted_button_id=864NCUWH4VJ8N)
 
 ---
 

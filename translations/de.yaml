@@ -1,51 +1,84 @@
 ---
 configuration:
-  # JK-BMS Konfigurationsabschnitt
-  jkbms_path:
-    name: "🟪 JK-BMS → Serieller Pfad"
-    description: "Pfad zur seriellen Schnittstelle, an der das JK-BMS angeschlossen ist (Menü: Einstellungen-Hardware-Alle Hardware)."
-    
-  jkbms_count:
-    name: "🟪 JK-BMS → Anzahl der BMS-Module"
-    description: "Anzahl der abzufragenden JK-BMS-Module. Diese müssen am RS485-Bus angeschlossen sein (Wert: 1 bis 15)."
-    
-  use_gateway:
-    name: "🟨 JK-BMS → TCP-Gateway verwenden"
-    description: "Ermöglicht die Kommunikation über ein IP-Gateway (TCP-Gateway) anstelle der lokalen seriellen Schnittstelle."
-    
-  gateway_ip_port:
-    name: "🟨 JK-BMS → Gateway IP-Adresse + Port"
-    description: "IP-Adresse + Netzwerk-Gateway-Port für den Fernzugriff auf das JK-BMS (z. B. 192.168.1.100:5000)."
-    
   communication_debug:
-    name: "🔴 JK-BMS → Kommunikations-Debug"
-    description: "Detaillierte Anzeige von Kommunikationsprotokollen aktivieren (für Diagnose oder Support)."
-    
+    name: 🔴 JK-BMS → Kommunikations-Debug
+    description: Detaillierte Kommunikationsprotokolle für Diagnose und Support aktivieren.
   bms_broadcasting:
-    name: "🔴 JK-BMS → BMS-Broadcasting"
-    description: "In diesem Modus veröffentlicht das BMS aggregierte Daten selbstständig. Es muss als Master konfiguriert sein (Schalter auf 0000)."
-
+    name: 🔴 JK-BMS → BMS-Broadcasting
+    description: Broadcasting-Modus des JK-BMS aktivieren. Multi-Pack benötigt derzeit Broadcasting.
+  multi_pack_section:
+    name: ────────── MULTI-PACK ──────────
+    description: Konfiguration mehrerer unabhängiger JK-BMS-Packs.
+  multi_pack_enabled:
+    name: 🔷 Multi-Pack → Aktivieren
+    description: Multi-Pack aktivieren. Für neue Broadcasting-Installationen empfohlen, auch mit nur einem Pack. Jeder Pack besitzt eine stabile technische ID und einen eigenen Transport.
+  multi_pack_packs:
+    name: 🔷 Multi-Pack → Packs
+    description: Bis zu fünf unabhängige Packs konfigurieren. Jeder Pack kann TCP/IP oder USB/RS485 verwenden.
+    fields:
+      id:
+        name: Pack-ID
+        description: Stabile technische ID von pack_1 bis pack_5. Nach Inbetriebnahme nicht ändern.
+      name:
+        name: Pack-Name
+        description: Anzeigename in den Dashboards.
+      transport:
+        name: Transport
+        description: tcp für ein RS485-TCP/IP-Gateway oder serial für einen lokalen USB/RS485-Adapter.
+      gateway_ip_port:
+        name: Gateway-IP + Port
+        description: Für TCP-Packs erforderlich, z. B. 192.168.1.101:5000.
+      path:
+        name: Serieller Pfad
+        description: Für serielle Packs erforderlich. Einen persistenten /dev/serial/by-id/... Pfad verwenden.
+  legacy_section:
+    name: ────────── LEGACY / EINZELBUS ──────────
+    description: Kompatibilitätskonfiguration für den bisherigen einzelnen RS485-Bus.
+  jkbms_path:
+    name: 🟪 JK-BMS → Serieller Port
+    description: Persistenter USB/RS485-Pfad für Legacy und als Kompatibilitäts-Fallback für einen seriellen Multi-Pack.
+  jkbms_count:
+    name: 🟪 JK-BMS → Anzahl der BMS-Module
+    description: Gesamtzahl der JK-BMS-Module auf dem Legacy-RS485-Bus (1 bis 15).
+  use_gateway:
+    name: 🟨 JK-BMS → TCP-Gateway verwenden
+    description: TCP/IP-Gateway anstelle der lokalen USB/RS485-Schnittstelle im Legacy-Modus verwenden.
+  gateway_ip_port:
+    name: 🟨 JK-BMS → Gateway-IP + Port
+    description: IP-Adresse und TCP-Port des Legacy-JK-BMS-Gateways, z. B. 192.168.1.100:5000.
   non_broadcasting_data_interval_s:
-    name: "⏱️ JK-BMS → Abfrageintervall ohne Broadcasting (s)"
-    description: "Verzögerung zwischen den einzelnen Datenabfragezyklen, wenn der BMS-Broadcasting-Modus deaktiviert ist. Zulässiger Bereich: 1 bis 30 Sekunden."
-    
+    name: ⏱️ JK-BMS → Active-Polling-Intervall (s)
+    description: 'Zeit zwischen LIVE-Abfragezyklen bei deaktiviertem Broadcasting. Zulässiger Bereich: 1 bis 30 Sekunden.'
   CAN_bus_usage:
-    name: "🔴 JK-BMS → CAN-Bus Nutzung"
-    description: "Aktiviert die Kommunikation und Datenübertragung auf dem CAN-Bus (falls physisch verbunden)."
-
-  # MQTT Konfigurationsabschnitt
-  mqttadresse_port: 
-    name: "🚩 MQTT → Broker-Adresse + Port"
-    description: "MQTT-Broker-Adresse + Port (z. B. core-mosquitto.local.hass.io:1883 oder lokale IP + Port)."
-    
+    name: 🔴 JK-BMS → CAN-Bus verwenden
+    description: CAN-Kommunikation und Datenübertragung aktivieren, wenn eine CAN-Schnittstelle angeschlossen ist.
+  mqttadresse_port:
+    name: 🚩 MQTT → Broker-Adresse + Port
+    description: Adresse und Port des MQTT-Brokers, z. B. core-mosquitto.local.hass.io:1883.
   mqttuser:
-    name: "🚩 MQTT → Benutzername"
-    description: "Benutzername für die Verbindung zum MQTT-Broker."
-    
+    name: 🚩 MQTT → Benutzername
+    description: Benutzername für die Verbindung zum MQTT-Broker.
   mqttpass:
-    name: "🚩 MQTT → Passwort"
-    description: "Passwort für den entsprechenden MQTT-Benutzer."
-
+    name: 🚩 MQTT → Passwort
+    description: Passwort für die Verbindung zum MQTT-Broker.
   Send_bip:
-    name: "📊 Add-on Nutzung"
-    description: "Aktiviert einen Signalton beim Start. Es werden keine privaten Daten übertragen. Die Verarbeitung erfolgt gemäß DSGVO."
+    name: 📊 Anonyme Nutzungsstatistik
+    description: Beim Start einen anonymen Nutzungs-Ping senden. Es werden keine privaten Daten übertragen.
+  premium_section:
+    name: ────────── PREMIUM ──────────
+    description: SmartPhoton-Premium-Lizenz und Premium-Funktionen.
+  premium_key:
+    name: 👑 Premium → Lizenzschlüssel
+    description: SmartPhoton-Premium-Lizenzschlüssel. Leer lassen, wenn Premium nicht verwendet wird.
+  dashboard_section:
+    name: ────────── DASHBOARD ──────────
+    description: Einstellungen der SmartPhoton-Dashboards.
+  dashboard_custom_cards_installed:
+    name: 🎨 Dashboard → Custom Cards installiert
+    description: Aktivieren, wenn die benötigten Home-Assistant-Custom-Cards installiert sind.
+  dashboard_language:
+    name: 🎨 Dashboard → Sprache
+    description: Sprache der SmartPhoton-Premium-Dashboards.
+  dashboard_mode:
+    name: 🎨 Dashboard → Modus
+    description: 'Nur im Legacy-Runtime: legacy = Home Assistant/Lovelace, html = HTML-Dashboard, both = beide. Multi-Pack Premium verwendet das eigene Multi-Pack-Dashboard.'

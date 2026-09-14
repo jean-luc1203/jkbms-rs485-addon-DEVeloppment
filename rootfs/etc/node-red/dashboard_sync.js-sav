@@ -143,8 +143,8 @@ async function updateDashboardInfoIfPossible() {
 
     return true;
   } catch (err) {
-    // Some HA versions may reject update or mode here.
-    // Saving the dashboard config is still sufficient.
+    // Certaines versions HA n’acceptent pas update ou refusent mode.
+    // Ce n’est pas bloquant : le save config suffit.
     return false;
   }
 }
@@ -170,90 +170,26 @@ async function createOrUpdateDashboard() {
   };
 }
 
-async function listDashboards() {
-  const result = await call("lovelace/dashboards/list");
-  return Array.isArray(result) ? result : [];
-}
-
-async function deleteDashboardRegistration() {
-  const dashboards = await listDashboards();
-
-  const dashboard = dashboards.find((item) =>
-    String(item?.url_path || "") === String(urlPath)
-  );
-
-  if (!dashboard) {
-    return {
-      deleted: false,
-      already_missing: true,
-      dashboard_id: null
-    };
-  }
-
-  if (!dashboard.id) {
-    throw new Error(`Dashboard found without id for url_path=${urlPath}`);
-  }
-
-  await call("lovelace/dashboards/delete", {
-    dashboard_id: dashboard.id
-  });
-
-  return {
-    deleted: true,
-    already_missing: false,
-    dashboard_id: dashboard.id
-  };
-}
-
-async function deleteOrphanDashboardConfig() {
+async function deleteDashboard() {
   try {
     await call("lovelace/config/delete", {
       url_path: urlPath
     });
 
-    return true;
+    return {
+      deleted: true,
+      already_missing: false
+    };
   } catch (err) {
     if (isMissingError(err)) {
-      return false;
+      return {
+        deleted: false,
+        already_missing: true
+      };
     }
 
     throw err;
   }
-}
-
-async function deleteDashboard() {
-  let dashboardResult;
-
-  try {
-    // Correct removal for a storage dashboard:
-    // remove the dashboard registration itself so the sidebar/panel disappears.
-    dashboardResult = await deleteDashboardRegistration();
-  } catch (err) {
-    // If dashboard listing/deletion is unavailable for some reason,
-    // preserve the historical cleanup behavior rather than failing immediately.
-    const configDeleted = await deleteOrphanDashboardConfig();
-
-    return {
-      deleted: configDeleted,
-      dashboard_deleted: false,
-      config_deleted: configDeleted,
-      already_missing: !configDeleted,
-      registration_cleanup_error: String(err?.message || err)
-    };
-  }
-
-  // Normally lovelace/dashboards/delete also removes the associated storage
-  // dashboard. This second cleanup is intentionally idempotent and removes a
-  // possible orphan config if one remains.
-  const configDeleted = await deleteOrphanDashboardConfig();
-
-  return {
-    deleted: dashboardResult.deleted || configDeleted,
-    dashboard_deleted: dashboardResult.deleted,
-    config_deleted: configDeleted,
-    already_missing: dashboardResult.already_missing && !configDeleted,
-    dashboard_id: dashboardResult.dashboard_id
-  };
 }
 
 ws.onerror = (event) => {

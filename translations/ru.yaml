@@ -1,51 +1,84 @@
 ---
 configuration:
-  # Раздел конфигурации JK-BMS
-  jkbms_path:
-    name: "🟪 JK-BMS → Путь к последовательному порту"
-    description: "Путь к последовательному порту, к которому подключена JK-BMS (Меню: Настройки-Оборудование-Все оборудование)."
-    
-  jkbms_count:
-    name: "🟪 JK-BMS → Количество модулей BMS"
-    description: "Количество опрашиваемых модулей JK-BMS. Они должны быть подключены к шине RS485 (значение: от 1 до 15)."
-    
-  use_gateway:
-    name: "🟨 JK-BMS → Использовать TCP-шлюз"
-    description: "Включить связь через IP-шлюз (TCP Gateway) вместо локального последовательного порта."
-    
-  gateway_ip_port:
-    name: "🟨 JK-BMS → IP-адрес шлюза + Порт"
-    description: "IP-адрес + сетевой порт шлюза для удаленного доступа к JK-BMS (например, 192.168.1.100:5000)."
-    
   communication_debug:
-    name: "🔴 JK-BMS → Отладка связи"
-    description: "Включить подробное отображение логов связи (для диагностики или поддержки)."
-    
+    name: 🔴 JK-BMS → Отладка связи
+    description: Включает подробные журналы связи для диагностики и поддержки.
   bms_broadcasting:
-    name: "🔴 JK-BMS → Вещание BMS (Broadcasting)"
-    description: "В этом режиме BMS самостоятельно публикует агрегированные данные. Устройство должно быть в режиме Master (переключатель на 0000)."
-
+    name: 🔴 JK-BMS → Broadcasting BMS
+    description: Включает Broadcasting JK-BMS. Multi-Pack в настоящее время требует Broadcasting.
+  multi_pack_section:
+    name: ────────── MULTI-PACK ──────────
+    description: Настройка нескольких независимых пакетов JK-BMS.
+  multi_pack_enabled:
+    name: 🔷 Multi-Pack → Включить
+    description: Включает Multi-Pack. Рекомендуется для новых установок Broadcasting, даже с одним пакетом. Каждый пакет имеет стабильный технический ID и собственный транспорт.
+  multi_pack_packs:
+    name: 🔷 Multi-Pack → Пакеты
+    description: Настройте до пяти независимых пакетов. Каждый может использовать TCP/IP или USB/RS485.
+    fields:
+      id:
+        name: ID пакета
+        description: Стабильный технический ID от pack_1 до pack_5. Не изменяйте после ввода в эксплуатацию.
+      name:
+        name: Имя пакета
+        description: Отображаемое имя в dashboard.
+      transport:
+        name: Транспорт
+        description: tcp для шлюза RS485 TCP/IP или serial для локального адаптера USB/RS485.
+      gateway_ip_port:
+        name: IP шлюза + порт
+        description: Обязательно для TCP-пакетов, например 192.168.1.101:5000.
+      path:
+        name: Последовательный путь
+        description: Обязательно для serial-пакетов. Используйте постоянный путь /dev/serial/by-id/....
+  legacy_section:
+    name: ────────── LEGACY / ОДНА ШИНА ──────────
+    description: Настройка совместимости для прежней единственной шины RS485.
+  jkbms_path:
+    name: 🟪 JK-BMS → Последовательный порт
+    description: Постоянный путь USB/RS485 для Legacy и резерв совместимости для одного последовательного пакета Multi-Pack.
+  jkbms_count:
+    name: 🟪 JK-BMS → Количество модулей BMS
+    description: Общее количество модулей JK-BMS на шине RS485 Legacy (от 1 до 15).
+  use_gateway:
+    name: 🟨 JK-BMS → Использовать TCP-шлюз
+    description: Использует TCP/IP-шлюз вместо локального USB/RS485 в режиме Legacy.
+  gateway_ip_port:
+    name: 🟨 JK-BMS → IP шлюза + порт
+    description: IP-адрес и TCP-порт шлюза JK-BMS Legacy, например 192.168.1.100:5000.
   non_broadcasting_data_interval_s:
-    name: "⏱️ JK-BMS → Интервал данных без вещания (с)"
-    description: "Задержка между циклами опроса данных, когда режим вещания BMS отключен. Допустимый диапазон: от 1 до 30 секунд."
-    
+    name: ⏱️ JK-BMS → Интервал Active Polling (с)
+    description: 'Время между LIVE-циклами при отключенном Broadcasting. Допустимый диапазон: 1–30 секунд.'
   CAN_bus_usage:
-    name: "🔴 JK-BMS → Использование шины CAN"
-    description: "Включить связь и передачу данных по шине CAN (если есть физическое подключение)."
-
-  # Раздел конфигурации MQTT
-  mqttadresse_port: 
-    name: "🚩 MQTT → Адрес брокера + Порт"
-    description: "Адрес брокера MQTT + порт (например, core-mosquitto.local.hass.io:1883 или локальный IP + порт)."
-    
+    name: 🔴 JK-BMS → Использование шины CAN
+    description: Включает связь и передачу CAN, когда CAN-интерфейс физически подключен.
+  mqttadresse_port:
+    name: 🚩 MQTT → Адрес брокера + порт
+    description: Адрес и порт MQTT-брокера, например core-mosquitto.local.hass.io:1883.
   mqttuser:
-    name: "🚩 MQTT → Имя пользователя"
-    description: "Имя пользователя для подключения к брокеру MQTT."
-    
+    name: 🚩 MQTT → Имя пользователя
+    description: Имя пользователя для подключения к MQTT-брокеру.
   mqttpass:
-    name: "🚩 MQTT → Пароль"
-    description: "Пароль, связанный с пользователем MQTT."
-
+    name: 🚩 MQTT → Пароль
+    description: Пароль для подключения к MQTT-брокеру.
   Send_bip:
-    name: "📊 Использование аддона"
-    description: "Включить звуковой сигнал (бип) при запуске. Личные данные не передаются. Обработка соответствует регламенту GDPR."
+    name: 📊 Анонимная статистика использования
+    description: При запуске отправляет анонимный ping использования. Личные данные не передаются.
+  premium_section:
+    name: ────────── PREMIUM ──────────
+    description: Лицензия SmartPhoton Premium и Premium-функции.
+  premium_key:
+    name: 👑 Premium → Лицензионный ключ
+    description: Ключ SmartPhoton Premium. Оставьте пустым, если Premium не используется.
+  dashboard_section:
+    name: ────────── DASHBOARD ──────────
+    description: Настройки dashboard SmartPhoton.
+  dashboard_custom_cards_installed:
+    name: 🎨 Dashboard → Пользовательские карточки установлены
+    description: Включите, если установлены необходимые карточки Home Assistant.
+  dashboard_language:
+    name: 🎨 Dashboard → Язык
+    description: Язык dashboard SmartPhoton Premium.
+  dashboard_mode:
+    name: 🎨 Dashboard → Режим
+    description: 'Только для Legacy runtime: legacy = Home Assistant/Lovelace, html = HTML dashboard, both = оба. Multi-Pack Premium использует отдельный Multi-Pack dashboard.'

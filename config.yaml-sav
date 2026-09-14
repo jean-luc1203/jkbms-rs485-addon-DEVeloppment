@@ -1,15 +1,14 @@
 ---
 name: "JK-BMS wired management"
-version: 4.2.68
+version: 4.2.67
 slug: "smartphoton_jkbms"
-description: DEV / TEST - JK-BMS Management via RS485, CAN bus, USB or TCP/IP Gateway
+description: JK-BMS Management via RS485 & CAN bus or TCP/IP Gateway
 url: https://domosimple.eu/forum/thread-917.html
 ingress: false
 ingress_stream: false
 panel_icon: mdi:sitemap
 init: false
 homeassistant: 2025.10.1
-stage: experimental
 
 arch:
   - aarch64

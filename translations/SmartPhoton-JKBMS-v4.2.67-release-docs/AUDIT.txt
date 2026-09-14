@@ -1,0 +1,25 @@
+SmartPhoton JK-BMS v4.2.67 release documentation audit
+
+CONFIGURATION / TRANSLATIONS
+de: 22 top-level keys, nested fields ['gateway_ip_port', 'id', 'name', 'path', 'transport'] — OK
+en: 22 top-level keys, nested fields ['gateway_ip_port', 'id', 'name', 'path', 'transport'] — OK
+es: 22 top-level keys, nested fields ['gateway_ip_port', 'id', 'name', 'path', 'transport'] — OK
+fr: 22 top-level keys, nested fields ['gateway_ip_port', 'id', 'name', 'path', 'transport'] — OK
+it: 22 top-level keys, nested fields ['gateway_ip_port', 'id', 'name', 'path', 'transport'] — OK
+pl: 22 top-level keys, nested fields ['gateway_ip_port', 'id', 'name', 'path', 'transport'] — OK
+pt: 22 top-level keys, nested fields ['gateway_ip_port', 'id', 'name', 'path', 'transport'] — OK
+ru: 22 top-level keys, nested fields ['gateway_ip_port', 'id', 'name', 'path', 'transport'] — OK
+
+Schema top-level keys: 22
+Multi-Pack nested fields: gateway_ip_port, id, name, path, transport
+transport choices: tcp | serial
+dashboard_mode choices: legacy | html | both
+dashboard_language choices: fr | en
+
+Result: config.yaml and all 8 translation files are structurally aligned.
+
+Release notes:
+- Multi-Pack remains disabled by default for backward compatibility.
+- README recommends Multi-Pack for new Broadcasting installations, even with one pack.
+- Legacy remains the required architecture for Active Polling in this release.
+- dashboard_mode is documented as Legacy-only; Multi-Pack Premium uses its dedicated dashboard.

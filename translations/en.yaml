@@ -1,52 +1,84 @@
 ---
 configuration:
-  # JK-BMS Configuration Section
-  jkbms_path:
-    name: "🟪 JK-BMS → Serial Port Path"
-    description: "Path to the serial port where the JK-BMS is connected (Menu: Settings-Hardware-All hardware)."
-    
-  jkbms_count:
-    name: "🟪 JK-BMS → Number of BMS Modules"
-    description: "Number of JK-BMS modules to query. They must be connected to the RS485 bus (value: 1 to 15)."
-    
-  use_gateway:
-    name: "🟨 JK-BMS → Use TCP Gateway"
-    description: "Enable communication via an IP gateway (TCP Gateway) instead of the local serial port."
-    
-  gateway_ip_port:
-    name: "🟨 JK-BMS → Gateway IP Address + Port"
-    description: "IP address + network gateway port for remote access to JK-BMS (e.g. 192.168.1.100:5000)."
-    
   communication_debug:
-    name: "🔴 JK-BMS → Debug Communication"
-    description: "Enable detailed display of communication logs (for diagnostics or support)."
-    
+    name: 🔴 JK-BMS → Communication debug
+    description: Enable detailed communication logs for diagnosis and support.
   bms_broadcasting:
-    name: "🔴 JK-BMS → BMS Broadcasting"
-    description: "In this mode, the BMS publishes aggregated data by itself. It must be Master (switch to 0000)."
-
-
+    name: 🔴 JK-BMS → BMS Broadcasting
+    description: Enable JK-BMS Broadcasting mode. Multi-Pack currently requires Broadcasting.
+  multi_pack_section:
+    name: ────────── MULTI-PACK ──────────
+    description: Configuration for several independent JK-BMS battery packs.
+  multi_pack_enabled:
+    name: 🔷 Multi-Pack → Enable
+    description: Enable Multi-Pack mode. Recommended for new Broadcasting installations, even with a single pack. Each pack has a stable technical identity and its own transport.
+  multi_pack_packs:
+    name: 🔷 Multi-Pack → Packs
+    description: Configure up to five independent packs. Each pack may use TCP/IP or USB/RS485.
+    fields:
+      id:
+        name: Pack ID
+        description: Stable technical ID from pack_1 to pack_5. Do not change it after commissioning.
+      name:
+        name: Pack name
+        description: Friendly name displayed in dashboards.
+      transport:
+        name: Transport
+        description: Use tcp for an RS485 TCP/IP gateway or serial for a local USB/RS485 adapter.
+      gateway_ip_port:
+        name: Gateway IP + port
+        description: Required for TCP packs, for example 192.168.1.101:5000.
+      path:
+        name: Serial path
+        description: Required for serial packs. Use a persistent /dev/serial/by-id/... path.
+  legacy_section:
+    name: ────────── LEGACY / SINGLE BUS ──────────
+    description: Compatibility configuration for the historical single RS485 bus.
+  jkbms_path:
+    name: 🟪 JK-BMS → Serial port path
+    description: Persistent USB/RS485 path used by Legacy mode and as a compatibility fallback for one Multi-Pack serial pack.
+  jkbms_count:
+    name: 🟪 JK-BMS → Number of BMS modules
+    description: Total number of JK-BMS modules on the Legacy RS485 bus (1 to 15).
+  use_gateway:
+    name: 🟨 JK-BMS → Use TCP gateway
+    description: Use a TCP/IP gateway instead of the local USB/RS485 interface in Legacy mode.
+  gateway_ip_port:
+    name: 🟨 JK-BMS → Gateway IP + port
+    description: IP address and TCP port of the Legacy JK-BMS gateway, for example 192.168.1.100:5000.
   non_broadcasting_data_interval_s:
-    name: "⏱️ JK-BMS → Non-broadcasting data interval (s)"
-    description: "Delay between each data polling cycle when BMS broadcasting mode is disabled. Allowed range: 1 to 30 seconds."
-    
+    name: ⏱️ JK-BMS → Active Polling interval (s)
+    description: 'Time between LIVE polling cycles when Broadcasting is disabled. Allowed range: 1 to 30 seconds.'
   CAN_bus_usage:
-    name: "🔴 JK-BMS → CAN Bus Usage"
-    description: "Enable communication and data transmission on the CAN bus (if physically connected)."
-
-  # MQTT Configuration Section
-  mqttadresse_port: 
-    name: "🚩 MQTT → Broker Address + Port"
-    description: "MQTT broker address + port (e.g. core-mosquitto.local.hass.io:1883 or local IP + port)."
-    
+    name: 🔴 JK-BMS → CAN bus usage
+    description: Enable CAN communication and data transmission when a CAN interface is physically connected.
+  mqttadresse_port:
+    name: 🚩 MQTT → Broker address + port
+    description: MQTT broker address and port, for example core-mosquitto.local.hass.io:1883.
   mqttuser:
-    name: "🚩 MQTT → Username"
-    description: "Username to connect to the MQTT broker."
-    
+    name: 🚩 MQTT → Username
+    description: Username used to connect to the MQTT broker.
   mqttpass:
-    name: "🚩 MQTT → Password"
-    description: "Password associated with the MQTT user."
-
+    name: 🚩 MQTT → Password
+    description: Password used to connect to the MQTT broker.
   Send_bip:
-    name: "📊 Add-on usage"
-    description: "Enable a beep to be sent at start-up. No private data is transmitted. Processing complies with the GDPR."
+    name: 📊 Anonymous usage statistics
+    description: Send an anonymous usage ping at startup. No private data is transmitted.
+  premium_section:
+    name: ────────── PREMIUM ──────────
+    description: SmartPhoton Premium license and Premium features.
+  premium_key:
+    name: 👑 Premium → License key
+    description: SmartPhoton Premium license key. Leave empty when Premium is not used.
+  dashboard_section:
+    name: ────────── DASHBOARD ──────────
+    description: SmartPhoton dashboard settings.
+  dashboard_custom_cards_installed:
+    name: 🎨 Dashboard → Custom cards installed
+    description: Enable when the required Home Assistant custom cards are installed.
+  dashboard_language:
+    name: 🎨 Dashboard → Language
+    description: Language used by SmartPhoton Premium dashboards.
+  dashboard_mode:
+    name: 🎨 Dashboard → Mode
+    description: 'Legacy runtime only: legacy = Home Assistant/Lovelace, html = HTML dashboard, both = both. Multi-Pack Premium uses its dedicated Multi-Pack dashboard.'

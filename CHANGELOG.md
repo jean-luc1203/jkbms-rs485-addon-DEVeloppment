@@ -1,94 +1,361 @@
+> ⚠️ **Development test release — not yet recommended for production installations.**
+
+## 4.2.68 - 2026-09-14
+
+### 🚀 Multi-Pack Broadcasting — up to 80 BMS
+
+- Up to **5 independent RS485 packs × 16 JK-BMS = 80 BMS maximum** per add-on instance.
+- Each pack can independently use TCP/IP or USB/RS485; mixed transport layouts are supported.
+- Multi-Pack is recommended for new Broadcasting installations, even with only one pack.
+- Stable `pack_1`…`pack_5` identities with isolated MQTT/HA data, Health and aggregation.
+- Premium Multi-Pack Overview, per-pack/BMS pages and advanced diagnostics.
+- Legacy Broadcasting and Legacy Active Polling remain fully supported for existing installations.
+- Backward-compatible migration from earlier Multi-Pack configuration files.
+- Legacy dashboards are removed in Multi-Pack and recreated automatically when returning to Legacy.
+- Lab validation: **5 packs / 12 BMS** with mixed TCP + real USB; 80 BMS is the supported architecture limit.
+- Multi-Pack Active Polling is planned for a future release.
+
+---
+
+## 4.1.20 - 2026-08-10
+
+Multi Pack handling beta developpement
+
+## 4.1.10 - 2026-07-12
+
+## Improved JK-BMS communication diagnostics
+
+* Added a unified diagnostic system for both **Broadcast** and **Active Polling** modes.
+* The dashboard now detects the communication mode automatically and shows only the relevant counters.
+* Added a global health status, quality score and persistent incident memory to simplify troubleshooting.
+* Improved detection of missing BMS, timeouts, latency, framing and polling stability.
+* Corrected false alarms caused by short or concatenated serial/TCP buffers, which are now treated as normal transport behaviour when frames are reconstructed correctly.
+
+<img width="586" height="623" alt="image" src="https://github.com/user-attachments/assets/56d041ba-db1a-4a17-b652-d3cb3cdf3c9e" />
+
+
+
+## 4.1.9 - 2026-07-11
+
+## 4.1.8 - 2026-07-08
+
+#### 🐞 Fixes
+
+* Incorrect baud rate for the serial port
+* Incorrect path retrieved from global variables
+* Minor fix in the premium dashboard
+
+# v4.1.7
+
+## 🏠 Smart Energy Premium House Dashboard
+
+This release introduces the **Smart Energy Premium House Dashboard** directly inside the JK-BMS add-on.
+
+It provides a modern and fully configurable visual overview of your complete energy system from one central dashboard.
+
+## Smart Energy Premium House Dashboard:
+
+<img width="600" height="400" alt="image" src="https://github.com/user-attachments/assets/067f1e7c-3023-4d32-bb39-10ed7a0254f0" />
+
+
+
+### ✨ New Features
+
+* New **Smart Energy Premium House Dashboard** integrated into the JK-BMS add-on.
+* Central visual overview of:
+
+  * Solar production
+  * Home consumption
+  * Grid import / export
+  * Battery charging and discharging
+  * Battery SOC, voltage, current and power
+  * Inverter information
+  * Vehicle energy
+  * Pool energy
+  * Weather and solar forecast
+
+### ⚙️ Fully Configurable Sensors
+
+All displayed sensors can be configured directly from the dashboard settings:
+
+* Solar sensors
+* Home consumption sensors
+* Grid sensors
+* Battery sensors
+* Inverter sensors
+* Vehicle sensors
+* Pool sensors
+* Weather sensors
+* Solar forecast sensors
+* Custom sensors
+
+This allows the dashboard to adapt to many different Home Assistant installations and energy systems.
+
+### ⚡ Configurable Shortcuts
+
+The dashboard now supports configurable shortcuts for:
+
+* Home devices
+* Inverter settings
+* Custom options
+
+Each shortcut can include:
+
+* Custom icon
+* Custom label
+* Main Home Assistant entity
+* Optional secondary status entity
+* Popup controls
+* Climate controls
+* Switch controls
+* Number controls
+* Select controls
+* Status display
+
+Desktop mode displays shortcut icons directly in the top bar.
+
+Mobile mode displays up to five shortcuts in the top bar, with additional shortcuts available through the `+` button.
+
+### 📊 Improved History Charts
+
+* Dynamic chart scales based on sensor minimum and maximum values.
+* Instant value displayed in the top-right corner of history cards.
+* Improved visibility for power, voltage, current, temperature and energy history.
+
+### 🌍 Language Support
+
+The dashboard automatically follows the language selected in the add-on configuration:
+
+* French
+* English
+
+### 📱 Desktop and Mobile Optimized
+
+* Dedicated responsive mobile layout.
+* Improved shortcut display on smartphones.
+* Mobile popup for additional shortcuts.
+* Optimized dashboard navigation and controls for touch screens.
+
+**Changelog 4.1.5**
+
+**Stability improvements**
+
+* Stabilized the Smart Energy dashboard navigation.
+* Fixed an issue where opening a battery and entering a sub-view could automatically return to the main page after about 15 seconds.
+* Improved the shared dashboard index so active modules are no longer reloaded unnecessarily during background scans.
+* Fixed the JK-BMS menu label display to prevent broken/truncated characters from appearing.
+
+### JK-BMS RS485 Add-on v4.1.4
+
+#### 🚀 New Features
+
+* Added support for the new **Smart Energy Premium multi-dashboard system**.
+* Automatic detection of existing premium dashboards (JK-BMS, Voltronic, Finance).
+* Automatic integration of JK-BMS into a shared dashboard environment.
+* Dynamic menu generation based on installed SmartPhoton modules.
+
+#### 🔧 Improvements
+
+* Shared dashboard index management improved.
+* Existing dashboard modules are preserved during new module installations.
+* Better compatibility between JK-BMS, Voltronic and Smart Energy Finance premium dashboards.
+* Active dashboard view is now preserved during automatic menu refreshes.
+
+#### 🐞 Fixes
+
+* Fixed dashboard menu duplication in multi-module environments.
+* Fixed cases where a newly installed module could overwrite an existing premium dashboard.
+* Fixed module detection and shared navigation synchronization issues.
+
+#### 💡 Result
+
+Users can now combine multiple SmartPhoton premium modules (JK-BMS, Voltronic, Finance, and future modules) into a single unified dashboard while keeping independent installation and automatic integration.
+
+
+
+## Smart JK-BMS RS485 Add-on v4.1.3
+
+### Improvements
+
+* Improved dashboard navigation stability.
+* Better handling of battery subviews and settings pages.
+* Optimized refresh behavior to reduce visual interruptions during live updates.
+* Enhanced parameter editing experience.
+* General dashboard performance and reliability improvements.
+
+### Fixes
+
+* Fixed several dashboard refresh and navigation issues.
+* Improved overall user experience on desktop and mobile devices.
+
+## 4.1.0 - 2026-06-07
+
+### 🚀 Premium Dashboard System
+
+A new Premium Dashboard system has been introduced, giving users more flexibility in how their dashboards are generated and displayed.
+
+### 🎨 Dashboard Modes
+
+Users can now choose between three dashboard modes directly from the add-on configuration:
+Legacy → Generates only the classic Home Assistant Lovelace dashboards.
+HTML → Generates only the new Smart Energy Premium HTML dashboard.
+Both → Generates both the classic Lovelace dashboards and the new HTML dashboard simultaneously.
+This allows users to keep their preferred interface while exploring the new generation dashboard experience.
+
+### 🔑 Premium Features
+
+Premium users now benefit from:
+Automatic dashboard generation.
+Advanced Smart Energy Premium HTML interface.
+Enhanced mobile-friendly experience.
+Interactive historical charts.
+Real-time battery monitoring.
+Improved system visualization and navigation.
+Future premium dashboard enhancements and new features.
+
+### 📱 New Smart HTML Dashboard
+
+The new HTML dashboard provides:
+Modern responsive design for desktop and mobile devices.
+Live battery monitoring.
+Detailed battery subviews.
+Interactive historical graphs.
+Broadcasting mode support.
+Automatic language support (English / French).
+Improved performance and navigation.
+
+### ⚙️ Compatibility
+
+Existing users can continue using the classic Lovelace dashboards without any changes by selecting Legacy mode. The new dashboard system is fully backward compatible with previous installations.
+
+### Improvements
+
+Improved dashboard generation workflow.
+Better mobile responsiveness.
+Enhanced broadcasting mode support.
+Automatic dashboard synchronization.
+Multiple dashboard generation modes available from configuration.
+
+## v3.8.5 - 2026-04-19
+
+🐞 Bug Fix
+
+Fixed MQTT discovery for device\_address entity: renamed from Device\_address\_N to bms\_Device\_address\_N to generate correct entity\_id number.bms\_1\_bms\_device\_address instead of number.bms\_1\_device\_address
+
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 ## v3.8.3 - 2026-04-17
-### 📦 - Enhanced
 
-- Implementation of the Premium version by Tapion69
-- Automatic addition of custom dashboards
+📦 - Enhanced
 
-##  _______________________________________________________
+Implementation of the Premium version by Tapion69
+Automatic addition of custom dashboards
 
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
+## v3.7.6 - 2026-04-12
+
+### 🐞  Bug Fix
+
+* Remove the serial port compilation to avoid version conflict issues on ARM64/aarch64
+* Deprecated legacy Home Assistant add-on architectures (armhf, armv7, i386) were removed from the manifest to eliminate Supervisor validation warnings and align with current architecture declarations.
+
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 ## v3.7.5 - 2026-04-11
-### 🐞  Bug Fix
-- Remove the serial port compilation to avoid version conflict issues on ARM64/aarch64
 
-##  _______________________________________________________
+### 🐞  Bug Fix
+
+Change the binary sensors in Master and Broadcasting modes
+
+* payload\_on: 1 → payload\_on: "1"
+* payload\_off: 0 → payload\_off: "0"
 
 ## v3.7.4 - 2026-04-08
-### 🚀  Improvements
-
-- Added a watchdog for TCP gateway communication in master Modbus mode, with automatic reconnection after   communication loss.
-- Monitors the TCP connection to the IP/Wifi gateway and automatically switches between two TCP slots (A→B→A) if no data is received for 2 minutes. 
-After 4 consecutive failovers without response, the gateway is declared unreachable and the switching stops. All events are logged at [warn] level in the add-on journal.
 
 ### 🐞  Bug Fix
-- Fixed invalid MQTT discovery for the `Heating` entity, removing repeated Home Assistant log errors.
-    [Issue 83](https://github.com/jean-luc1203/jkbms-rs485-addon/issues/83#issuecomment-4186019644)
+
+* Fixed invalid MQTT discovery for the `Heating` entity, removing repeated Home Assistant log errors.
+[Issue 83](https://github.com/jean-luc1203/jkbms-rs485-addon/issues/83#issuecomment-4186019644)
+
+### Improvements Gateway TCP watchdog (A/B failover):
+
+* Added a watchdog for TCP gateway communication in master Modbus mode, with automatic reconnection after   communication loss.
+* Monitors the TCP connection to the IP/Wifi gateway and automatically switches between two TCP slots (A→B→A) if no data is received for 2 minutes.
+After 4 consecutive failovers without response, the gateway is declared unreachable and the switching stops. All events are logged at \[warn] level in the add-on journal.
 
 ### various:
-- Bip function updated in preparation for the upcoming premium version.
 
-##  _______________________________________________________
+* Bip function updated in preparation for the upcoming premium version.
+
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 ## v3.7.0 - 2026-04-05
+
 ### Variable Cell Count Support (1S to 16S) 🥳
 
-- Added major support for variable cell-count battery packs (1S to 16S) 
-- The addon now automatically detects the real number of cells reported by the BMS (`cell_count_N`) and adjusts cell voltage calculations accordingly.
-- This ensures correct min/max/average/delta values on 4S, 8S, 15S and all other supported configurations up to 16S.
+* Added major support for variable cell-count battery packs (1S to 16S)
+* The addon now automatically detects the real number of cells reported by the BMS (`cell\\\_count\\\_N`) and adjusts cell voltage calculations accordingly.
+* This ensures correct min/max/average/delta values on 4S, 8S, 15S and all other supported configurations up to 16S.
 
-##  _______________________________________________________
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 ## v3.6.15 - 2026-04-02
 
 ### 📦 – Enhanced network interface detection
-- Enhanced network interface detection for the standalone dashboard URL generation. 
+
+* Enhanced network interface detection for the standalone dashboard URL generation.
 
   The flow now automatically finds a valid external IPv4 address instead of relying on a fixed interface name.
 
 ### 📦 – Fixed MQTT runtime status
-- Fixed MQTT runtime status logging to correctly distinguish `⚠️ disconnected` from `✅ connected` when parsing broker status messages.
+
+* Fixed MQTT runtime status logging to correctly distinguish `⚠️ disconnected` from `✅ connected` when parsing broker status messages.
 
 Example in the module log:
 
-- 2 Apr 17:04:35 - [warn] [function:MQTT status to HAOS log] ❌ MQTT broker disconnected [MQTT Broker]
-- 2 Apr 17:04:48 - [warn] [function:MQTT status to HAOS log] ⚠️ MQTT broker reconnecting [MQTT Broker]
-- 2 Apr 17:04:48 - [info] [mqtt-broker:56f7b2737cce493b] Connected to broker: mqtt://core-mosquitto.local.hass.io:1883
-- 2 Apr 17:04:48 - [warn] [function:MQTT status to HAOS log] ✅ MQTT broker connected [MQTT Broker]
+* 2 Apr 17:04:35 - \[warn] \[function:MQTT status to HAOS log] ❌ MQTT broker disconnected \[MQTT Broker]
+* 2 Apr 17:04:48 - \[warn] \[function:MQTT status to HAOS log] ⚠️ MQTT broker reconnecting \[MQTT Broker]
+* 2 Apr 17:04:48 - \[info] \[mqtt-broker:56f7b2737cce493b] Connected to broker: mqtt://core-mosquitto.local.hass.io:1883
+* 2 Apr 17:04:48 - \[warn] \[function:MQTT status to HAOS log] ✅ MQTT broker connected \[MQTT Broker]
 
-##  _______________________________________________________
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 ## v3.6.10 - 2026-03-21
 
 ### 📦 Changelog – RS485 Polling Interval (non-broadcast mode)
+
 ## ✨ New Feature
 
-- Added a new configuration option: 
- ` non_broadcasting_data_interval_s`
- 
+* Added a new configuration option:
+` non\\\_broadcasting\\\_data\\\_interval\\\_s`
+
 This allows users to control the polling interval for data interval when broadcasting mode is disabled.
 
 
-|  🚀 Behavior Summary||
-| ------------ | ------------ |
-| Mode  | Behavior  |
-|  Broadcasting ON |No change   |
-| Broadcasting OFF| Data interval = user-defined
+
+|🚀 Behavior Summary||
+|-|-|
+|Mode|Behavior|
+|Broadcasting ON|No change|
+|Broadcasting OFF|Data interval = user-defined|
 
 ⚠️ Notes
 
-- Minimum supported value: 1 seconds
-- Maximum supported value: 30 seconds
-- Default value: 1 second
-Uses dynamic scheduling instead of fixed inject → more flexible & scalable
+* Minimum supported value: 1 seconds
+* Maximum supported value: 30 seconds
+* Default value: 1 second
+Uses dynamic scheduling instead of fixed inject → more flexible \& scalable
 
 💡 Why this change
 
-- Avoid hardcoded polling intervals
-- Improve performance tuning depending on:   **number of BMS on the RS485 Bus**
-- network latency (TCP / RS485 gateway)
-- system load (HAOS / Node-RED)
+* Avoid hardcoded polling intervals
+* Improve performance tuning depending on:   **number of BMS on the RS485 Bus**
+* network latency (TCP / RS485 gateway)
+* system load (HAOS / Node-RED)
 
-##  _______________________________________________________
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 
 
 ## v3.6.6 - 2026-03-16
@@ -99,18 +366,20 @@ Uses dynamic scheduling instead of fixed inject → more flexible & scalable
 
 A new diagnostic panel has been added to help users evaluate the quality and stability of their RS485 bus in real time.
 
-- Added live counters for:
-  - frame rate
-  - buffer sizes
-  - frame reconstruction efficiency (yield ratio)
-  - serial latency
-  - detected BMS devices
-- Provides a clear communication health status
-- Helps identify:
-  - unstable wiring
-  - overloaded bus (too many BMS)
-  - gateway issues
-  - frame fragmentation problems
+* Added live counters for:
+
+  * frame rate
+  * buffer sizes
+  * frame reconstruction efficiency (yield ratio)
+  * serial latency
+  * detected BMS devices
+* Provides a clear communication health status
+* Helps identify:
+
+  * unstable wiring
+  * overloaded bus (too many BMS)
+  * gateway issues
+  * frame fragmentation problems
 
 👉 This is especially useful for broadcast setups and multi-BMS installations.
 
@@ -118,16 +387,16 @@ A new diagnostic panel has been added to help users evaluate the quality and sta
 
 A ready-to-use Home Assistant dashboard is now available to visualize RS485 communication health and diagnostics.
 
-- Displays real-time bus activity, framing quality, and BMS detection
-- Includes interpretation guides and troubleshooting hints
-- Designed for broadcast and multi-BMS installations
+* Displays real-time bus activity, framing quality, and BMS detection
+* Includes interpretation guides and troubleshooting hints
+* Designed for broadcast and multi-BMS installations
 
 📥 Dashboard file:
-`dashboards/jk_bms_rs485_diagnostics_dashboard.yaml`
+`dashboards/jk\\\_bms\\\_rs485\\\_diagnostics\\\_dashboard.yaml`
 
 <img width="527" height="400" alt="RS485 Diagnostic Dashboard" src="https://github.com/jean-luc1203/jkbms-rs485-addon-DEVeloppment/blob/main/images/new-rs485-counters.png" />
 
----
+\---
 
 ## v3.6.4 - 2026-03-14
 
@@ -137,147 +406,166 @@ A ready-to-use Home Assistant dashboard is now available to visualize RS485 comm
 
 Introduced a software framer that reconstructs valid JK-BMS frames from raw RS485/TCP streams.
 
-- Cleanly separates:
-  - Modbus requests
-  - JK-BMS replies
-- Handles fragmented and mixed TCP buffers
-- Prevents decoder stalls in broadcast mode
-- Significantly improves reliability on complex installations
+* Cleanly separates:
+
+  * Modbus requests
+  * JK-BMS replies
+* Handles fragmented and mixed TCP buffers
+* Prevents decoder stalls in broadcast mode
+* Significantly improves reliability on complex installations
 
 ⚠️ **Important change**  
 The system is now stricter when parsing frames:
-- Invalid or corrupted frames are ignored
-- This improves data reliability
-- It may also reveal underlying RS485 issues that were previously hidden
+
+* Invalid or corrupted frames are ignored
+* This improves data reliability
+* It may also reveal underlying RS485 issues that were previously hidden
 
 👉 If you notice missing data after update, check the new diagnostics panel.
 
-### RS485 Diagnostics & Health Metrics
+### RS485 Diagnostics \& Health Metrics
 
-- Added new topic: `BMS_GLOBAL/health`
-- Provides:
-  - real-time bus activity
-  - framing efficiency
-  - communication health status
-- Designed to support troubleshooting and large installations
+* Added new topic: `BMS\\\_GLOBAL/health`
+* Provides:
+
+  * real-time bus activity
+  * framing efficiency
+  * communication health status
+* Designed to support troubleshooting and large installations
 
 📘 Documentation:  
 [Enhanced RS485 troubleshooting guide](https://github.com/jean-luc1203/jkbms-rs485-addon/blob/main/Documentation/jkbms_rs485_troubleshooting_enhanced.md)
 
-### Stability & Upgrade Safety
+### Stability \& Upgrade Safety
 
-- Fixed crashes caused by persisted Node-RED Buffer objects:
-  - `{type:"Buffer",data:[...]}`
-- Added automatic normalization of restored binary context
-- Improved compatibility with Node-RED restarts and updates
-- Ensures safe upgrades for long-running systems
+* Fixed crashes caused by persisted Node-RED Buffer objects:
+
+  * `{type:"Buffer",data:\\\[...]}`
+* Added automatic normalization of restored binary context
+* Improved compatibility with Node-RED restarts and updates
+* Ensures safe upgrades for long-running systems
 
 ### TCP Reconnection Watchdog
 
 Improved reliability when using RS485 over IP gateways:
 
-- Detects absence of data for more than 2 minutes
-- Automatically forces TCP reconnect
-- Prevents silent connection freezes
+* Detects absence of data for more than 2 minutes
+* Automatically forces TCP reconnect
+* Prevents silent connection freezes
 
 Updated parameters:
-- `indefiniteRetries: true`
-- `maxRetries: 10`
-- `retryDelay: 5000ms`
+
+* `indefiniteRetries: true`
+* `maxRetries: 10`
+* `retryDelay: 5000ms`
 
 👉 Ensures persistent reconnection in unstable network environments.
 
 Related issue:  
 [Issue #110](https://github.com/jean-luc1203/jkbms-rs485-addon/issues/110)
 
----
+\---
 
 ## 🧠 Notes for Advanced Users
 
-- Large broadcast installations (6+ BMS) should monitor:
-  - yield ratio
-  - serial latency
-  - detected BMS stability
-- The new framer improves accuracy but reduces tolerance to invalid frames
+* Large broadcast installations (6+ BMS) should monitor:
 
-##  _______________________________________________________
+  * yield ratio
+  * serial latency
+  * detected BMS stability
+* The new framer improves accuracy but reduces tolerance to invalid frames
+
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 
 
 ## v3.5.7 - 2-02-2026
+
 ## 🐞 Corrections (Bugfix)
 
-### Correction of the logic to allow Charge/Discharge/Balance switching 
+### Correction of the logic to allow Charge/Discharge/Balance switching
+
 [Issue #107](https://github.com/jean-luc1203/jkbms-rs485-addon/issues/107)
 
 ### Correction of the "expected SensorDeviceClass"
+
 [Issue #102](https://github.com/jean-luc1203/jkbms-rs485-addon/issues/102)
 
 
-##  _______________________________________________________
+
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 
 
 ## v3.5.6 - 01-02-2026
+
 ## 🐞 Corrections (Bugfix)
+
 ### Correction of temperature probe values in broadcasting mode
 
 [Issue #91](https://github.com/jean-luc1203/jkbms-rs485-addon/issues/91)
 
 
+
 Correspondence between the RS485 module and the JK-bluetooth application:
- 
-- capt.1 = T1
-- capt.2 = T2
-- capt.3 = T5
-- capt.4 = T4
-- MOS = MOS
 
-> **1,690+ installations** · **40+ daily clones** · **Community-driven development**
+* capt.1 = T1
+* capt.2 = T2
+* capt.3 = T5
+* capt.4 = T4
+* MOS = MOS
 
-[![Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y8Y3YHYZP) [![Donate with PayPal](https://raw.githubusercontent.com/jean-luc1203/jkbms-rs485-addon/main/images/paypal.png)](https://www.paypal.com/donate/?hosted_button_id=864NCUWH4VJ8N)
+> \\\*\\\*1,690+ installations\\\*\\\* · \\\*\\\*40+ daily clones\\\*\\\* · \\\*\\\*Community-driven development\\\*\\\*
+
+[!\[Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y8Y3YHYZP) [!\[Donate with PayPal](https://raw.githubusercontent.com/jean-luc1203/jkbms-rs485-addon/main/images/paypal.png)](https://www.paypal.com/donate/?hosted\_button\_id=864NCUWH4VJ8N)
 
 
-##  _______________________________________________________
+
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 ## v3.5.5 - 28-01-2026
+
 ## ⚡️ Enhancements
+
 ### Add Charging Float Mode" switch control
 
-- Charging Float Mode on a JK-BMS is used to manage a float charge once the battery is full.
+* Charging Float Mode on a JK-BMS is used to manage a float charge once the battery is full.
 
 👉 In concrete terms:
 
-- When the target end-of-charge voltage is reached,
-
-- the BMS cuts off and then temporarily re-authorises charging to maintain the battery at a stable voltage,
-
-- instead of leaving it constantly on charge..
+* When the target end-of-charge voltage is reached,
+* the BMS cuts off and then temporarily re-authorises charging to maintain the battery at a stable voltage,
+* instead of leaving it constantly on charge..
 
 🎯 Main objective:
 
-- avoid overload,
-
-- reduce cell stress,
-
-- improve battery life (especially when stationary).
+* avoid overload,
+* reduce cell stress,
+* improve battery life (especially when stationary).
 
 <img width="527" height="60" alt="image" src="https://github.com/user-attachments/assets/37d11e26-1e5b-4634-aef8-567239e8a026" />
 
-Issue ![#95](https://github.com/jean-luc1203/jkbms-rs485-addon/issues/95)
+Issue !\[#95](https://github.com/jean-luc1203/jkbms-rs485-addon/issues/95)
+
 
 
 ### 🐞 Corrections (Bugfix)
+
 The switch created in v3.5.4 did not function correctly in certain situations.
 
-##  _______________________________________________________
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 ## v3.5.4 - 24-01-2026
+
 ## ⚡️ Enhancements
+
 #### Addition of an Authorization/Prohibition Switch entity to modify settings
 
-In the Global BMS device, this switch: 
-- switch.bms_global_authorize_modify_settings (ON / OFF)
+In the Global BMS device, this switch:
 
-enables/disables the ability to modify BMS settings. 
+* switch.bms\_global\_authorize\_modify\_settings (ON / OFF)
+
+enables/disables the ability to modify BMS settings.
 
 This is to prevent unwanted and unintended modifications.
 This entity acts on all BMS devices.
@@ -285,65 +573,76 @@ This entity acts on all BMS devices.
 <img width="829" height="419" alt="image" src="https://github.com/user-attachments/assets/7f5a1bda-b878-4762-93e0-31ea0b8ac057" />
 
 
-##  _______________________________________________________
+
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 ## v3.5.3 - 16-01-2026
+
 ## ⚡️ Enhancements
+
 #### Optimisation of the number of alarm messages sent per second
 
 **BEFORE** Over 60 seconds with 2 BMS:  
 *30 messages / 60s = 0.5 msg/s EVEN IF NOTHING CHANGES*
 
 
-**AFTER** optimisation Over 60 seconds with 2 BMS (normal scenario, no alarms): 
+
+**AFTER** optimisation Over 60 seconds with 2 BMS (normal scenario, no alarms):
 *2 messages / 60s = 0.03 msg/s   Reduction: ÷ 15! (from 30 to 2 messages)*
 
 If an alarm appears on a BMS:
 
 *Timeline:
-  Overall status OFF → 0 messages
-  BMS_2 alarm ON → Aggregation detects: OFF → ON → 1 message 🚨
-  Status remains ON   → 0 messages
-  BMS_2 alarm OFF → Aggregation detects: ON → OFF → 1 message ✅*
+Overall status OFF → 0 messages
+BMS\_2 alarm ON → Aggregation detects: OFF → ON → 1 message 🚨
+Status remains ON   → 0 messages
+BMS\_2 alarm OFF → Aggregation detects: ON → OFF → 1 message ✅*
 
-##📈 **TOTAL summary** with all optimisations in versions **v3.5.2 & v3.5.3**
-## Final result: **75 msg/s → ~33.5 msg/s (÷ 2.2)** 🎉
+\##📈 **TOTAL summary** with all optimisations in versions **v3.5.2 \& v3.5.3**
 
-The Broker will appreciate this 💪 . 
+## Final result: **75 msg/s → \~33.5 msg/s (÷ 2.2)** 🎉
+
+The Broker will appreciate this 💪 .
 This will be even more noticeable as the number of BMSs increases.
 
-##Other changes.
+\##Other changes.
 
 Filters added for invalid BMS numbers. Only the following should remain:
-BMS_master, BMS_1 to BMS_15
+BMS\_master, BMS\_1 to BMS\_15
 
 <img width="389" height="249" alt="image" src="https://github.com/user-attachments/assets/6975e234-4126-4221-8713-fa07c81c9d4b" />
 
-##  ____________________________________________________________________
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 
 
 ## v3.5.2 - 15-01-2026
+
 ## ⚡️ Enhancements
 
 #### Optimisation of the number of topics sent to the MQTT Broker
+
 Indeed, for 2 BMS measured over 60 seconds:
 
 📊 **Before and after comparison**
 
-| Metric | BEFORE (Non-optimised setup) | AFTER Phase 1 (Optimised setup) | Gain |
-| :--- | :--- | :--- | :--- |
-| Messages total/60s | ~4600 | 2000 | -57% |
-| Overall average | 75-77 msg/s | 33.67 msg/s | ÷ 2.3 |
-| BMS_master | 39 msg/s | 17 msg/s | ÷ 2.3 |
-| BMS_2 | 37 msg/s | 16.66 msg/s | ÷ 2.2 |
+|Metric|BEFORE (Non-optimised setup)|AFTER Phase 1 (Optimised setup)|Gain|
+|-|-|-|-|
+|Messages total/60s|\~4600|2000|-57%|
+|Overall average|75-77 msg/s|33.67 msg/s|÷ 2.3|
+|BMS\_master|39 msg/s|17 msg/s|÷ 2.3|
+|BMS\_2|37 msg/s|16.66 msg/s|÷ 2.2|
 
-I have reduced the number of setup frames sent. 
+I have reduced the number of setup frames sent.
 They are now only sent when the module starts up and when a setup is modified.
-### This results in a **2.3x reduction** in the number of topics sent. 
+
+### This results in a **2.3x reduction** in the number of topics sent.
+
 The broker will appreciate this 👍
 Data frames are still sent at a rate of 4 seconds.
 
-##  ____________________________________________________________________
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 
 
 ## v3.5.1 - 09-01-2026
@@ -351,15 +650,18 @@ Data frames are still sent at a rate of 4 seconds.
 ### 🐞 Corrections (Bugfix)
 
 [Issue#80](https://github.com/jean-luc1203/jkbms-rs485-addon/issues/80)
+
 # A complete overhaul of the section that processes **TCP/IP gateway** data.
 
 The frames coming from these gateways are poorly ordered, broken or mixed up.
 
-	I had to reconstruct them before processing them for decryption.
+I had to reconstruct them before processing them for decryption.
+
+
 
 #### ⚠️  Normally, no changes should be noticed by those using the USB adapter.
 
------------------------------------------------
+\---
 
 <img width="225" height="653" alt="image" src="https://github.com/user-attachments/assets/80efd86e-6b9c-4526-9129-779bdc628d37" />
 
@@ -367,32 +669,35 @@ The frames coming from these gateways are poorly ordered, broken or mixed up.
 
 <img width="297" height="256" alt="image" src="https://github.com/user-attachments/assets/bf40efec-307b-4a32-926e-cade18f0f220" />
 
------------------------------------------------
+\---
+
 
 
 ## v3.4.2 - 26-12-2025
 
 ### 🐞 Corrections (Bugfix)
 
-Correction of values for `switch_discharge` and `switch_charge` when a **BMS is in Master mode (0000)**
+Correction of values for `switch\\\_discharge` and `switch\\\_charge` when a **BMS is in Master mode (0000)**
 
 <img width="474" height="156" alt="image" src="https://github.com/user-attachments/assets/ffbb5b7f-a52c-4526-b819-6bd46d9cc137" />
 
-to 
+to
 
 <img width="386" height="181" alt="image" src="https://github.com/user-attachments/assets/57db4c2c-9218-4345-8934-fc0bee59830b" />
 
 
 
-The values are now correctly displayed. 
-![Issue](https://github.com/jean-luc1203/jkbms-rs485-addon/issues/73#issuecomment-3691696725)
+The values are now correctly displayed.
+!\[Issue](https://github.com/jean-luc1203/jkbms-rs485-addon/issues/73#issuecomment-3691696725)
 
-##  ____________________________________________________________________
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 
 
 ## v3.4.1 - 25-12-2025
 
 ### 🐞 Corrections (Bugfix)
+
 Various bug fixes
 
 ## ⚡️ Enhancements
@@ -403,10 +708,12 @@ Preparation of a **standalone version** that could run on Windows or Linux witho
 
 Still a lot of work to be done to implement this option.
 
-- 3 dashboards are ready: 1 for live data, 1 for setups, and 1 for static information.
+* 3 dashboards are ready: 1 for live data, 1 for setups, and 1 for static information.
 
 
-##  ____________________________________________________________________
+
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 
 
 ## v3.3.13 - 10-12-2025
@@ -415,23 +722,25 @@ Still a lot of work to be done to implement this option.
 
 Addition of 2 sensors that provide the status of the heating function connected to the JK
 
-- `sensor.bms_x_heating`                 Is the heating function activated ?    -    (ON / OFF) 
-- `sensor.bms_x_heating_current`         Indicates the amperage used for heating
-- `sensor.bms_x_heating_status_text`     Indicates whether the heating function is activated
+* `sensor.bms\\\_x\\\_heating`                 Is the heating function activated ?    -    (ON / OFF)
+* `sensor.bms\\\_x\\\_heating\\\_current`         Indicates the amperage used for heating
+* `sensor.bms\\\_x\\\_heating\\\_status\\\_text`     Indicates whether the heating function is activated
 
 <img width="346" height="148" alt="image" src="https://github.com/user-attachments/assets/a81ec864-de59-4e85-b125-27eb11b69065" />
 
 
-##  ____________________________________________________________________
+
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 
 
 ## v3.3.12 - 07-12-2025
 
 ### 🔧 Corrections (Bugfix)
 
-Correction of the minimum value for `bms_master_bms_device_address: 0 (range 1.0 - 247.0)`. The value 0 will be now allowed
+Correction of the minimum value for `bms\\\_master\\\_bms\\\_device\\\_address: 0 (range 1.0 - 247.0)`. The value 0 will be now allowed
 
-##  ____________________________________________________________________
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 
 
@@ -439,52 +748,59 @@ Correction of the minimum value for `bms_master_bms_device_address: 0 (range 1.0
 
 ### 🔧 Corrections (Bugfix)
 
-- **Correction of MQTT value ranges**: Resolution of the error "The range is 0 to 100 but the value is higher" for Home Assistant entities.
-  - Increase of the default range from 0-100 to 0-5000 in the "Setup To MQTT" node.
-  - Added custom bounds (`customBounds`) for all BMS parameters (max currents up to 600A, battery capacity up to 2000Ah, protection delays up to 5000s)
-  - Affected corrections: `total_battery_capacity_Ah`, `max_discharge_current`, `discharge_overcurrent_protection_delay`, `short_circuit_protection_delay`, and other BMS configuration parameters
+* **Correction of MQTT value ranges**: Resolution of the error "The range is 0 to 100 but the value is higher" for Home Assistant entities.
+
+  * Increase of the default range from 0-100 to 0-5000 in the "Setup To MQTT" node.
+  * Added custom bounds (`customBounds`) for all BMS parameters (max currents up to 600A, battery capacity up to 2000Ah, protection delays up to 5000s)
+  * Affected corrections: `total\\\_battery\\\_capacity\\\_Ah`, `max\\\_discharge\\\_current`, `discharge\\\_overcurrent\\\_protection\\\_delay`, `short\\\_circuit\\\_protection\\\_delay`, and other BMS configuration parameters
 
   ### Custom value ranges added:
 
   **Currents and capacities:**
-  - Max charge current: 0-600
-  - Max discharge current: 0-600
-  - Max balance current: 0-10
-  - Total battery capacity: 5-2000
+
+  * Max charge current: 0-600
+  * Max discharge current: 0-600
+  * Max balance current: 0-10
+  * Total battery capacity: 5-2000
 
   **Protection delays (in seconds):**
-  - Short circuit protection delay: 0-5000
-  - Charge overcurrent protection delay: 2-600
-  - Discharge overcurrent protection delay: 2-600
-  - Charge overcurrent recovery time: 2-3600
-  - Discharge overcurrent recovery time: 2-3600
-  - Short circuit recovery time: 2-600
+
+  * Short circuit protection delay: 0-5000
+  * Charge overcurrent protection delay: 2-600
+  * Discharge overcurrent protection delay: 2-600
+  * Charge overcurrent recovery time: 2-3600
+  * Discharge overcurrent recovery time: 2-3600
+  * Short circuit recovery time: 2-600
 
   **Cell voltages:**
-  - Smart sleep voltage: 0-5
-  - Undervoltage/overvoltage protections: 1.2-4.5
-  - Balance trigger: 0.003-1
-  - SOC 0%/100% voltages: 1-4.5
-  - Request charge/float voltages: 1.2-5
-  - Power off voltage: 1.2-4.5
-  - Balance starting voltage: 1.2-4.25
+
+  * Smart sleep voltage: 0-5
+  * Undervoltage/overvoltage protections: 1.2-4.5
+  * Balance trigger: 0.003-1
+  * SOC 0%/100% voltages: 1-4.5
+  * Request charge/float voltages: 1.2-5
+  * Power off voltage: 1.2-4.5
+  * Balance starting voltage: 1.2-4.25
 
   **Temperatures:**
-  - Charge/discharge overtemperature protections: -40 to 150
-  - Charge undertemperature protections: -40 to 50
-  - Power tube overtemperature protections: 30-100
+
+  * Charge/discharge overtemperature protections: -40 to 150
+  * Charge undertemperature protections: -40 to 50
+  * Power tube overtemperature protections: 30-100
 
   **Others:**
-  - Cell count: 1-32
-  - Wiring resistance: 0-1000
-  - Device address: 1-247
-  
-##  ____________________________________________________________________
+
+  * Cell count: 1-32
+  * Wiring resistance: 0-1000
+  * Device address: 1-247
+
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 # 3.3.10
 
 ### 🐞 Debug
-Increase to 25 the maximum value for the parameter: `number.bms_x_bms_request_float_voltage_time
+
+Increase to 25 the maximum value for the parameter: `number.bms\_x\_bms\_request\_float\_voltage\_time
 
 ### ⚡️ Enhancements
 
@@ -493,22 +809,26 @@ This allows me to get an idea of how many modules are installed.
 💡 No private information is sent. Only the word "bip".
 You can disable this feature in the module configuration.
 
-##  ____________________________________________________________________
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 
 
 # 3.3.8
 
 ### 🐞 Debug
-Correction of malformed topic: discovery topic `device_address`
+
+Correction of malformed topic: discovery topic `device\\\_address`
 
 There was an extra space character.
 
-##  ____________________________________________________________________
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 
 
 # 3.3.7
 
 ## ⚡️ Enhancements
+
 ## 🚨Alarm management implementations 🚨
 
 ℹ️ One BMS with the switches **set to 0000**
@@ -517,66 +837,66 @@ It is therefore the master of the RS485 bus and, for my module,
 
 it is in broadcasting mode !
 
-![Alarm(s)](https://raw.githubusercontent.com/jean-luc1203/jkbms-rs485-addon/refs/heads/main/images/Alarms-broadcasting-off.png)
+!\[Alarm(s)](https://raw.githubusercontent.com/jean-luc1203/jkbms-rs485-addon/refs/heads/main/images/Alarms-broadcasting-off.png)
 
 ### Alarm management will automatically create these entities in HAOS.
-- ❶ `binary_sensor.bms_global_bms_global_alarm`	It indicates if any of the BMS are in alarm mode.
-  It can take the values `"off"` or `"on"`   *device_class: problem*
 
-- ❷ `sensor.bms_x_bms_x_visual_status` Visual status for each BMS
-  It can take the values `"✅ No alarm"` or `"🚨 x alarm(s)"`
-
-- ❸`sensor.bms_x_bms_x_alarm_status` Status for each BMS
-  It can take the values `"No BMS alarms"` or `"🚨 BMS Alarm Alert"`
-
-- ❹ `sensor.bms_x_bms_x_alarm_list` List of one or more alarms from a BMS
-  It can take one or several labels as described below:
+* ❶ `binary\\\_sensor.bms\\\_global\\\_bms\\\_global\\\_alarm`	It indicates if any of the BMS are in alarm mode.
+It can take the values `"off"` or `"on"`   *device\_class: problem*
+* ❷ `sensor.bms\\\_x\\\_bms\\\_x\\\_visual\\\_status` Visual status for each BMS
+It can take the values `"✅ No alarm"` or `"🚨 x alarm(s)"`
+* ❸`sensor.bms\\\_x\\\_bms\\\_x\\\_alarm\\\_status` Status for each BMS
+It can take the values `"No BMS alarms"` or `"🚨 BMS Alarm Alert"`
+* ❹ `sensor.bms\\\_x\\\_bms\\\_x\\\_alarm\\\_list` List of one or more alarms from a BMS
+It can take one or several labels as described below:
 
 
-*"Balancing resistance too high",               
-"MOS over-temperature protection",             
-"Number of cells does not match parameter",    
-"Abnormal current sensor",                     
-"Cell over-voltage protection",                
-"Battery over-voltage protection",             
-"Overcurrent charge protection",               
-"Charge short-circuit protection",             
-"Over-temperature charge protection",          
-"Low temperature charge protection",           
-"Internal communication anomaly",              
-"Cell under-voltage protection",               
-"Battery under-voltage protection",            
-"Overcurrent discharge protection",            
-"Discharge short-circuit protection",          
-"Over-temperature discharge protection",       
-"Charge MOS anomaly",                          
-"Discharge MOS anomaly",                       
-"GPS disconnected",                            
-"Please modify the authorization password in time",                             
-"Discharge activation failure",                
-"Battery over-temperature alarm",              
-"Temperature sensor anomaly",                  
-"Parallel module anomaly",                     
-"Erreur fictive Bit 24",                            
-"Erreur fictive Bit 25",                            
-"Erreur fictive Bit 26",                            
-"Erreur fictive Bit 27",                            
-"Erreur fictive Bit 28",                            
-"Erreur fictive Bit 29",                            
-"Erreur fictive Bit 30",                            
-"Erreur fictive Bit 31"*                            
 
-![Alarm(s) ON](https://raw.githubusercontent.com/jean-luc1203/jkbms-rs485-addon/refs/heads/main/images/Alarms-broadcasting-on.png)
-![Alarm(s) OFF](https://raw.githubusercontent.com/jean-luc1203/jkbms-rs485-addon/refs/heads/main/images/Alarms-broadcasting-on-2.png)
+*"Balancing resistance too high",  
+"MOS over-temperature protection",  
+"Number of cells does not match parameter",  
+"Abnormal current sensor",  
+"Cell over-voltage protection",  
+"Battery over-voltage protection",  
+"Overcurrent charge protection",  
+"Charge short-circuit protection",  
+"Over-temperature charge protection",  
+"Low temperature charge protection",  
+"Internal communication anomaly",  
+"Cell under-voltage protection",  
+"Battery under-voltage protection",  
+"Overcurrent discharge protection",  
+"Discharge short-circuit protection",  
+"Over-temperature discharge protection",  
+"Charge MOS anomaly",  
+"Discharge MOS anomaly",  
+"GPS disconnected",  
+"Please modify the authorization password in time",  
+"Discharge activation failure",  
+"Battery over-temperature alarm",  
+"Temperature sensor anomaly",  
+"Parallel module anomaly",  
+"Erreur fictive Bit 24",  
+"Erreur fictive Bit 25",  
+"Erreur fictive Bit 26",  
+"Erreur fictive Bit 27",  
+"Erreur fictive Bit 28",  
+"Erreur fictive Bit 29",  
+"Erreur fictive Bit 30",  
+"Erreur fictive Bit 31"*
 
-##  ____________________________________________________________________
+!\[Alarm(s) ON](https://raw.githubusercontent.com/jean-luc1203/jkbms-rs485-addon/refs/heads/main/images/Alarms-broadcasting-on.png)
+!\[Alarm(s) OFF](https://raw.githubusercontent.com/jean-luc1203/jkbms-rs485-addon/refs/heads/main/images/Alarms-broadcasting-on-2.png)
+
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 
 
 # 3.3.6
 
 ## ⚡️ Enhancements
 
-###  When in broadcast mode 📺
+### When in broadcast mode 📺
 
 **BMS Master with the switches set on 0000**
 
@@ -584,23 +904,27 @@ To connect, for example, the Master BMS to the inverter that requires it.
 *Examples*: Victron, Deye, etc ...
 
 Adding automatically entities HAOS:
-- ❶ sensor.bms_master_total_runtime_formatted
 
-	`ex: 323D1H14M (DHM 323 days, 1 hour and 14 minutes)`
-- ❷ sensor.bms_master_charge_status_text  `ex: Bulk, Absorption, Float`
-- ❸ sensor.bms_master_charge_status_time
+* ❶ sensor.bms\_master\_total\_runtime\_formatted
 
-	`ex: 1H34S (1 hour and 34 seconds)`
+  `ex: 323D1H14M (DHM 323 days, 1 hour and 14 minutes)`
+
+* ❷ sensor.bms\_master\_charge\_status\_text  `ex: Bulk, Absorption, Float`
+* ❸ sensor.bms\_master\_charge\_status\_time
+
+  `ex: 1H34S (1 hour and 34 seconds)`
 
 ### 🐞 Debug
 
-- Added the ability to view live frames received in the logs for operational analysis
+* Added the ability to view live frames received in the logs for operational analysis
 
-###  🌍 Traductions:
+### 🌍 Traductions:
+
 The configuration fields are now translated into:
-- `English / German / Spanish / French / Portuguese / Italian / Polish`
 
-### 🔢 Telemetry ?  
+* `English / German / Spanish / French / Portuguese / Italian / Polish`
+
+### 🔢 Telemetry ?
 
 I am considering introducing a telemetry system to get a good idea of the number of live installations of my module.
 But I would like to hear your opinion. For the moment, **nothing has been implemented yet**!
@@ -610,7 +934,9 @@ But I would like to hear your opinion. For the moment, **nothing has been implem
 Thank you in advance for your response.
 
 
-##  ____________________________________________________________________
+
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 
 
 ## 3.3.3
@@ -619,7 +945,8 @@ Thank you in advance for your response.
 
 Changed some of the TCP timer connection to the IP Gateway
 
-##  ____________________________________________________________________
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 
 
 ## 3.3.1
@@ -628,18 +955,19 @@ Changed some of the TCP timer connection to the IP Gateway
 
 Correction of the timer for alarms when using IP Gateway
 
-##  ____________________________________________________________________
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 
 
 ## 3.3.0
 
-## 🐞 Bug fixes & Enhancements
+## 🐞 Bug fixes \& Enhancements
 
-- Improved timer management
-- addition of a delay node to regulate traffic and avoid crossing frames
-- Major code overhaul to improve timing Efficiency
-- Modified management of IP gateway usage
-- Precaution regarding the management of damaged Alarms frames
+* Improved timer management
+* addition of a delay node to regulate traffic and avoid crossing frames
+* Major code overhaul to improve timing Efficiency
+* Modified management of IP gateway usage
+* Precaution regarding the management of damaged Alarms frames
 
 ⚠️ Please save your module before the update.
 
@@ -647,24 +975,31 @@ I have run tests, but I haven't been able to test everything. So please take pre
 I would also appreciate your feedback on whether it works well or not at all.
 
 
-##  ____________________________________________________________________
+
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 ## 3.2.3
 
 ## 🐞 Bug fixes
+
 Correct management of a single BMS, all 125 entities are correctly discovered when there is only one BMS in master/slave mode.
 
 
-##  ____________________________________________________________________
+
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 
 
 ## 3.2.1
 
 ## 🐞 Bug fixes
-Increase the number maxi of BMS `jkbms_count` to 15 instead of 10
+
+Increase the number maxi of BMS `jkbms\\\_count` to 15 instead of 10
 
 
-##  ____________________________________________________________________
+
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 
 
 ## 3.2.0
@@ -679,21 +1014,23 @@ See DOCS.md file for more information
 The module will create sensors automatically in HAOS.
 These are:
 
-- ❶ `binary_sensor.bms_x_bms_alarm_active`
-- ❷ `sensor.bms_1_bms_1_alarm_list`
+* ❶ `binary\\\_sensor.bms\\\_x\\\_bms\\\_alarm\\\_active`
+* ❷ `sensor.bms\\\_1\\\_bms\\\_1\\\_alarm\\\_list`
 
 These 2 sensors indicate on which BMS there is an alarm and the wording of these alarms. If there is more than one, they are separated by a comma.
 
 A global sensor:
 
-- ❸ `binary_sensor.bms_global_bms_global_alarm`
+* ❸ `binary\\\_sensor.bms\\\_global\\\_bms\\\_global\\\_alarm`
 This is a binary sensor that enables simple automation in the event of an alarm on any BMS.
 
 It was a big, long job, but I think it was worth it.
 You tell me.
 
 You can see a short live demonstration on my Youtube [channel](https://www.youtube.com/@domosimple)
-- --
+
+\---
+
 <img width="840" height="292" alt="image" src="https://github.com/user-attachments/assets/4e4a3295-2b64-49cb-b257-d17ff279e21c" />
 
 <img width="530" height="251" alt="image" src="https://github.com/user-attachments/assets/7ba844ae-7c5f-45da-8ffa-226c2b3179d5" />
@@ -701,7 +1038,8 @@ You can see a short live demonstration on my Youtube [channel](https://www.youtu
 <img width="1105" height="612" alt="image" src="https://github.com/user-attachments/assets/8bf939d9-82d5-4b9f-ba96-22db16404a02" />
 
 
-##  ____________________________________________________________________
+
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 
 
@@ -709,16 +1047,18 @@ You can see a short live demonstration on my Youtube [channel](https://www.youtu
 
 ## ⚡️ Enhancements
 
-- Addition of 2 new sensors:
-  - ❶ `sensor.bms_1_charge_status_text` which indicates whether the battery is in
-  `Bulk / Absorption / Float` mode
+* Addition of 2 new sensors:
 
-  - ❷ `sensor.bms_1_charge_status_time_formatted` which indicates how long the balancing
-  takes to reach the `balance trigger voltage
+  * ❶ `sensor.bms\\\_1\\\_charge\\\_status\\\_text` which indicates whether the battery is in
+`Bulk / Absorption / Float` mode
+  * ❷ `sensor.bms\\\_1\\\_charge\\\_status\\\_time\\\_formatted` which indicates how long the balancing
+takes to reach the `balance trigger voltage
+
 <img width="863" height="321" alt="image" src="https://github.com/user-attachments/assets/ba998fc6-d215-4819-9fd4-90e5628c0a87" />
 
 
-##  ____________________________________________________________________
+
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 
 
@@ -726,7 +1066,7 @@ You can see a short live demonstration on my Youtube [channel](https://www.youtu
 
 ## ⚡️ Enhancements
 
-- Addition of 1 sensors `sensor.bms_x_total_runtime_formatted`
+* Addition of 1 sensors `sensor.bms\\\_x\\\_total\\\_runtime\\\_formatted`
 
 This gives the number of days-hours-minute your JK-BMS has been running
 
@@ -735,15 +1075,19 @@ in Day-Hour-Minute format, for example:  `300D22H46M`
 No need to create a template in HAOS to calculate it
 
 
-##  ____________________________________________________________________
+
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 
 
 ## 3.1.9
 
 ## 🐞 Bug fixes
+
 Correction of wrong T3 sensor temperature
 
-##  ____________________________________________________________________
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 
 
 ## 3.1.8
@@ -756,45 +1100,49 @@ The MQTT Cloud synchronization part has been removed. It is now part of an addit
 
 ## ⚡️ Enhancements
 
-- Addition of 2 sensors controlling the LCD buzzer
+* Addition of 2 sensors controlling the LCD buzzer
+
 <img width="670" height="129" alt="LCD-Buzzer" src="https://github.com/user-attachments/assets/f6fabab5-843c-4db6-86ec-96954081ed07" />
 
-- Display the Module Addon Version number into the log at startup
+* Display the Module Addon Version number into the log at startup
 
 ## 🐞 Bug fixes
 
-- Various bugs have been corrected in the TCP/IP Gateway section
-- No more attempts to connect to Cloud Broker
+* Various bugs have been corrected in the TCP/IP Gateway section
+* No more attempts to connect to Cloud Broker
 
-##  ____________________________________________________________________
+## \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 ## 3.1.2
 
- 🐞 Bug fixes --> Incorrect min / max ranges for MQTT number entities
+🐞 Bug fixes --> Incorrect min / max ranges for MQTT number entities
 
 [Issue #29](https://github.com/jean-luc1203/jkbms-rs485-addon/issues/29)
 
 All Home Assistant entities now have appropriate scales.
 
-###  📌 For this to be taken into account !!!
-it is **essential to Delete the MQTT device** `BMS_1, BMS_2, BMS_3, etc.`
+### 📌 For this to be taken into account !!!
+
+it is **essential to Delete the MQTT device** `BMS\\\_1, BMS\\\_2, BMS\\\_3, etc.`
 
 So that the entities can be recreated with the correct value scales
 
 
+
 ## 3.1.1
 
- 🐞 Bug fixes
+🐞 Bug fixes
 
 Changed base image amd64 home assistant addon from 'stable' to '18.1.0'.
 due to a change in the 'stable' image
+
 
 
 ## 3.1
 
 ## ⚡️ Enhancements
 
-##           🌟  Cloud MQTT Broker support  🌟
+## 🌟  Cloud MQTT Broker support  🌟
 
 Enable secure, encrypted transmission of user-defined JK-BMS entities to a cloud broker such as HiveMQTT.
 
@@ -802,19 +1150,22 @@ As a result, this data can be accessed anywhere in the world and on any device t
 
 For example, on your phone, the ["IoT MQTT Panel"](https://play.google.com/store/apps/details?id=snr.lab.iotmqttpanel.prod&hl=en-US) application lets you connect to the Cloud Broker and display the JK-BMS values on your phone in a dashboard defined by you or downloaded from my Ko-Fi.
 
-There's no need to install anything else at home, such as VPNs, proxies (Nginx) or personal plug&play networks like Zerotier or Tailscale.
+There's no need to install anything else at home, such as VPNs, proxies (Nginx) or personal plug\&play networks like Zerotier or Tailscale.
 
 ## To select the entities you wish to export
-use the "File editor" addon to modify the `configentities_list.json` file
+
+use the "File editor" addon to modify the `configentities\\\_list.json` file
 
 For a fuller description, You can read the [`HiveMQ-Access.md` ](https://github.com/jean-luc1203/jkbms-rs485-addon/blob/main/HiveMQ-Access.md)on the Github
 
 You can also watch the video explanation on my channel Youtube: [@domosimple](https://www.youtube.com/@domosimple)
+
 ## Translations
 
 Fields descriptions in the module configuration automatically take into account the English or French language 😃
 
 ## ⚠️ Please, Save your module settings
+
 As the format has changed. You will then need to fill it in again ‼️ ‼️
 
 **Please** also, click on the **"Reset to default"** button on the configuration menu. This will clean up the configuration file and you will be able to define it again with your settings
@@ -826,11 +1177,11 @@ As the format has changed. You will then need to fill it in again ‼️ ‼️
 <img width="293" height="641" alt="1 (2)" src="https://github.com/user-attachments/assets/34e4c9de-5366-4aa8-8b24-dc818b1e1c94" />
 <img width="289" height="645" alt="1 (1)" src="https://github.com/user-attachments/assets/9017b879-be8d-484f-8373-5013c5c93b8c" />
 
-** File to be modified to add/remove HAOS entities for external export**:
+\*\* File to be modified to add/remove HAOS entities for external export\*\*:
 
 <img width="699" height="623" alt="1 (6)" src="https://github.com/user-attachments/assets/21ef7595-126e-4a92-9558-2a7b73e19666" />
 
-## Mémory & CPU
+## Mémory \& CPU
 
 I've streamlined the code and installation. Installation is faster and the module less memory-hungry.
 
@@ -841,10 +1192,11 @@ I've streamlined the code and installation. Installation is faster and the modul
 Add help to each configuration field.
 At the top of each configuration field, there's now an explanation of the purpose of this parameter
 
- 🐞 Bug fixes
+🐞 Bug fixes
 No longer calls the TCP/IP gateway if the parameter is set to "false"
 
 ## ⚠️ Please, Save your configuration
+
 As the format has changed. You will then need to fill it in again ‼️ ‼️
 
 ## 3.0.12
@@ -853,11 +1205,12 @@ As the format has changed. You will then need to fill it in again ‼️ ‼️
 
 It is now possible to have the debug option on both the rs485 port and the IP gateway.
 
-⚠️ The `gateway_debug` parameter no longer exists, replaced by `communication_debug`
+⚠️ The `gateway\\\_debug` parameter no longer exists, replaced by `communication\\\_debug`
 
 👀 Please, Don't forget to reset it to "false" once testing is complete. This could unnecessarily overload the module
 
 <img width="680" height="100" alt="image" src="https://github.com/jean-luc1203/jkbms-rs485-addon/blob/main/images/Communication-debug.png" />
+
 
 
 ## 3.0.10
@@ -866,8 +1219,8 @@ It is now possible to have the debug option on both the rs485 port and the IP ga
 
 Added a "debug" option to check whether there is communication via the IP - rs485 gateway. The information can be found in the live module log.
 
-To enable it, change the gateway_debug parameter to "true"
-`gateway_debug: true`
+To enable it, change the gateway\_debug parameter to "true"
+`gateway\\\_debug: true`
 
 ⚠️ Don't forget to reset it to "false" once testing is complete.
 
@@ -876,56 +1229,63 @@ To enable it, change the gateway_debug parameter to "true"
 ## 3.0.8
 
 ## 🐞 Bug fixes
+
 following the enlightened suggestion of https://github.com/lgrenetier
-I have changed "node-red-dashboard": "*", to "node-red-dashboard": "3.6.3"
+I have changed "node-red-dashboard": "\*", to "node-red-dashboard": "3.6.3"
 so that the module can be installed
 
 ## 3.0.7
+
 change a timer for the MQTT alive
 
 ## 3.0.6
 
 ## 🐞 Bug fixes
 
-- Check that MQTT is communicating with the module
+* Check that MQTT is communicating with the module
 I have created a Topic in the MQTT broker to confirm that the module is able to talk to the broker at. This Topic is called **JK-BMS-RS485-CAN-module** and it must be equal to **"Online"**.
 You can check this with MQTTExplorer
+
 <img width="680" height="100" alt="image" src="https://github.com/user-attachments/assets/ca40210b-f563-45c8-a73f-43a67e05cb32" />
 
 
-- Checking communication with the BMS:
+
+* Checking communication with the BMS:
 To check that communication with the BMS is working properly, a log is created in the module's log file. Every 30 seconds you should be able to see this type of text
 
 ```
-6 Aug 18:42:13 - [warn] [function:SerialNb] BMS SerialNb: JK-Pack-2
-6 Aug 18:42:43 - [warn] [function:SerialNb] BMS SerialNb: JK-Pack-1
-6 Aug 18:43:13 - [warn] [function:SerialNb] BMS SerialNb: JK-Pack-2
-6 Aug 18:43:43 - [warn] [function:SerialNb] BMS SerialNb: JK-Pack-1
+6 Aug 18:42:13 - \\\[warn] \\\[function:SerialNb] BMS SerialNb: JK-Pack-2
+6 Aug 18:42:43 - \\\[warn] \\\[function:SerialNb] BMS SerialNb: JK-Pack-1
+6 Aug 18:43:13 - \\\[warn] \\\[function:SerialNb] BMS SerialNb: JK-Pack-2
+6 Aug 18:43:43 - \\\[warn] \\\[function:SerialNb] BMS SerialNb: JK-Pack-1
 ```
 
 ## 3.0.5
 
 ## ⚡️ Enhancements
 
-- Code change for "static" & "setup" frames.
+* Code change for "static" \& "setup" frames.
 Auto-discovery sent once on module start-up.
 
 Then only the data is sent.
 This loads the MQTT broker 10x less. The acquisition time is now set at 4 seconds for 2 BMS.
 
-- Add new topic named **BMS_1/cell_voltage_min_number** which gives the voltage of the lowest cell in the pack
+* Add new topic named **BMS\_1/cell\_voltage\_min\_number** which gives the voltage of the lowest cell in the pack
 
 
 
 ## 3.0.4
+
 Change pickup time
 
 ## 3.0.3
+
 Init flow variable
 
 ## 3.0.2
 
 ## 🐞 Bug fixes
+
 No longer send auto-discovery topics with data frames. Send them just once at startup.
 This will relieve the MQTT broker and improve the speed of data updates in HAOS.
 This loads the MQTT broker 500x less
@@ -943,35 +1303,45 @@ For the various variables, I now define realistic **min** and **max** limits, as
 ## V3.0.0
 
 ## ⚡️ Enhancements
+
 CAN bus support is now available 💫
 
 ## 📚 Documentation
+
 Added documentation for CAN support. See DOCS.md
 
 ## 2.0.6
+
 Change CAN flow
 
 ## 2.0.5
+
 Change Dockerfile
 
 ## 2.0.3
+
 Give access write to can0
 
 ## 2.0.2
+
 Change Dockerfile to support CANutils
 
 ## 2.0.1
 
 ## 🐞 Bug fixes
+
 Correction of the use of the variable "Broadcasting"
 
 ## 📚 Documentation
-Added documentation on RS485 & CAN protocols for jkbms
+
+Added documentation on RS485 \& CAN protocols for jkbms
+
 
 
 ## 2.0.0
 
 ## ⚡️ Enhancements
+
 Here is the add-on's new functionality in Version 2.0
 
 It is now possible to leave a BMS in Master mode.
@@ -988,138 +1358,178 @@ The BMS will then broadcast the information it has retrieved cyclically every 5 
 Please read the Github [README.md](https://github.com/jean-luc1203/jkbms-rs485-addon/blob/main/README.md)
 
 ## ⚠️ Attention
+
 As a precaution, please make a backup before this update. (it can be useful)
 
 ## 1.2.9
+
 Changed timeout for the serial node out
 
 ## 1.2.8
+
 test for BMS brodcasting mode with multiple BMS on Bus
 
 ## 1.2.7
+
 Change broadcast flow
 
 ## 1.2.6
+
 ## ⚡️ Enhancements
 
-- Start of BMS management in Master Bus Broadcasting mode.
-- Addition of a Boolean field and creation of a specific flow to manage broadcast frames.
-- Check whether you are in broadcast or full mode, with the option of modifying BMS parameters
+* Start of BMS management in Master Bus Broadcasting mode.
+* Addition of a Boolean field and creation of a specific flow to manage broadcast frames.
+* Check whether you are in broadcast or full mode, with the option of modifying BMS parameters
 
 ## 🐞 Bug fixes
-       -
+
+&#x20;      -
+
 ## 📚 Documentation
-       -
+
+&#x20;      -
+
+
 
 ## 1.2.5
+
 All's well, the JKBMS configuration fields are no longer erased when the module is updated.
 
 ## 1.2.4
+
 Final local tests before releasing the latest version
 
 ## 1.2.3
+
 Changed flow initialisation structure for new schema of jkbms fields
 
 ## 1.2.2
+
 Still modification for jkbms fields
 
 ## 1.2.1
+
 Modification of the loss of JKBMS configuration fields when updating the module
 
 ## 1.2.0
 
 ## Adds the possibility of using an RS485 <---> ethernet or Wifi gateway
 
- - *Use the IP address of the gateway and the port defined in the GW to the module
-   configuration*
+* *Use the IP address of the gateway and the port defined in the GW to the module
+configuration*
 
 !! Parameters modification via the gateway **has not yet been implemented**. Only via the USB port.
 
 ## 1.1.11
+
 Change flow for GW
 
 ## 1.1.10
+
 Changed flow for GW preparation
 
 ## 1.1.9
+
 Test with config.yaml
 
 ## 1.1.8
+
 Test with config.yaml
 
 ## 1.1.4
+
 Creation optional fields for GW
 
 ## 1.1.3
+
 Change access right to nodered files
 
 ## 1.1.2
+
 Modification for GW fields and 3 times more faster for data reading
 
 ## 1.1.1
+
 Trying to add Gateway IP fields
 
 ## 1.1.0
+
 1st version tested and approved
 Data acquisition speed has been greatly increased
 
 ## 1.0.18
+
 Modification of default USB device ttyUSB0 to ttyUSBx. Otherwise, there may be a conflict with other modules that could use ttyUSB0.
 
 ## 1.0.17
+
 Module installation ok, modification of one flow
 
 ## 1.0.16
+
 First tests NOK, try another Dockerfile
 
 ## 1.0.15
+
 First real tests with 2 JKBMS's
 
 ## 1.0.14
+
 Test call URL external image from DOCS.md
 
 ## 1.0.13
-Change nb-jkbms to nb_jkbms and the flows that use it
+
+Change nb-jkbms to nb\_jkbms and the flows that use it
 
 ## 1.0.12
+
 New Flows with variable from the config menu
 
 ## 1.0.11
+
 Change DOCS.md to reflect the new documentation of the software
 
 ## 1.0.10
+
 Change Readme.md to reflect the new design of the software
 
 ## 1.0.9
-Change config.js & Installation of my flows
+
+Change config.js \& Installation of my flows
 
 ## 1.0.8
+
 Change slug
 
 ## 1.0.7
+
 Change Path working directory
 
 ## 1.0.6
+
 Modification config menu
 
 ## 1.0.5
+
 Modification config menu
 
 ## 1.0.4
+
 Access right to init nodered
 
 ## 1.0.3
+
 Reconstruction from Linux machine
 
 ## 1.0.2
+
 File permission Modification to executable
 
 ## 1.0.1
+
 Modification config.yaml
 
 ## 1.0.0
 
-- Module construction le 06-06-2025
-
-
+* Module construction le 06-06-2025
 
