@@ -26,6 +26,13 @@ config.uiPort = 1891;
 config.userDir = "/config/smartphoton_jkbms/";
 config.httpNodeRoot = "/endpoint";
 
+// Explicit runtime metadata for URL logging; no credentials are exposed.
+config.functionGlobalContext.jkbmsRuntime = {
+  kind: "haos_addon",
+  uiPort: config.uiPort,
+  httpNodeRoot: config.httpNodeRoot
+};
+
 console.log("✅ Node-RED is using userDir =", config.userDir);
 console.log("✅ Node-RED is using uiPort =", config.uiPort);
 

@@ -1,4 +1,11 @@
 > ⚠️ **Development test release — not yet recommended for production installations.**
+## 4.2.70 - 2026-09-16
+Correction to the “Standalone Docker” message. Under HAOS, 
+it will now display your current address as follows:
+
+HAOS add-on dashboard URL (detected LAN interface):
+http://192.168.0.217:1891/endpoint/dashboard/
+
 
 ## 4.2.69 - 2026-09-14
 
