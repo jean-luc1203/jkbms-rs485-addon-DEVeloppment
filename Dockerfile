@@ -66,7 +66,9 @@ COPY rootfs /
 RUN chmod +x \
     /etc/s6-overlay/s6-rc.d/init-customizations/run \
     /etc/s6-overlay/s6-rc.d/init-customizations/up \
-    /etc/s6-overlay/s6-rc.d/init-customizations/type
+    /etc/s6-overlay/s6-rc.d/init-customizations/type \
+    /etc/s6-overlay/s6-rc.d/init-nodered/run \
+    /etc/s6-overlay/s6-rc.d/nodered/run
 
 # Health check
 HEALTHCHECK --start-period=10m \
