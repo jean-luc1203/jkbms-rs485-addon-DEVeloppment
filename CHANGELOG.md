@@ -1,6 +1,6 @@
 > ⚠️ **Development test release — not yet recommended for production installations.**
 
-## 4.2.68 - 2026-09-14
+## 4.2.69 - 2026-09-14
 
 ### 🚀 Multi-Pack Broadcasting — up to 80 BMS
 
