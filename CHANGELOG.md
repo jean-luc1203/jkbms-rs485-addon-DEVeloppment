@@ -1,4 +1,19 @@
 > ⚠️ **Development test release — not yet recommended for production installations.**
+## 4.2.71 - 2026-09-17 (test candidate)
+
+- Subscribe to Legacy MQTT control topics after configuration has loaded; restore
+  subscriptions on MQTT connection. Block commands outside Legacy Active Polling.
+- Add the `heating_switch` Home Assistant entity (HeatEN, register `0x1114`, bit 0).
+  Wait for the next addressed SETUP poll before writing; confirm from a subsequent
+  SETUP, without publishing an optimistic state or changing polling intervals.
+- Respect modification authorization; reject retained heating commands and expire
+  unconfirmed intents. Pending commands are cleared on restart/reconfiguration.
+- Preserve unrelated register bits in PCL, Smart Sleep and Timed Stored Data
+  writes. Correct their SETUP bit offsets and the Floating Mode bit offset.
+- Preserve all existing entity identities and the separate live heating sensor.
+  Broadcasting and multi-pack transport flows are unchanged.
+- Software regression tests included; real BMS/HAOS validation is still required.
+
 ## 4.2.70 - 2026-09-16
 Correction to the “Standalone Docker” message. Under HAOS, 
 it will now display your current address as follows:
@@ -1539,4 +1554,3 @@ Modification config.yaml
 ## 1.0.0
 
 * Module construction le 06-06-2025
-
