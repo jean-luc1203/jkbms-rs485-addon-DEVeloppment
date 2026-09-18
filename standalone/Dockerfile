@@ -1,5 +1,5 @@
 # Use the base Node Alpine image
-FROM node:20-alpine
+FROM node:22-alpine
 
 # Create directories required by the standalone runtime and dashboard generators.
 RUN mkdir -p \
