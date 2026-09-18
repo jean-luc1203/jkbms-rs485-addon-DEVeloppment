@@ -1,4 +1,19 @@
 > ⚠️ **Development test release — not yet recommended for production installations.**
+## 4.2.72 - 2026-09-18 (test candidate)
+
+- Fix balance trigger voltage validation: accept 0.003–1 V, matching the existing
+  MQTT discovery bounds, including 0.010 and 0.020 V. Encode millivolts as before.
+- Align balance starting voltage validation with the published 1.2–4.25 V bounds.
+- Stop invalid balance commands instead of forwarding the original payload.
+  Validate numeric/boolean inputs and take the target address from the command.
+- Remove optimistic command-state publication. SETUP readback supplies actual
+  states; balance commands use regular polling without an extra unaddressed read.
+- Block error-bearing/non-Buffer messages at the common parameter-write gate.
+- Preserve existing balance-switch authorization exception and all MQTT identities.
+  Heating logic and Broadcasting/Multi-Pack flows are unchanged from 4.2.71.
+- Software tests passed; real BMS validation still required. This does not claim
+  to resolve the unconfirmed device-page display discrepancy from issue #177.
+
 ## 4.2.71 - 2026-09-17 (test candidate)
 
 - Subscribe to Legacy MQTT control topics after configuration has loaded; restore
