@@ -10,7 +10,9 @@ config.functionGlobalContext = {
   ...(config.functionGlobalContext || {}),
   crypto: require("crypto"),
   fs: require("fs"),
-  path: require("path")
+  path: require("path"),
+  jkbmsActivePolling: require("./active-polling.js"),
+  jkbmsActiveRequested: options.multi_pack_active_polling === true
 };
 
 config.functionExternalModules = true;

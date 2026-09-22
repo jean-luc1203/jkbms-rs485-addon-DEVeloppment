@@ -1,6 +1,6 @@
 ---
 name: "JK-BMS wired management"
-version: 4.2.72
+version: 4.2.77
 slug: "smartphoton_jkbms"
 description: DEV / TEST - JK-BMS Management via RS485, CAN bus, USB or TCP/IP Gateway
 url: https://domosimple.eu/forum/thread-917.html
@@ -45,6 +45,7 @@ options:
   # Multi-Pack
   multi_pack_section: "────────── MULTI-PACK ──────────"
   multi_pack_enabled: false
+  multi_pack_active_polling: false
   multi_pack_packs:
     - id: "pack_1"
       name: "Pack 1"
@@ -86,12 +87,14 @@ schema:
   # Multi-Pack
   multi_pack_section: str?
   multi_pack_enabled: bool
+  multi_pack_active_polling: bool?
   multi_pack_packs:
     - id: "match(^pack_[1-5]$)"
       name: str
       transport: "list(tcp|serial)?"
       gateway_ip_port: str?
       path: str?
+      bms_addresses: str?
 
   # Legacy / mono-bus
   legacy_section: str?

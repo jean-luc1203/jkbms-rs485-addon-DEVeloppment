@@ -1,3 +1,39 @@
+## 4.2.77 DEV — 2026-09-21
+## 4.2.76 DEV — 2026-09-21 
+Fixed
+Prevented dashboard cleanup from targeting the Legacy dashboard when the Multi-Pack dashboard file is missing, on both HAOS and standalone Docker.
+Fixed dropped Legacy TCP commands by queuing requests instead of discarding them.
+Fixed post-command SETUP reads to target the correct BMS without advancing the periodic polling counter.
+Fixed LCD switch state decoding and Home Assistant feedback.
+Fixed dashboard language selection being overridden by an older browser preference.
+Fixed partial translations such as “Audayd’hui”.
+Masked Premium keys and other sensitive options in standalone Docker startup logs.
+Removed invalid Node-RED Link references and corrected group membership.
+Improved
+Added dashboard synchronization result and exit-code logging.
+Reorganized the flows visually and replaced selected long wires with Link nodes.
+Retained timestamped TCP/USB captures for diagnostics.
+Validation
+LCD OFF/ON and heating controls tested successfully on two BMS in Legacy TCP mode.
+Dashboard fixes passed local tests; Docker restart validation remains pending.
+
+## 4.2.75 DEV — 2026-09-22 Cleanup flows display
+## 4.2.74 DEV — 2026-09-21 Cleanup flows display
+
+## 4.2.73 DEV — Active Polling multi-pack TCP (experimental)
+
+- Explicit opt-in `multi_pack_active_polling`; defaults OFF. Requires TCP packs
+  with explicit `bms_addresses`, broadcasting OFF and CAN OFF.
+- Independent TCP request queues per pack, CRC/checksum/address validation,
+  reconnect after timeout to discard late replies.
+- Existing optimized multi-pack LIVE processing and aggregates reused.
+- LCD and heating controls: fresh read/modify/write/readback on the same BMS;
+  authorization required; retained commands rejected; no optimistic state.
+- Other parameters are read-only in this first Active Polling stage.
+- Legacy function bodies and Broadcasting parser unchanged. Physical transport
+  guards are identity functions when the new opt-in is OFF.
+- HAOS integration first; standalone and multi-pack serial not enabled here.
+
 > ⚠️ **Development test release — not yet recommended for production installations.**
 ## 4.2.72 - 2026-09-18 (test candidate)
 

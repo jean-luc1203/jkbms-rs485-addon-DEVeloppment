@@ -106,7 +106,21 @@ if (fs.existsSync(filePath)) {
 const dashboardMeta = input?.dashboard_meta || {};
 const dashboardConfig = input?.config || input || {};
 
-const urlPath = dashboardMeta.url_path || "smart-jkbms";
+const knownDashboardPaths = {
+    "smart_jkbms.json": "smart-jkbms",
+    "smart_jkbms_2.json": "smart-jkbms-2",
+    "smart_energy_premium.json": "smart-energy-premium",
+    "smart_jkbms_multipack.json": "smart-jkbms-multipack"
+};
+const expectedPath = knownDashboardPaths[require("path").basename(filePath)];
+const declaredPath = dashboardMeta.url_path;
+if ((expectedPath && declaredPath && declaredPath !== expectedPath) ||
+    (!expectedPath && !declaredPath)) {
+    console.error(JSON.stringify({ok:false, action, file:filePath,
+        error:"Dashboard target missing or inconsistent with filename"}));
+    process.exit(1);
+}
+const urlPath = expectedPath || declaredPath;
 const title = dashboardMeta.title || "Smart JK-BMS";
 const icon = dashboardMeta.icon || "mdi:battery";
 const showInSidebar = dashboardMeta.show_in_sidebar !== false;

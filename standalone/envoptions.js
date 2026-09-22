@@ -168,7 +168,7 @@ function main() {
         ? typeSpecStr.slice(0, -1) // remove "?"
         : typeSpecStr;
 
-        const isSensitive = baseType === "password";
+        const isSensitive = baseType === "password" || /(?:password|passwd|pass|token|secret|key)/i.test(key);
         if (isSensitive) {
             sensitiveKeys.add(key);
         }
