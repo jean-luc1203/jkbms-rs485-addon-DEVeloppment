@@ -1,3 +1,20 @@
+## 4.2.79
+
+- Preserve the manually reorganized Premium dashboard flow from flows(164).json.
+- Restore grid card visibility at low or zero power when a grid sensor is configured or detected; retain the 20 W animation threshold.
+- Restore explanatory messages on the three BMS 1 Node-RED pages when no data is available. These pages still require Legacy Active Polling.
+- Remove three dangling link references and restore the original non-Premium dispatch order through link nodes.
+- Preserve Legacy communication, LCD/heating controls and Active Polling Multi-Pack logic.
+
+## 4.2.78 DEV — 2026-09-24
+
+### Fixed
+- Keep Premium grid cards visible at low or zero power when a grid power or energy sensor is configured or detected. The existing 20 W threshold now only controls the flow animation in this case.
+- Show an explanatory message on the three BMS 1 Node-RED pages when no data has been received, including their limitation to Legacy Active Polling. Broadcasting and Multi-Pack acquisition are not connected to these pages.
+
+### Scope
+- No changes to BMS acquisition, LCD/heating commands, MQTT topics, or flow wiring and positions.
+
 ## 4.2.77 DEV — 2026-09-21
 ## 4.2.76 DEV — 2026-09-21 
 Fixed
