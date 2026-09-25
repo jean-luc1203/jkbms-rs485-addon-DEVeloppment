@@ -1224,6 +1224,183 @@
         "h": 182
     },
     {
+        "id": "7e9b29e0a9289f6d",
+        "type": "group",
+        "z": "a03abd8e08b468db",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#767676"
+        },
+        "nodes": [
+            "23a4b757e32b4f5d",
+            "84d04e55de99bb0b",
+            "46fd6f86d078554f",
+            "879c695e4bcf50ef",
+            "916f81d8de6ce2b7",
+            "5c0ef104fa78f4e1",
+            "2340c195b011c295",
+            "b1c6ba0cd0b2b884"
+        ],
+        "x": 24,
+        "y": 271.5,
+        "w": 982,
+        "h": 157
+    },
+    {
+        "id": "3454d10d5fae4499",
+        "type": "group",
+        "z": "a03abd8e08b468db",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#767676"
+        },
+        "nodes": [
+            "a940529ac3a159d7",
+            "a5ae115f30c3c4f0",
+            "e17a60a00e4b3083",
+            "59a679d7ebbb76f3",
+            "2231544b7ffdc21b",
+            "dd6df2a46466b09f",
+            "a479000000000001"
+        ],
+        "x": 24,
+        "y": 471.5,
+        "w": 672,
+        "h": 169.5
+    },
+    {
+        "id": "f90df40a0f6c93b1",
+        "type": "group",
+        "z": "a03abd8e08b468db",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#767676"
+        },
+        "nodes": [
+            "e786bb3faa77d881",
+            "c90f119270193bd9",
+            "df169d58bae0837f",
+            "0a01ca10067cd55a"
+        ],
+        "x": 34,
+        "y": 679,
+        "w": 772,
+        "h": 122
+    },
+    {
+        "id": "2c0aa00eb1ea9db7",
+        "type": "group",
+        "z": "a03abd8e08b468db",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#767676"
+        },
+        "nodes": [
+            "1d87add32e7cba0d",
+            "1fa4419b60712979",
+            "1e88acf643d61cca",
+            "9612d6721a03dd26",
+            "23139bca8d7e6bc1",
+            "cb0fa607c069aecf"
+        ],
+        "x": 74,
+        "y": 831.5,
+        "w": 1592,
+        "h": 97
+    },
+    {
+        "id": "449cbd245967c13c",
+        "type": "group",
+        "z": "a03abd8e08b468db",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#767676"
+        },
+        "nodes": [
+            "13b6b22d1a8e5d02",
+            "13b6b22d1a8e5d01",
+            "13b6b22d1a8e5d03",
+            "13b6b22d1a8e5d04",
+            "13b6b22d1a8e5d05",
+            "2f9f3df6c4635c49",
+            "964aca609edb7b54",
+            "988e7d0ec4685b25"
+        ],
+        "x": 28,
+        "y": 965.5,
+        "w": 1598,
+        "h": 283
+    },
+    {
+        "id": "b78453e368a79b85",
+        "type": "group",
+        "z": "a03abd8e08b468db",
+        "name": "",
+        "style": {
+            "stroke": "#ff0000",
+            "fill": "#ffbfbf",
+            "label": true,
+            "color": "#ff0000"
+        },
+        "nodes": [
+            "d476000000000001",
+            "e8a2c306ebb543c3"
+        ],
+        "x": 1234,
+        "y": 79,
+        "w": 432,
+        "h": 82
+    },
+    {
+        "id": "378b19d14bd5070a",
+        "type": "group",
+        "z": "a03abd8e08b468db",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#767676"
+        },
+        "nodes": [
+            "759658279b167930",
+            "1f75794c7fd874e7",
+            "4d410b8b94726028",
+            "f0a660a173c82dc1"
+        ],
+        "x": 74,
+        "y": 79,
+        "w": 492,
+        "h": 162
+    },
+    {
         "id": "6c7dc100130a10bc",
         "type": "group",
         "z": "e055e44d12af04de",
@@ -1620,138 +1797,6 @@
         "h": 162
     },
     {
-        "id": "9bc49781192bc226",
-        "type": "group",
-        "z": "43d625f9633b5333",
-        "g": "d587ca63b8c7294e",
-        "style": {
-            "stroke": "#999999",
-            "stroke-opacity": "1",
-            "fill": "none",
-            "fill-opacity": "1",
-            "label": true,
-            "label-position": "nw",
-            "color": "#767676"
-        },
-        "nodes": [
-            "6add8cce3ba67902",
-            "d1fc91e6f90d7cbb",
-            "0f50e76efb3d6058",
-            "d16d7dc2b256e40d",
-            "6be4d9d25233bd47",
-            "565d5c3c738c7f02"
-        ],
-        "x": 734,
-        "y": 284,
-        "w": 652,
-        "h": 177
-    },
-    {
-        "id": "7e9b29e0a9289f6d",
-        "type": "group",
-        "z": "a03abd8e08b468db",
-        "style": {
-            "stroke": "#999999",
-            "stroke-opacity": "1",
-            "fill": "none",
-            "fill-opacity": "1",
-            "label": true,
-            "label-position": "nw",
-            "color": "#767676"
-        },
-        "nodes": [
-            "23a4b757e32b4f5d",
-            "84d04e55de99bb0b",
-            "46fd6f86d078554f",
-            "879c695e4bcf50ef",
-            "916f81d8de6ce2b7",
-            "5c0ef104fa78f4e1",
-            "2340c195b011c295",
-            "b1c6ba0cd0b2b884"
-        ],
-        "x": 24,
-        "y": 271.5,
-        "w": 982,
-        "h": 157
-    },
-    {
-        "id": "3454d10d5fae4499",
-        "type": "group",
-        "z": "a03abd8e08b468db",
-        "style": {
-            "stroke": "#999999",
-            "stroke-opacity": "1",
-            "fill": "none",
-            "fill-opacity": "1",
-            "label": true,
-            "label-position": "nw",
-            "color": "#767676"
-        },
-        "nodes": [
-            "a940529ac3a159d7",
-            "a5ae115f30c3c4f0",
-            "e17a60a00e4b3083",
-            "59a679d7ebbb76f3",
-            "2231544b7ffdc21b",
-            "dd6df2a46466b09f",
-            "a479000000000001"
-        ],
-        "x": 74,
-        "y": 471.5,
-        "w": 622,
-        "h": 169.5
-    },
-    {
-        "id": "f90df40a0f6c93b1",
-        "type": "group",
-        "z": "a03abd8e08b468db",
-        "style": {
-            "stroke": "#999999",
-            "stroke-opacity": "1",
-            "fill": "none",
-            "fill-opacity": "1",
-            "label": true,
-            "label-position": "nw",
-            "color": "#767676"
-        },
-        "nodes": [
-            "e786bb3faa77d881",
-            "c90f119270193bd9",
-            "df169d58bae0837f",
-            "0a01ca10067cd55a"
-        ],
-        "x": 34,
-        "y": 679,
-        "w": 772,
-        "h": 122
-    },
-    {
-        "id": "2c0aa00eb1ea9db7",
-        "type": "group",
-        "z": "a03abd8e08b468db",
-        "style": {
-            "stroke": "#999999",
-            "stroke-opacity": "1",
-            "fill": "none",
-            "fill-opacity": "1",
-            "label": true,
-            "label-position": "nw",
-            "color": "#767676"
-        },
-        "nodes": [
-            "1d87add32e7cba0d",
-            "1fa4419b60712979",
-            "1e88acf643d61cca",
-            "9612d6721a03dd26",
-            "23139bca8d7e6bc1",
-            "cb0fa607c069aecf"
-        ],
-        "x": 74,
-        "y": 831.5,
-        "w": 1592,
-        "h": 97
-    },
-    {
         "id": "964aca609edb7b54",
         "type": "group",
         "z": "a03abd8e08b468db",
@@ -1777,9 +1822,10 @@
         "h": 97
     },
     {
-        "id": "449cbd245967c13c",
+        "id": "9bc49781192bc226",
         "type": "group",
-        "z": "a03abd8e08b468db",
+        "z": "43d625f9633b5333",
+        "g": "d587ca63b8c7294e",
         "style": {
             "stroke": "#999999",
             "stroke-opacity": "1",
@@ -1790,62 +1836,17 @@
             "color": "#767676"
         },
         "nodes": [
-            "13b6b22d1a8e5d02",
-            "13b6b22d1a8e5d01",
-            "13b6b22d1a8e5d03",
-            "13b6b22d1a8e5d04",
-            "13b6b22d1a8e5d05",
-            "2f9f3df6c4635c49",
-            "964aca609edb7b54"
+            "6add8cce3ba67902",
+            "d1fc91e6f90d7cbb",
+            "0f50e76efb3d6058",
+            "d16d7dc2b256e40d",
+            "6be4d9d25233bd47",
+            "565d5c3c738c7f02"
         ],
-        "x": 28,
-        "y": 965.5,
-        "w": 1598,
-        "h": 283
-    },
-    {
-        "id": "b78453e368a79b85",
-        "type": "group",
-        "z": "a03abd8e08b468db",
-        "name": "",
-        "style": {
-            "stroke": "#ff0000",
-            "fill": "#ffbfbf",
-            "label": true,
-            "color": "#ff0000"
-        },
-        "nodes": [
-            "d476000000000001",
-            "e8a2c306ebb543c3"
-        ],
-        "x": 1234,
-        "y": 79,
-        "w": 432,
-        "h": 82
-    },
-    {
-        "id": "378b19d14bd5070a",
-        "type": "group",
-        "z": "a03abd8e08b468db",
-        "style": {
-            "stroke": "#999999",
-            "stroke-opacity": "1",
-            "fill": "none",
-            "fill-opacity": "1",
-            "label": true,
-            "label-position": "nw",
-            "color": "#767676"
-        },
-        "nodes": [
-            "759658279b167930",
-            "1f75794c7fd874e7",
-            "4d410b8b94726028",
-            "f0a660a173c82dc1"
-        ],
-        "x": 74,
-        "y": 79,
-        "w": 492,
-        "h": 162
+        "x": 734,
+        "y": 284,
+        "w": 652,
+        "h": 177
     },
     {
         "id": "6e1abcbcc6ebb714",
@@ -3043,7 +3044,7 @@
         "z": "43d625f9633b5333",
         "g": "648fd6ea7b5189e0",
         "name": "MQTT status to HAOS log",
-        "func": "const text = (msg.status?.text || '').toLowerCase().trim();\nconst source = msg.status?.source?.name || msg.status?.source?.id || 'mqtt';\n\nconst last = context.get('last_text');\nif (last === text) return null;\ncontext.set('last_text', text);\n\n// Très important : tester \"disconnected\" AVANT \"connected\"\nif (text.includes('disconnected')) {\n    node.warn(`❌ MQTT broker disconnected [${source}]`);\n} else if (text.includes('connected')) {\n    node.warn(`✅ MQTT broker connected [${source}]`);\n} else if (text.includes('connecting') || text.includes('reconnect')) {\n    node.warn(`⚠️ MQTT broker reconnecting [${source}]`);\n} else {\n    node.warn(`ℹ️ MQTT broker status [${source}]: ${msg.status?.text || 'unknown'}`);\n}\n\nreturn msg;",
+        "func": "// v4.2.82 - MQTT status logging + connected-state gated SETUP migration/rediscovery.\nconst text = (msg.status?.text || '').toLowerCase().trim();\nconst source = msg.status?.source?.name || msg.status?.source?.id || 'mqtt';\n\nconst last = context.get('last_text');\nif (last === text) return null;\ncontext.set('last_text', text);\n\nfunction sanitizeIds(values) {\n    return [...new Set(\n        (Array.isArray(values) ? values : [])\n            .map(Number)\n            .filter(id => Number.isInteger(id) && id >= 1 && id <= 15)\n    )].sort((a, b) => a - b);\n}\n\nfunction armActivePollingSetupRediscovery() {\n    if (global.get(\"multi_pack_enabled\") !== true ||\n        global.get(\"jkbms_active_polling_enabled\") !== true) {\n        return 0;\n    }\n\n    let packIds = global.get(\"jkbms_pack_ids\");\n    if (!Array.isArray(packIds) || packIds.length === 0) {\n        packIds = [\"pack_1\"];\n    }\n\n    const defs = global.get(\"jkbms_pack_defs\") || {};\n    let armed = 0;\n\n    for (const packId of packIds) {\n        const def = defs[packId] || {};\n        const ids = sanitizeIds(def.bms_addresses);\n\n        for (const id of ids) {\n            // Different Node-RED tab: use global flags. The SETUP discovery\n            // node consumes and clears each individual flag after use.\n            global.set(`forceSetupRepublish_${packId}_BMS_${id}`, true);\n            armed++;\n        }\n    }\n\n    return armed;\n}\n\n// Très important : tester \"disconnected\" AVANT \"connected\".\n// jkbms_mqtt_connected is consumed by the SETUP migration node so retained\n// deletes are never considered complete before the MQTT output is usable.\nif (text.includes('disconnected')) {\n    global.set(\"jkbms_mqtt_connected\", false);\n    node.warn(`❌ MQTT broker disconnected [${source}]`);\n} else if (text.includes('connected')) {\n    global.set(\"jkbms_mqtt_connected\", true);\n    global.set(\"jkbms_mqtt_connected_at\", Date.now());\n    node.warn(`✅ MQTT broker connected [${source}]`);\n\n    const armed = armActivePollingSetupRediscovery();\n    if (armed > 0) {\n        node.warn(`↻ Active Polling SETUP rediscovery armée après connexion MQTT -> ${armed} BMS`);\n    }\n} else if (text.includes('connecting') || text.includes('reconnect') || text.includes('failed')) {\n    global.set(\"jkbms_mqtt_connected\", false);\n    node.warn(`⚠️ MQTT broker reconnecting [${source}]`);\n} else {\n    node.warn(`ℹ️ MQTT broker status [${source}]: ${msg.status?.text || 'unknown'}`);\n}\n\nreturn msg;\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -8998,7 +8999,7 @@
         "z": "aec15389f6a9ed83",
         "g": "5bb1cabac9df5d5f",
         "name": "Setup To MQTT",
-        "func": "// ========== SETUP TO MQTT - VERSION CORRIGÉE ET ROBUSTE ==========\n// Buts :\n// - Publier au premier passage\n// - Republier si une valeur change\n// - Republier si forçage demandé\n// - Recréer les entités HA si elles ont disparu\n// - Supporter l'apparition de nouvelles clés sans bloquer\n\n// -----------------------------------------------------------------\n// 1) Identification du BMS\n// -----------------------------------------------------------------\nlet bmsAdresse = Number(msg.bms_numero);\nlet slaveIdStr = (bmsAdresse === 0) ? \"master\" : String(bmsAdresse);\n\nif (!msg.payload || typeof msg.payload !== \"object\" || Array.isArray(msg.payload)) {\n    node.warn(`Setup To MQTT ignoré: payload invalide pour BMS ${slaveIdStr}`);\n    return null;\n}\n\nconst payload = msg.payload;\n\n// -----------------------------------------------------------------\n// MQTT / HA identity : legacy strict ou Multi-Pack.\nconst multiPack = global.get(\"multi_pack_enabled\") === true;\nconst packId = msg.pack_id || \"pack_1\";\nconst packName = msg.pack_name || \"Pack 1\";\nconst packSafe = String(packId).toLowerCase().replace(/[^a-z0-9_]+/g, \"_\");\n\nconst baseTopic = multiPack\n    ? `jkbms/${packId}/BMS_${slaveIdStr}`\n    : `BMS_${slaveIdStr}`;\n\nconst discoveryPrefix = \"homeassistant\";\n\nconst deviceName = multiPack\n    ? `${packName} - BMS_${slaveIdStr}`\n    : `BMS_${slaveIdStr}`;\n\nconst deviceID = multiPack\n    ? `${packSafe}_BMS_${slaveIdStr}_device`\n    : `${baseTopic}_device`;\n\nconst entityPrefix = multiPack\n    ? `${packSafe}_bms_${slaveIdStr}`\n    : baseTopic.toLowerCase();\n\n// -----------------------------------------------------------------\n// 2) Clés de contexte\n// -----------------------------------------------------------------\nconst setupSentKey = multiPack\n    ? `setupSent_${packId}_BMS_${slaveIdStr}`\n    : `setupSent_BMS_${slaveIdStr}`;\n\nconst lastSetupKey = multiPack\n    ? `lastSetup_${packId}_BMS_${slaveIdStr}`\n    : `lastSetup_BMS_${slaveIdStr}`;\n\nconst forceKeyFlow = multiPack\n    ? `forceSetupRepublish_${packId}_BMS_${slaveIdStr}`\n    : `forceSetupRepublish_BMS_${slaveIdStr}`;\n\nconst forceAllKeyFlow = multiPack\n    ? `forceSetupRepublishAll_${packId}`\n    : \"forceSetupRepublishAll\";\n\nlet setupAlreadySent = !!flow.get(setupSentKey);\nlet lastSetup = flow.get(lastSetupKey) || {};\n\nconst forceRepublish =\n    msg.force_setup_republish === true ||\n    flow.get(forceKeyFlow) === true ||\n    flow.get(forceAllKeyFlow) === true ||\n    global.get(forceKeyFlow) === true ||\n    global.get(forceAllKeyFlow) === true;\n\n// -----------------------------------------------------------------\n// 3) Helpers\n// -----------------------------------------------------------------\nfunction formatBoolean(value) {\n    if (typeof value === \"boolean\") {\n        return value ? \"True\" : \"False\";\n    }\n    if (typeof value === \"string\") {\n        const lowerVal = value.toLowerCase();\n        if (lowerVal === \"true\") return \"True\";\n        if (lowerVal === \"false\") return \"False\";\n    }\n    return value;\n}\n\nfunction normalizeValue(value) {\n    if (typeof value === \"boolean\") {\n        return value ? \"True\" : \"False\";\n    }\n    if (typeof value === \"number\") {\n        // évite les faux changements 3.5 vs 3.500000\n        return Number(value.toFixed(6));\n    }\n    if (typeof value === \"string\") {\n        const lowerVal = value.toLowerCase();\n        if (lowerVal === \"true\") return \"True\";\n        if (lowerVal === \"false\") return \"False\";\n        const asNum = Number(value);\n        if (!Number.isNaN(asNum) && value.trim() !== \"\") {\n            return Number(asNum.toFixed(6));\n        }\n        return value.trim();\n    }\n    return value;\n}\n\nfunction inferMeta(key) {\n    // Quelques cas spécifiques conservés volontairement\n    const custom = {\n        max_charge_current_A: { unit: \"A\", min: 0, max: 600, step: 1 },\n        max_discharge_current_S: { unit: \"A\", min: 0, max: 600, step: 1 }, // clé historique conservée\n        max_balance_current_A: { unit: \"A\", min: 0, max: 10, step: 0.1 },\n        total_battery_capacity_Ah: { unit: \"Ah\", min: 1, max: 2000, step: 1 },\n        short_circuit_protection_delay_S: { unit: \"s\", min: 0, max: 5000, step: 1 },\n        charge_overcurrent_protection_delay_S: { unit: \"s\", min: 0, max: 600, step: 1 },\n        discharge_overcurrent_protection_delay_S: { unit: \"s\", min: 0, max: 600, step: 1 },\n        charge_overcurrent_protection_recovery_time_S: { unit: \"s\", min: 0, max: 3600, step: 1 },\n        discharge_overcurrent_protection_recovery_time_S: { unit: \"s\", min: 0, max: 3600, step: 1 },\n        short_circuit_protection_recovery_time_S: { unit: \"s\", min: 0, max: 600, step: 1 },\n        cell_count_N: { min: 1, max: 32, step: 1 },\n        Device_address_N: { min: 0, max: 255, step: 1 }\n    };\n\n    if (custom[key]) return custom[key];\n\n    if (key.endsWith(\"_V\"))  return { unit: \"V\",  step: 0.001 };\n    if (key.endsWith(\"_A\"))  return { unit: \"A\",  step: 0.1 };\n    if (key.endsWith(\"_Ah\")) return { unit: \"Ah\", step: 1 };\n    if (key.endsWith(\"_T\"))  return { unit: \"°C\", step: 1 };\n    if (key.endsWith(\"_S\"))  return { unit: \"s\",  step: 1 };\n    if (key.endsWith(\"_R\"))  return { step: 0.001 };\n    if (key.endsWith(\"_N\"))  return { step: 1 };\n\n    return {};\n}\n\nfunction createConfigPayload(key) {\n    const cleanKey = key === \"Device_address_N\" ? \"bms_device_address\" : key.replace(/_[A-Z]+$/, \"\").toLowerCase();\n    const entityType = key.endsWith(\"_B\") ? \"switch\" : \"number\";\n    const objectKey = key === \"Device_address_N\" ? \"bms_device_address\" : `bms_${cleanKey}`;\n\n    const configPayload = {\n        name: key === \"Device_address_N\" ? \"BMS device address\" : `BMS ${key.replace(/_[A-Z]+$/, \"\").replace(/_/g, \" \")}`,\n        unique_id: key === \"Device_address_N\" ? `${deviceID}_bms_device_address_v4` : `${deviceID}_bms_${cleanKey}_v4`,\n        object_id: `${entityPrefix}_${objectKey}`,\n        default_entity_id: `${entityType}.${entityPrefix}_${objectKey}`,\n        state_topic: `${baseTopic}/control/${cleanKey}/state`,\n        command_topic: `${baseTopic}/control/${cleanKey}/set`,\n        entity_category: \"config\",\n        device: {\n            identifiers: [deviceID],\n            name: deviceName,\n            manufacturer: \"Smartphoton-JK-BMS / ©JLM 2025-2026\",\n            model: payload.BMS_A || \"JK-BMS - RS485 - Ip Gateway\",\n            sw_version: \"3.5\"\n        }\n    };\n\n    if (entityType === \"switch\") {\n        configPayload.payload_on = \"True\";\n        configPayload.payload_off = \"False\";\n        configPayload.state_on = \"True\";\n        configPayload.state_off = \"False\";\n        configPayload.icon = \"mdi:toggle-switch\";\n    } else {\n        configPayload.mode = \"box\";\n        const meta = inferMeta(key);\n        if (meta.unit !== undefined) configPayload.unit_of_measurement = meta.unit;\n        if (meta.min !== undefined) configPayload.min = meta.min;\n        if (meta.max !== undefined) configPayload.max = meta.max;\n        if (meta.step !== undefined) configPayload.step = meta.step;\n    }\n\n    const configTopic = `${discoveryPrefix}/${entityType}/${deviceID}/${configPayload.object_id}/config`;\n\n    return {\n        topic: configTopic,\n        payload: JSON.stringify(configPayload),\n        retain: true,\n        pack_id: packId,\n        pack_name: packName,\n        bus_id: msg.bus_id || \"bus_1\"\n    };\n}\n\nfunction createStateMessage(key, value) {\n    const cleanKey = key === \"Device_address_N\" ? \"bms_device_address\" : key.replace(/_[A-Z]+$/, \"\").toLowerCase();\n    return {\n        topic: `${baseTopic}/control/${cleanKey}/state`,\n        payload: formatBoolean(value),\n        retain: true,\n        pack_id: packId,\n        pack_name: packName,\n        bus_id: msg.bus_id || \"bus_1\"\n    };\n}\n\n// -----------------------------------------------------------------\n// 4) Construction des messages\n// -----------------------------------------------------------------\nlet outMsgs = [];\nlet hasChanges = false;\nlet keys = Object.keys(payload).sort();\n\nfor (const key of keys) {\n    const currentNormalized = normalizeValue(payload[key]);\n    const previousNormalized = normalizeValue(lastSetup[key]);\n\n    const keyWasKnown = Object.prototype.hasOwnProperty.call(lastSetup, key);\n    const changed = !setupAlreadySent || forceRepublish || !keyWasKnown || currentNormalized !== previousNormalized;\n\n    // Recréation config :\n    // - au premier envoi\n    // - en republish forcé\n    // - si une nouvelle clé apparaît\n    if (!setupAlreadySent || forceRepublish || !keyWasKnown) {\n        outMsgs.push(createConfigPayload(key));\n    }\n\n    // Publication d'état :\n    // - au premier envoi\n    // - en republish forcé\n    // - si changement\n    if (changed) {\n        outMsgs.push(createStateMessage(key, payload[key]));\n        lastSetup[key] = payload[key];\n        hasChanges = true;\n    }\n}\n\n// -----------------------------------------------------------------\n// 5) Sauvegarde état / logs\n// -----------------------------------------------------------------\nif (!setupAlreadySent || forceRepublish || hasChanges) {\n    flow.set(setupSentKey, true);\n    flow.set(lastSetupKey, lastSetup);\n\n    // On nettoie les flags de forçage une fois utilisés\n    flow.set(forceKeyFlow, false);\n    flow.set(forceAllKeyFlow, false);\n\n    if (!setupAlreadySent) {\n        node.warn(`✓ Setup INITIAL envoyé pour BMS ${slaveIdStr} (${outMsgs.length} messages)`);\n    } else if (forceRepublish) {\n        node.warn(`↻ Setup FORCÉ renvoyé pour BMS ${slaveIdStr} (${outMsgs.length} messages)`);\n    } else {\n        node.warn(`✓ Setup CHANGEMENTS détectés pour BMS ${slaveIdStr} (${outMsgs.length} messages)`);\n    }\n\n    return [outMsgs];\n} else {\n    node.debug(`⊘ Setup: aucun changement pour BMS ${slaveIdStr}`);\n    return null;\n}",
+        "func": "// ========== SETUP TO MQTT - v4.2.80 LEGACY/BROADCASTING SAFE ==========\n// Buts :\n// - Publier au premier passage\n// - Republier si une valeur change\n// - Republier si forçage demandé\n// - Recréer les entités HA si elles ont disparu\n// - Supporter l'apparition de nouvelles clés sans bloquer\n\n// -----------------------------------------------------------------\n// 1) Identification du BMS\n// -----------------------------------------------------------------\nlet bmsAdresse = Number(msg.bms_numero);\nlet slaveIdStr = (bmsAdresse === 0) ? \"master\" : String(bmsAdresse);\n\nif (!msg.payload || typeof msg.payload !== \"object\" || Array.isArray(msg.payload)) {\n    node.warn(`Setup To MQTT ignoré: payload invalide pour BMS ${slaveIdStr}`);\n    return null;\n}\n\nconst payload = msg.payload;\n\n// -----------------------------------------------------------------\n// MQTT / HA identity : legacy strict ou Multi-Pack.\nconst multiPack = global.get(\"multi_pack_enabled\") === true;\nconst packId = msg.pack_id || \"pack_1\";\nconst packName = msg.pack_name || \"Pack 1\";\nconst packSafe = String(packId).toLowerCase().replace(/[^a-z0-9_]+/g, \"_\");\n\nconst baseTopic = multiPack\n    ? `jkbms/${packId}/BMS_${slaveIdStr}`\n    : `BMS_${slaveIdStr}`;\n\nconst discoveryPrefix = \"homeassistant\";\n\nconst deviceName = multiPack\n    ? `${packName} - BMS_${slaveIdStr}`\n    : `BMS_${slaveIdStr}`;\n\nconst deviceID = multiPack\n    ? `${packSafe}_BMS_${slaveIdStr}_device`\n    : `${baseTopic}_device`;\n\nconst entityPrefix = multiPack\n    ? `${packSafe}_bms_${slaveIdStr}`\n    : baseTopic.toLowerCase();\n\n// -----------------------------------------------------------------\n// 2) Clés de contexte\n// -----------------------------------------------------------------\nconst setupSentKey = multiPack\n    ? `setupSent_${packId}_BMS_${slaveIdStr}`\n    : `setupSent_BMS_${slaveIdStr}`;\n\nconst lastSetupKey = multiPack\n    ? `lastSetup_${packId}_BMS_${slaveIdStr}`\n    : `lastSetup_BMS_${slaveIdStr}`;\n\nconst forceKeyFlow = multiPack\n    ? `forceSetupRepublish_${packId}_BMS_${slaveIdStr}`\n    : `forceSetupRepublish_BMS_${slaveIdStr}`;\n\nconst forceAllKeyFlow = multiPack\n    ? `forceSetupRepublishAll_${packId}`\n    : \"forceSetupRepublishAll\";\n\nlet setupAlreadySent = !!flow.get(setupSentKey);\nlet lastSetup = flow.get(lastSetupKey) || {};\n\nconst forceRepublish =\n    msg.force_setup_republish === true ||\n    flow.get(forceKeyFlow) === true ||\n    flow.get(forceAllKeyFlow) === true ||\n    global.get(forceKeyFlow) === true ||\n    global.get(forceAllKeyFlow) === true;\n\n// -----------------------------------------------------------------\n// 3) Helpers\n// -----------------------------------------------------------------\nfunction formatBoolean(value) {\n    if (typeof value === \"boolean\") {\n        return value ? \"True\" : \"False\";\n    }\n    if (typeof value === \"string\") {\n        const lowerVal = value.toLowerCase();\n        if (lowerVal === \"true\") return \"True\";\n        if (lowerVal === \"false\") return \"False\";\n    }\n    return value;\n}\n\nfunction normalizeValue(value) {\n    if (typeof value === \"boolean\") {\n        return value ? \"True\" : \"False\";\n    }\n    if (typeof value === \"number\") {\n        // évite les faux changements 3.5 vs 3.500000\n        return Number(value.toFixed(6));\n    }\n    if (typeof value === \"string\") {\n        const lowerVal = value.toLowerCase();\n        if (lowerVal === \"true\") return \"True\";\n        if (lowerVal === \"false\") return \"False\";\n        const asNum = Number(value);\n        if (!Number.isNaN(asNum) && value.trim() !== \"\") {\n            return Number(asNum.toFixed(6));\n        }\n        return value.trim();\n    }\n    return value;\n}\n\nfunction inferMeta(key) {\n    // Quelques cas spécifiques conservés volontairement\n    const custom = {\n        max_charge_current_A: { unit: \"A\", min: 0, max: 600, step: 1 },\n        max_discharge_current_S: { unit: \"A\", min: 0, max: 600, step: 1 }, // clé historique conservée\n        max_balance_current_A: { unit: \"A\", min: 0, max: 10, step: 0.1 },\n        total_battery_capacity_Ah: { unit: \"Ah\", min: 1, max: 2000, step: 1 },\n        short_circuit_protection_delay_S: { unit: \"s\", min: 0, max: 5000, step: 1 },\n        charge_overcurrent_protection_delay_S: { unit: \"s\", min: 0, max: 600, step: 1 },\n        discharge_overcurrent_protection_delay_S: { unit: \"s\", min: 0, max: 600, step: 1 },\n        charge_overcurrent_protection_recovery_time_S: { unit: \"s\", min: 0, max: 3600, step: 1 },\n        discharge_overcurrent_protection_recovery_time_S: { unit: \"s\", min: 0, max: 3600, step: 1 },\n        short_circuit_protection_recovery_time_S: { unit: \"s\", min: 0, max: 600, step: 1 },\n        cell_count_N: { min: 1, max: 32, step: 1 },\n        Device_address_N: { min: 0, max: 255, step: 1 }\n    };\n\n    if (custom[key]) return custom[key];\n\n    if (key.endsWith(\"_V\"))  return { unit: \"V\",  step: 0.001 };\n    if (key.endsWith(\"_A\"))  return { unit: \"A\",  step: 0.1 };\n    if (key.endsWith(\"_Ah\")) return { unit: \"Ah\", step: 1 };\n    if (key.endsWith(\"_T\"))  return { unit: \"°C\", step: 1 };\n    if (key.endsWith(\"_S\"))  return { unit: \"s\",  step: 1 };\n    if (key.endsWith(\"_R\"))  return { step: 0.001 };\n    if (key.endsWith(\"_N\"))  return { step: 1 };\n\n    return {};\n}\n\nfunction createConfigPayload(key) {\n    const cleanKey = key === \"Device_address_N\" ? \"bms_device_address\" : key.replace(/_[A-Z]+$/, \"\").toLowerCase();\n    const entityType = key.endsWith(\"_B\") ? \"switch\" : \"number\";\n    const objectKey = key === \"Device_address_N\" ? \"bms_device_address\" : `bms_${cleanKey}`;\n\n    const configPayload = {\n        name: key === \"Device_address_N\" ? \"BMS device address\" : `BMS ${key.replace(/_[A-Z]+$/, \"\").replace(/_/g, \" \")}`,\n        unique_id: key === \"Device_address_N\" ? `${deviceID}_bms_device_address_v4` : `${deviceID}_bms_${cleanKey}_v4`,\n        object_id: `${entityPrefix}_${objectKey}`,\n        default_entity_id: `${entityType}.${entityPrefix}_${objectKey}`,\n        state_topic: `${baseTopic}/control/${cleanKey}/state`,\n        command_topic: `${baseTopic}/control/${cleanKey}/set`,\n        entity_category: \"config\",\n        device: {\n            identifiers: [deviceID],\n            name: deviceName,\n            manufacturer: \"Smartphoton-JK-BMS / ©JLM 2025-2026\",\n            model: payload.BMS_A || \"JK-BMS - RS485 - Ip Gateway\",\n            sw_version: \"3.5\"\n        }\n    };\n\n    if (entityType === \"switch\") {\n        configPayload.payload_on = \"True\";\n        configPayload.payload_off = \"False\";\n        configPayload.state_on = \"True\";\n        configPayload.state_off = \"False\";\n        configPayload.icon = \"mdi:toggle-switch\";\n    } else {\n        configPayload.mode = \"box\";\n        const meta = inferMeta(key);\n        if (meta.unit !== undefined) configPayload.unit_of_measurement = meta.unit;\n        if (meta.min !== undefined) configPayload.min = meta.min;\n        if (meta.max !== undefined) configPayload.max = meta.max;\n        if (meta.step !== undefined) configPayload.step = meta.step;\n    }\n\n    const configTopic = `${discoveryPrefix}/${entityType}/${deviceID}/${configPayload.object_id}/config`;\n\n    return {\n        topic: configTopic,\n        payload: JSON.stringify(configPayload),\n        retain: true,\n        pack_id: packId,\n        pack_name: packName,\n        bus_id: msg.bus_id || \"bus_1\"\n    };\n}\n\nfunction createActivePollingSensorCleanupMessage(key) {\n    // v4.2.80 - Symmetric migration Active Polling -> Multi-Pack Broadcasting.\n    // Active Polling publishes SETUP values as read-only sensors using the same\n    // device/object identity. Remove that retained sensor discovery before\n    // restoring the historical number/switch entity.\n    if (!multiPack) return null;\n\n    const cleanKey = key === \"Device_address_N\" ? \"bms_device_address\" : key.replace(/_[A-Z]+$/, \"\").toLowerCase();\n    const objectKey = key === \"Device_address_N\" ? \"bms_device_address\" : `bms_${cleanKey}`;\n    const objectId = `${entityPrefix}_${objectKey}`;\n\n    return {\n        topic: `${discoveryPrefix}/sensor/${deviceID}/${objectId}/config`,\n        payload: \"\",\n        retain: true,\n        pack_id: packId,\n        pack_name: packName,\n        bus_id: msg.bus_id || \"bus_1\"\n    };\n}\n\nfunction createActivePollingControlCleanupMessages() {\n    if (!multiPack) return [];\n    return [\"display_always_on_switch\", \"heating_switch\"].map(control => ({\n        topic: `${discoveryPrefix}/switch/${packId}_bms_${slaveIdStr}_${control}_active_polling/config`,\n        payload: \"\",\n        retain: true,\n        pack_id: packId,\n        pack_name: packName,\n        bus_id: msg.bus_id || \"bus_1\"\n    }));\n}\n\nfunction createStateMessage(key, value) {\n    const cleanKey = key === \"Device_address_N\" ? \"bms_device_address\" : key.replace(/_[A-Z]+$/, \"\").toLowerCase();\n    return {\n        topic: `${baseTopic}/control/${cleanKey}/state`,\n        payload: formatBoolean(value),\n        retain: true,\n        pack_id: packId,\n        pack_name: packName,\n        bus_id: msg.bus_id || \"bus_1\"\n    };\n}\n\n// -----------------------------------------------------------------\n// 4) Construction des messages\n// -----------------------------------------------------------------\nlet outMsgs = [];\nlet hasChanges = false;\nlet keys = Object.keys(payload).sort();\n\n// v4.2.80 - When returning from Active Polling, remove its two dedicated\n// control discoveries once per full SETUP rediscovery.\nif (multiPack && (!setupAlreadySent || forceRepublish)) {\n    outMsgs.push(...createActivePollingControlCleanupMessages());\n}\n\nfor (const key of keys) {\n    const currentNormalized = normalizeValue(payload[key]);\n    const previousNormalized = normalizeValue(lastSetup[key]);\n\n    const keyWasKnown = Object.prototype.hasOwnProperty.call(lastSetup, key);\n    const changed = !setupAlreadySent || forceRepublish || !keyWasKnown || currentNormalized !== previousNormalized;\n\n    // Recréation config :\n    // - au premier envoi\n    // - en republish forcé\n    // - si une nouvelle clé apparaît\n    if (!setupAlreadySent || forceRepublish || !keyWasKnown) {\n        const staleActivePollingSensor = createActivePollingSensorCleanupMessage(key);\n        if (staleActivePollingSensor) outMsgs.push(staleActivePollingSensor);\n        outMsgs.push(createConfigPayload(key));\n    }\n\n    // Publication d'état :\n    // - au premier envoi\n    // - en republish forcé\n    // - si changement\n    if (changed) {\n        outMsgs.push(createStateMessage(key, payload[key]));\n        lastSetup[key] = payload[key];\n        hasChanges = true;\n    }\n}\n\n// -----------------------------------------------------------------\n// 5) Sauvegarde état / logs\n// -----------------------------------------------------------------\nif (!setupAlreadySent || forceRepublish || hasChanges) {\n    flow.set(setupSentKey, true);\n    flow.set(lastSetupKey, lastSetup);\n\n    // On nettoie les flags de forçage une fois utilisés\n    flow.set(forceKeyFlow, false);\n    flow.set(forceAllKeyFlow, false);\n\n    if (!setupAlreadySent) {\n        node.warn(`✓ Setup INITIAL envoyé pour BMS ${slaveIdStr} (${outMsgs.length} messages)`);\n    } else if (forceRepublish) {\n        node.warn(`↻ Setup FORCÉ renvoyé pour BMS ${slaveIdStr} (${outMsgs.length} messages)`);\n    } else {\n        node.warn(`✓ Setup CHANGEMENTS détectés pour BMS ${slaveIdStr} (${outMsgs.length} messages)`);\n    }\n\n    return [outMsgs];\n} else {\n    node.debug(`⊘ Setup: aucun changement pour BMS ${slaveIdStr}`);\n    return null;\n}",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -9333,7 +9334,7 @@
         "z": "aec15389f6a9ed83",
         "g": "2fd92e7e70c4fa0b",
         "name": "Init flags for discovery",
-        "func": "let nb = Number(global.get(\"nb_jkbms\")) || 1;\nnb = Math.max(1, Math.floor(nb));\n\nconst multiPack = global.get(\"multi_pack_enabled\") === true;\nconst legacyBroadcasting = global.get(\"bms_broadcasting\") === true;\n\nfunction legacyMemberIds(totalBms, broadcasting) {\n    if (!broadcasting) {\n        return Array.from({ length: totalBms }, (_, i) => i + 1);\n    }\n\n    // In Legacy broadcasting, slot 1 is represented by \"master\".\n    // Numeric slaves therefore start at address 2.\n    return Array.from(\n        { length: Math.max(0, totalBms - 1) },\n        (_, i) => i + 2\n    );\n}\n\nfunction getSlaveIdsForPack(packId) {\n    const registry = flow.get(`broadcast_bms_registry_${packId}`) || {};\n\n    const detectedIds = Array.isArray(registry.ids)\n        ? [...new Set(\n            registry.ids\n                .map(Number)\n                .filter(\n                    id =>\n                        Number.isInteger(id) &&\n                        id >= 0 &&\n                        id <= 15\n                )\n        )].sort((a, b) => a - b)\n        : [];\n\n    const ids = detectedIds.filter(id => id >= 1);\n\n    if (ids.length > 0) {\n        return {\n            ids,\n            source: \"detected\",\n            masterDetected: detectedIds.includes(0)\n        };\n    }\n\n    // Master seul est une topologie parfaitement valide.\n    if (detectedIds.includes(0)) {\n        return {\n            ids: [],\n            source: \"detected_master_only\",\n            masterDetected: true\n        };\n    }\n\n    // Multi-Pack broadcasting: attendre les vraies SETUP.\n    // Ne pas fabriquer artificiellement BMS_1..BMS_N.\n    return {\n        ids: [],\n        source: \"waiting_detection\",\n        masterDetected: false\n    };\n}\n\nfunction formatDetectedMembers(slaveInfo) {\n    if (slaveInfo.source === \"detected_master_only\") {\n        return \"1 BMS detected: master\";\n    }\n\n    if (slaveInfo.ids.length > 0) {\n        const total = 1 + slaveInfo.ids.length;\n        return `${total} BMS detected: master, ${slaveInfo.ids.join(\", \")}`;\n    }\n\n    return \"master detected; slave detection pending\";\n}\n\nif (!multiPack) {\n    const legacyIds = legacyMemberIds(nb, legacyBroadcasting);\n\n    if (legacyBroadcasting) {\n        flow.set(\"discoverySent_BMS_master\", false);\n        flow.set(\"discoveredKeys_BMS_master\", []);\n\n        flow.set(\"discoverySent_ALARMS_BMS_master\", false);\n        flow.set(\"lastAlarmState_BMS_master\", null);\n    }\n\n    for (const i of legacyIds) {\n        flow.set(`discoverySent_BMS_${i}`, false);\n        flow.set(`discoveredKeys_BMS_${i}`, []);\n\n        flow.set(`discoverySent_ALARMS_BMS_${i}`, false);\n        flow.set(`lastAlarmState_BMS_${i}`, null);\n    }\n\n    flow.set(\"discoverySent_GLOBAL_ALARM\", false);\n    flow.set(\"lastGlobalAlarmState\", null);\n\n    const membersText = legacyBroadcasting\n        ? (legacyIds.length\n            ? `${1 + legacyIds.length} BMS: master, ${legacyIds.join(\", \")}`\n            : \"1 BMS: master\")\n        : `${legacyIds.length} BMS: ${legacyIds.join(\", \")}`;\n\n    node.warn(\n        `Legacy Discovery reset done for DATA + ALARMS + GLOBAL -> ` +\n        `${nb} BMS total (${membersText}).`\n    );\n    return msg;\n}\n\nlet packIds = global.get(\"jkbms_pack_ids\");\nif (!Array.isArray(packIds) || packIds.length === 0) {\n    packIds = [\"pack_1\"];\n}\n\nfor (const packId of packIds) {\n    flow.set(`discoverySent_BMS_${packId}_master`, false);\n    flow.set(`discoveredKeys_BMS_${packId}_master`, []);\n\n    flow.set(`discoverySent_ALARMS_${packId}_BMS_master`, false);\n    flow.set(`lastAlarmState_${packId}_BMS_master`, null);\n\n    flow.set(`setupSent_${packId}_BMS_master`, false);\n    flow.set(`lastSetup_${packId}_BMS_master`, {});\n\n    const slaveInfo = getSlaveIdsForPack(packId);\n\n    for (const i of slaveInfo.ids) {\n        flow.set(`discoverySent_BMS_${packId}_${i}`, false);\n        flow.set(`discoveredKeys_BMS_${packId}_${i}`, []);\n\n        flow.set(`discoverySent_ALARMS_${packId}_BMS_${i}`, false);\n        flow.set(`lastAlarmState_${packId}_BMS_${i}`, null);\n\n        flow.set(`setupSent_${packId}_BMS_${i}`, false);\n        flow.set(`lastSetup_${packId}_BMS_${i}`, {});\n    }\n\n    flow.set(`discoverySent_GLOBAL_ALARM_${packId}`, false);\n    flow.set(`lastGlobalAlarmState_${packId}`, null);\n\n    node.warn(\n        `Multi-Pack Discovery reset [${packId}] ` +\n        formatDetectedMembers(slaveInfo)\n    );\n}\n\nreturn msg;",
+        "func": "// v4.2.80 - DATA/ALARMS discovery reset aware of Active Polling Multi-Pack.\n// Legacy and Broadcasting behaviour is preserved unchanged.\n\nlet nb = Number(global.get(\"nb_jkbms\")) || 1;\nnb = Math.max(1, Math.floor(nb));\n\nconst multiPack = global.get(\"multi_pack_enabled\") === true;\nconst legacyBroadcasting = global.get(\"bms_broadcasting\") === true;\nconst activePolling = global.get(\"jkbms_active_polling_enabled\") === true;\n\nfunction legacyMemberIds(totalBms, broadcasting) {\n    if (!broadcasting) {\n        return Array.from({ length: totalBms }, (_, i) => i + 1);\n    }\n\n    // In Legacy broadcasting, slot 1 is represented by \"master\".\n    // Numeric slaves therefore start at address 2.\n    return Array.from(\n        { length: Math.max(0, totalBms - 1) },\n        (_, i) => i + 2\n    );\n}\n\nfunction sanitizeIds(values, allowMaster) {\n    return [...new Set(\n        (Array.isArray(values) ? values : [])\n            .map(Number)\n            .filter(id =>\n                Number.isInteger(id) &&\n                id >= (allowMaster ? 0 : 1) &&\n                id <= 15\n            )\n    )].sort((a, b) => a - b);\n}\n\nfunction getMembersForPack(packId) {\n    if (activePolling) {\n        const defs = global.get(\"jkbms_pack_defs\") || {};\n        const def = defs[packId] || {};\n        const configuredIds = sanitizeIds(def.bms_addresses, false);\n\n        if (configuredIds.length > 0) {\n            return {\n                ids: configuredIds,\n                source: \"active_polling_config\",\n                masterDetected: false\n            };\n        }\n\n        const registry = flow.get(`broadcast_bms_registry_${packId}`) || {};\n        return {\n            ids: sanitizeIds(registry.ids, false),\n            source: \"active_polling_detected\",\n            masterDetected: false\n        };\n    }\n\n    const registry = flow.get(`broadcast_bms_registry_${packId}`) || {};\n    const detectedIds = sanitizeIds(registry.ids, true);\n    const ids = detectedIds.filter(id => id >= 1);\n\n    if (ids.length > 0) {\n        return {\n            ids,\n            source: \"detected\",\n            masterDetected: detectedIds.includes(0)\n        };\n    }\n\n    if (detectedIds.includes(0)) {\n        return {\n            ids: [],\n            source: \"detected_master_only\",\n            masterDetected: true\n        };\n    }\n\n    return {\n        ids: [],\n        source: \"waiting_detection\",\n        masterDetected: false\n    };\n}\n\nfunction formatMembers(info) {\n    if (activePolling) {\n        if (info.ids.length > 0) {\n            return `${info.ids.length} BMS configured: ${info.ids.join(\", \")}`;\n        }\n        return \"Active Polling: BMS detection/configuration pending\";\n    }\n\n    if (info.source === \"detected_master_only\") {\n        return \"1 BMS detected: master\";\n    }\n\n    if (info.ids.length > 0) {\n        const total = 1 + info.ids.length;\n        return `${total} BMS detected: master, ${info.ids.join(\", \")}`;\n    }\n\n    return \"master detected; slave detection pending\";\n}\n\nif (!multiPack) {\n    const legacyIds = legacyMemberIds(nb, legacyBroadcasting);\n\n    if (legacyBroadcasting) {\n        flow.set(\"discoverySent_BMS_master\", false);\n        flow.set(\"discoveredKeys_BMS_master\", []);\n\n        flow.set(\"discoverySent_ALARMS_BMS_master\", false);\n        flow.set(\"lastAlarmState_BMS_master\", null);\n    }\n\n    for (const i of legacyIds) {\n        flow.set(`discoverySent_BMS_${i}`, false);\n        flow.set(`discoveredKeys_BMS_${i}`, []);\n\n        flow.set(`discoverySent_ALARMS_BMS_${i}`, false);\n        flow.set(`lastAlarmState_BMS_${i}`, null);\n    }\n\n    flow.set(\"discoverySent_GLOBAL_ALARM\", false);\n    flow.set(\"lastGlobalAlarmState\", null);\n\n    const membersText = legacyBroadcasting\n        ? (legacyIds.length\n            ? `${1 + legacyIds.length} BMS: master, ${legacyIds.join(\", \")}`\n            : \"1 BMS: master\")\n        : `${legacyIds.length} BMS: ${legacyIds.join(\", \")}`;\n\n    node.warn(\n        `Legacy Discovery reset done for DATA + ALARMS + GLOBAL -> ` +\n        `${nb} BMS total (${membersText}).`\n    );\n    return msg;\n}\n\nlet packIds = global.get(\"jkbms_pack_ids\");\nif (!Array.isArray(packIds) || packIds.length === 0) {\n    packIds = [\"pack_1\"];\n}\n\nfor (const packId of packIds) {\n    const info = getMembersForPack(packId);\n\n    // Historical Broadcasting path has an implicit master.\n    if (!activePolling) {\n        flow.set(`discoverySent_BMS_${packId}_master`, false);\n        flow.set(`discoveredKeys_BMS_${packId}_master`, []);\n\n        flow.set(`discoverySent_ALARMS_${packId}_BMS_master`, false);\n        flow.set(`lastAlarmState_${packId}_BMS_master`, null);\n\n        flow.set(`setupSent_${packId}_BMS_master`, false);\n        flow.set(`lastSetup_${packId}_BMS_master`, {});\n    }\n\n    for (const i of info.ids) {\n        flow.set(`discoverySent_BMS_${packId}_${i}`, false);\n        flow.set(`discoveredKeys_BMS_${packId}_${i}`, []);\n\n        flow.set(`discoverySent_ALARMS_${packId}_BMS_${i}`, false);\n        flow.set(`lastAlarmState_${packId}_BMS_${i}`, null);\n\n        // Preserve the historical SETUP context reset only for Broadcasting.\n        // Active Polling SETUP has its own apSetup* context and is reset by the\n        // dedicated reset node, avoiding an unnecessary second rediscovery.\n        if (!activePolling) {\n            flow.set(`setupSent_${packId}_BMS_${i}`, false);\n            flow.set(`lastSetup_${packId}_BMS_${i}`, {});\n        }\n    }\n\n    flow.set(`discoverySent_GLOBAL_ALARM_${packId}`, false);\n    flow.set(`lastGlobalAlarmState_${packId}`, null);\n\n    node.warn(\n        `Multi-Pack Discovery reset [${packId}] ` +\n        formatMembers(info)\n    );\n}\n\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -10518,7 +10519,7 @@
         "z": "aec15389f6a9ed83",
         "g": "2fd92e7e70c4fa0b",
         "name": "Reset discovery flags (auto nb_jkbms)",
-        "func": "let totalBms = parseInt(global.get(\"nb_jkbms\"), 10);\nif (isNaN(totalBms) || totalBms < 1) {\n    totalBms = 1;\n}\n\nconst multiPack = global.get(\"multi_pack_enabled\") === true;\nconst legacyBroadcasting = global.get(\"bms_broadcasting\") === true;\n\nfunction legacyMemberIds(total, broadcasting) {\n    if (!broadcasting) {\n        return Array.from({ length: total }, (_, i) => i + 1);\n    }\n\n    return Array.from(\n        { length: Math.max(0, total - 1) },\n        (_, i) => i + 2\n    );\n}\n\nfunction getSlaveIdsForPack(packId) {\n    const registry = flow.get(`broadcast_bms_registry_${packId}`) || {};\n\n    const detectedIds = Array.isArray(registry.ids)\n        ? [...new Set(\n            registry.ids\n                .map(Number)\n                .filter(\n                    id =>\n                        Number.isInteger(id) &&\n                        id >= 0 &&\n                        id <= 15\n                )\n        )].sort((a, b) => a - b)\n        : [];\n\n    const ids = detectedIds.filter(id => id >= 1);\n\n    if (ids.length > 0) {\n        return {\n            ids,\n            source: \"detected\",\n            masterDetected: detectedIds.includes(0)\n        };\n    }\n\n    // Master seul est une topologie parfaitement valide.\n    if (detectedIds.includes(0)) {\n        return {\n            ids: [],\n            source: \"detected_master_only\",\n            masterDetected: true\n        };\n    }\n\n    // Multi-Pack broadcasting: attendre les vraies SETUP.\n    // Ne pas fabriquer artificiellement BMS_1..BMS_N.\n    return {\n        ids: [],\n        source: \"waiting_detection\",\n        masterDetected: false\n    };\n}\n\nfunction formatDetectedMembers(slaveInfo) {\n    if (slaveInfo.source === \"detected_master_only\") {\n        return \"1 BMS detected: master\";\n    }\n\n    if (slaveInfo.ids.length > 0) {\n        const total = 1 + slaveInfo.ids.length;\n        return `${total} BMS detected: master, ${slaveInfo.ids.join(\", \")}`;\n    }\n\n    return \"master detected; slave detection pending\";\n}\n\nif (!multiPack) {\n    const legacyIds = legacyMemberIds(totalBms, legacyBroadcasting);\n\n    if (legacyBroadcasting) {\n        flow.set(\"setupSent_BMS_master\", false);\n        flow.set(\"lastSetup_BMS_master\", {});\n        flow.set(\"forceSetupRepublish_BMS_master\", true);\n    }\n\n    for (const i of legacyIds) {\n        flow.set(`setupSent_BMS_${i}`, false);\n        flow.set(`lastSetup_BMS_${i}`, {});\n        flow.set(`forceSetupRepublish_BMS_${i}`, true);\n    }\n\n    flow.set(\"forceSetupRepublishAll\", true);\n\n    const membersText = legacyBroadcasting\n        ? (legacyIds.length\n            ? `${1 + legacyIds.length} BMS: master, ${legacyIds.join(\", \")}`\n            : \"1 BMS: master\")\n        : `${legacyIds.length} BMS: ${legacyIds.join(\", \")}`;\n\n    node.warn(\n        `Setup flags reset: ${totalBms} BMS total (${membersText}). ` +\n        `Le prochain setup republiera les entités.`\n    );\n\n    msg.payload = {\n        ok: true,\n        message: \"Setup flags reset\",\n        configured_bms_total: totalBms,\n        broadcasting: legacyBroadcasting,\n        master_reset: legacyBroadcasting,\n        bms_ids_reset: legacyIds,\n        slave_bms_reset: legacyBroadcasting ? legacyIds.length : 0,\n        source: \"global.get('nb_jkbms')\",\n        ts: Date.now()\n    };\n    return msg;\n}\n\nlet packIds = global.get(\"jkbms_pack_ids\");\nif (!Array.isArray(packIds) || packIds.length === 0) {\n    packIds = [\"pack_1\"];\n}\n\nfor (const packId of packIds) {\n    flow.set(`setupSent_${packId}_BMS_master`, false);\n    flow.set(`lastSetup_${packId}_BMS_master`, {});\n    flow.set(`forceSetupRepublish_${packId}_BMS_master`, true);\n\n    const slaveInfo = getSlaveIdsForPack(packId);\n\n    for (const i of slaveInfo.ids) {\n        flow.set(`setupSent_${packId}_BMS_${i}`, false);\n        flow.set(`lastSetup_${packId}_BMS_${i}`, {});\n        flow.set(`forceSetupRepublish_${packId}_BMS_${i}`, true);\n    }\n\n    flow.set(`forceSetupRepublishAll_${packId}`, true);\n\n    node.warn(\n        `Setup flags Multi-Pack reset [${packId}] ` +\n        formatDetectedMembers(slaveInfo)\n    );\n}\n\nmsg.payload = {\n    ok: true,\n    message: \"Multi-Pack setup flags reset using per-pack detected BMS\",\n    packs: packIds,\n    master_reset: true,\n    ts: Date.now()\n};\n\nreturn msg;",
+        "func": "// v4.2.81 - Discovery/SETUP reset aware of Active Polling Multi-Pack.\n// Legacy and Broadcasting behaviour is preserved unchanged.\n\nlet totalBms = parseInt(global.get(\"nb_jkbms\"), 10);\nif (isNaN(totalBms) || totalBms < 1) {\n    totalBms = 1;\n}\n\nconst multiPack = global.get(\"multi_pack_enabled\") === true;\nconst legacyBroadcasting = global.get(\"bms_broadcasting\") === true;\nconst activePolling = global.get(\"jkbms_active_polling_enabled\") === true;\n\n// v4.2.81: the historical 5-minute Discovery reset remains untouched for\n// Legacy and Broadcasting, but Active Polling Multi-Pack uses retained MQTT\n// Discovery and explicit rediscovery on MQTT connection. Repeatedly clearing\n// apSetup* here caused ~158 MQTT messages per BMS every five minutes.\nif (multiPack && activePolling) {\n    node.debug(\"Active Polling Multi-Pack: periodic SETUP rediscovery skipped (handled on MQTT connect/config change).\");\n    msg.payload = {\n        ok: true,\n        skipped: true,\n        message: \"Active Polling periodic SETUP rediscovery skipped\",\n        mode: \"active_polling\",\n        ts: Date.now()\n    };\n    return msg;\n}\n\nfunction legacyMemberIds(total, broadcasting) {\n    if (!broadcasting) {\n        return Array.from({ length: total }, (_, i) => i + 1);\n    }\n\n    return Array.from(\n        { length: Math.max(0, total - 1) },\n        (_, i) => i + 2\n    );\n}\n\nfunction sanitizeIds(values, allowMaster) {\n    return [...new Set(\n        (Array.isArray(values) ? values : [])\n            .map(Number)\n            .filter(id =>\n                Number.isInteger(id) &&\n                id >= (allowMaster ? 0 : 1) &&\n                id <= 15\n            )\n    )].sort((a, b) => a - b);\n}\n\nfunction getMembersForPack(packId) {\n    // Active Polling has no implicit \"master\". The configured numeric\n    // addresses are authoritative and remain stable even before first poll.\n    if (activePolling) {\n        const defs = global.get(\"jkbms_pack_defs\") || {};\n        const def = defs[packId] || {};\n        const configuredIds = sanitizeIds(def.bms_addresses, false);\n\n        if (configuredIds.length > 0) {\n            return {\n                ids: configuredIds,\n                source: \"active_polling_config\",\n                masterDetected: false\n            };\n        }\n\n        // Defensive fallback: use only actually observed numeric BMS.\n        const registry = flow.get(`broadcast_bms_registry_${packId}`) || {};\n        return {\n            ids: sanitizeIds(registry.ids, false),\n            source: \"active_polling_detected\",\n            masterDetected: false\n        };\n    }\n\n    // Historical Multi-Pack Broadcasting behaviour.\n    const registry = flow.get(`broadcast_bms_registry_${packId}`) || {};\n    const detectedIds = sanitizeIds(registry.ids, true);\n    const ids = detectedIds.filter(id => id >= 1);\n\n    if (ids.length > 0) {\n        return {\n            ids,\n            source: \"detected\",\n            masterDetected: detectedIds.includes(0)\n        };\n    }\n\n    if (detectedIds.includes(0)) {\n        return {\n            ids: [],\n            source: \"detected_master_only\",\n            masterDetected: true\n        };\n    }\n\n    return {\n        ids: [],\n        source: \"waiting_detection\",\n        masterDetected: false\n    };\n}\n\nfunction formatMembers(info) {\n    if (activePolling) {\n        if (info.ids.length > 0) {\n            return `${info.ids.length} BMS configured: ${info.ids.join(\", \")}`;\n        }\n        return \"Active Polling: BMS detection/configuration pending\";\n    }\n\n    if (info.source === \"detected_master_only\") {\n        return \"1 BMS detected: master\";\n    }\n\n    if (info.ids.length > 0) {\n        const total = 1 + info.ids.length;\n        return `${total} BMS detected: master, ${info.ids.join(\", \")}`;\n    }\n\n    return \"master detected; slave detection pending\";\n}\n\nif (!multiPack) {\n    const legacyIds = legacyMemberIds(totalBms, legacyBroadcasting);\n\n    if (legacyBroadcasting) {\n        flow.set(\"setupSent_BMS_master\", false);\n        flow.set(\"lastSetup_BMS_master\", {});\n        flow.set(\"forceSetupRepublish_BMS_master\", true);\n    }\n\n    for (const i of legacyIds) {\n        flow.set(`setupSent_BMS_${i}`, false);\n        flow.set(`lastSetup_BMS_${i}`, {});\n        flow.set(`forceSetupRepublish_BMS_${i}`, true);\n    }\n\n    flow.set(\"forceSetupRepublishAll\", true);\n\n    const membersText = legacyBroadcasting\n        ? (legacyIds.length\n            ? `${1 + legacyIds.length} BMS: master, ${legacyIds.join(\", \")}`\n            : \"1 BMS: master\")\n        : `${legacyIds.length} BMS: ${legacyIds.join(\", \")}`;\n\n    node.warn(\n        `Setup flags reset: ${totalBms} BMS total (${membersText}). ` +\n        `Le prochain setup republiera les entités.`\n    );\n\n    msg.payload = {\n        ok: true,\n        message: \"Setup flags reset\",\n        configured_bms_total: totalBms,\n        broadcasting: legacyBroadcasting,\n        master_reset: legacyBroadcasting,\n        bms_ids_reset: legacyIds,\n        slave_bms_reset: legacyBroadcasting ? legacyIds.length : 0,\n        source: \"global.get('nb_jkbms')\",\n        ts: Date.now()\n    };\n    return msg;\n}\n\nlet packIds = global.get(\"jkbms_pack_ids\");\nif (!Array.isArray(packIds) || packIds.length === 0) {\n    packIds = [\"pack_1\"];\n}\n\nconst resetSummary = {};\n\nfor (const packId of packIds) {\n    const info = getMembersForPack(packId);\n\n    // Broadcasting has an implicit master; Active Polling never does.\n    if (!activePolling) {\n        flow.set(`setupSent_${packId}_BMS_master`, false);\n        flow.set(`lastSetup_${packId}_BMS_master`, {});\n        flow.set(`forceSetupRepublish_${packId}_BMS_master`, true);\n    }\n\n    for (const i of info.ids) {\n        if (activePolling) {\n            flow.set(`apSetupSent_${packId}_BMS_${i}`, false);\n            flow.set(`apLastSetup_${packId}_BMS_${i}`, {});\n        } else {\n            flow.set(`setupSent_${packId}_BMS_${i}`, false);\n            flow.set(`lastSetup_${packId}_BMS_${i}`, {});\n        }\n\n        flow.set(`forceSetupRepublish_${packId}_BMS_${i}`, true);\n    }\n\n    flow.set(`forceSetupRepublishAll_${packId}`, true);\n    resetSummary[packId] = [...info.ids];\n\n    node.warn(\n        `Setup flags Multi-Pack reset [${packId}] ` +\n        formatMembers(info)\n    );\n}\n\nmsg.payload = {\n    ok: true,\n    message: activePolling\n        ? \"Active Polling Multi-Pack setup flags reset using configured BMS addresses\"\n        : \"Multi-Pack setup flags reset using per-pack detected BMS\",\n    packs: packIds,\n    mode: activePolling ? \"active_polling\" : \"broadcasting\",\n    master_reset: !activePolling,\n    bms_ids_reset: resetSummary,\n    ts: Date.now()\n};\n\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -12703,7 +12704,7 @@
         "z": "aec15389f6a9ed83",
         "g": "cee2f62671bb8f55",
         "name": "Active Polling SETUP read-only discovery",
-        "func": "// ========== SETUP TO MQTT - VERSION CORRIGÉE ET ROBUSTE ==========\n// Buts :\n// - Publier au premier passage\n// - Republier si une valeur change\n// - Republier si forçage demandé\n// - Recréer les entités HA si elles ont disparu\n// - Supporter l'apparition de nouvelles clés sans bloquer\n\n// -----------------------------------------------------------------\n// 1) Identification du BMS\n// -----------------------------------------------------------------\nlet bmsAdresse = Number(msg.bms_numero);\nlet slaveIdStr = (bmsAdresse === 0) ? \"master\" : String(bmsAdresse);\n\nif (!msg.payload || typeof msg.payload !== \"object\" || Array.isArray(msg.payload)) {\n    node.warn(`Setup To MQTT ignoré: payload invalide pour BMS ${slaveIdStr}`);\n    return null;\n}\n\nconst payload = msg.payload;\n\n// -----------------------------------------------------------------\n// MQTT / HA identity : legacy strict ou Multi-Pack.\nconst multiPack = global.get(\"multi_pack_enabled\") === true;\nconst packId = msg.pack_id || \"pack_1\";\nconst packName = msg.pack_name || \"Pack 1\";\nconst packSafe = String(packId).toLowerCase().replace(/[^a-z0-9_]+/g, \"_\");\n\nconst baseTopic = multiPack\n    ? `jkbms/${packId}/BMS_${slaveIdStr}`\n    : `BMS_${slaveIdStr}`;\n\nconst discoveryPrefix = \"homeassistant\";\n\nconst deviceName = multiPack\n    ? `${packName} - BMS_${slaveIdStr}`\n    : `BMS_${slaveIdStr}`;\n\nconst deviceID = multiPack\n    ? `${packSafe}_BMS_${slaveIdStr}_device`\n    : `${baseTopic}_device`;\n\nconst entityPrefix = multiPack\n    ? `${packSafe}_bms_${slaveIdStr}`\n    : baseTopic.toLowerCase();\n\n// -----------------------------------------------------------------\n// 2) Clés de contexte\n// -----------------------------------------------------------------\nconst setupSentKey = multiPack\n    ? `apSetupSent_${packId}_BMS_${slaveIdStr}`\n    : `apSetupSent_BMS_${slaveIdStr}`;\n\nconst lastSetupKey = multiPack\n    ? `apLastSetup_${packId}_BMS_${slaveIdStr}`\n    : `apLastSetup_BMS_${slaveIdStr}`;\n\nconst forceKeyFlow = multiPack\n    ? `forceSetupRepublish_${packId}_BMS_${slaveIdStr}`\n    : `forceSetupRepublish_BMS_${slaveIdStr}`;\n\nconst forceAllKeyFlow = multiPack\n    ? `forceSetupRepublishAll_${packId}`\n    : \"forceSetupRepublishAll\";\n\nlet setupAlreadySent = !!flow.get(setupSentKey);\nlet lastSetup = flow.get(lastSetupKey) || {};\n\nconst forceRepublish =\n    msg.force_setup_republish === true ||\n    flow.get(forceKeyFlow) === true ||\n    flow.get(forceAllKeyFlow) === true ||\n    global.get(forceKeyFlow) === true ||\n    global.get(forceAllKeyFlow) === true;\n\n// -----------------------------------------------------------------\n// 3) Helpers\n// -----------------------------------------------------------------\nfunction formatBoolean(value) {\n    if (typeof value === \"boolean\") {\n        return value ? \"True\" : \"False\";\n    }\n    if (typeof value === \"string\") {\n        const lowerVal = value.toLowerCase();\n        if (lowerVal === \"true\") return \"True\";\n        if (lowerVal === \"false\") return \"False\";\n    }\n    return value;\n}\n\nfunction normalizeValue(value) {\n    if (typeof value === \"boolean\") {\n        return value ? \"True\" : \"False\";\n    }\n    if (typeof value === \"number\") {\n        // évite les faux changements 3.5 vs 3.500000\n        return Number(value.toFixed(6));\n    }\n    if (typeof value === \"string\") {\n        const lowerVal = value.toLowerCase();\n        if (lowerVal === \"true\") return \"True\";\n        if (lowerVal === \"false\") return \"False\";\n        const asNum = Number(value);\n        if (!Number.isNaN(asNum) && value.trim() !== \"\") {\n            return Number(asNum.toFixed(6));\n        }\n        return value.trim();\n    }\n    return value;\n}\n\nfunction inferMeta(key) {\n    // Quelques cas spécifiques conservés volontairement\n    const custom = {\n        max_charge_current_A: { unit: \"A\", min: 0, max: 600, step: 1 },\n        max_discharge_current_S: { unit: \"A\", min: 0, max: 600, step: 1 }, // clé historique conservée\n        max_balance_current_A: { unit: \"A\", min: 0, max: 10, step: 0.1 },\n        total_battery_capacity_Ah: { unit: \"Ah\", min: 1, max: 2000, step: 1 },\n        short_circuit_protection_delay_S: { unit: \"s\", min: 0, max: 5000, step: 1 },\n        charge_overcurrent_protection_delay_S: { unit: \"s\", min: 0, max: 600, step: 1 },\n        discharge_overcurrent_protection_delay_S: { unit: \"s\", min: 0, max: 600, step: 1 },\n        charge_overcurrent_protection_recovery_time_S: { unit: \"s\", min: 0, max: 3600, step: 1 },\n        discharge_overcurrent_protection_recovery_time_S: { unit: \"s\", min: 0, max: 3600, step: 1 },\n        short_circuit_protection_recovery_time_S: { unit: \"s\", min: 0, max: 600, step: 1 },\n        cell_count_N: { min: 1, max: 32, step: 1 },\n        Device_address_N: { min: 0, max: 255, step: 1 }\n    };\n\n    if (custom[key]) return custom[key];\n\n    if (key.endsWith(\"_V\"))  return { unit: \"V\",  step: 0.001 };\n    if (key.endsWith(\"_A\"))  return { unit: \"A\",  step: 0.1 };\n    if (key.endsWith(\"_Ah\")) return { unit: \"Ah\", step: 1 };\n    if (key.endsWith(\"_T\"))  return { unit: \"°C\", step: 1 };\n    if (key.endsWith(\"_S\"))  return { unit: \"s\",  step: 1 };\n    if (key.endsWith(\"_R\"))  return { step: 0.001 };\n    if (key.endsWith(\"_N\"))  return { step: 1 };\n\n    return {};\n}\n\nfunction createConfigPayload(key) {\n    const cleanKey = key === \"Device_address_N\" ? \"bms_device_address\" : key.replace(/_[A-Z]+$/, \"\").toLowerCase();\n    const entityType = \"sensor\";\n    const objectKey = key === \"Device_address_N\" ? \"bms_device_address\" : `bms_${cleanKey}`;\n\n    const configPayload = {\n        name: key === \"Device_address_N\" ? \"BMS device address\" : `BMS ${key.replace(/_[A-Z]+$/, \"\").replace(/_/g, \" \")}`,\n        unique_id: key === \"Device_address_N\" ? `${deviceID}_bms_device_address_v4` : `${deviceID}_bms_${cleanKey}_v4`,\n        object_id: `${entityPrefix}_${objectKey}`,\n        default_entity_id: `${entityType}.${entityPrefix}_${objectKey}`,\n        state_topic: `${baseTopic}/control/${cleanKey}/state`,\n        command_topic: `${baseTopic}/control/${cleanKey}/set`,\n        entity_category: \"config\",\n        device: {\n            identifiers: [deviceID],\n            name: deviceName,\n            manufacturer: \"Smartphoton-JK-BMS / ©JLM 2025-2026\",\n            model: payload.BMS_A || \"JK-BMS - RS485 - Ip Gateway\",\n            sw_version: \"3.5\"\n        }\n    };\n\n    delete configPayload.command_topic;\n    configPayload.unique_id += \"_active_polling_sensor\";\n    const meta = inferMeta(key);\n    if (meta.unit !== undefined) configPayload.unit_of_measurement = meta.unit;\n\n    const configTopic = `${discoveryPrefix}/${entityType}/${deviceID}/${configPayload.object_id}/config`;\n\n    return {\n        topic: configTopic,\n        payload: JSON.stringify(configPayload),\n        retain: true,\n        pack_id: packId,\n        pack_name: packName,\n        bus_id: msg.bus_id || \"bus_1\"\n    };\n}\n\nfunction createStateMessage(key, value) {\n    const cleanKey = key === \"Device_address_N\" ? \"bms_device_address\" : key.replace(/_[A-Z]+$/, \"\").toLowerCase();\n    return {\n        topic: `${baseTopic}/control/${cleanKey}/state`,\n        payload: formatBoolean(value),\n        retain: true,\n        pack_id: packId,\n        pack_name: packName,\n        bus_id: msg.bus_id || \"bus_1\"\n    };\n}\n\n// -----------------------------------------------------------------\n// 4) Construction des messages\n// -----------------------------------------------------------------\nlet outMsgs = [];\nlet hasChanges = false;\nlet keys = Object.keys(payload).sort();\n\nfor (const key of keys) {\n    const currentNormalized = normalizeValue(payload[key]);\n    const previousNormalized = normalizeValue(lastSetup[key]);\n\n    const keyWasKnown = Object.prototype.hasOwnProperty.call(lastSetup, key);\n    const changed = !setupAlreadySent || forceRepublish || !keyWasKnown || currentNormalized !== previousNormalized;\n\n    // Recréation config :\n    // - au premier envoi\n    // - en republish forcé\n    // - si une nouvelle clé apparaît\n    if (!setupAlreadySent || forceRepublish || !keyWasKnown) {\n        outMsgs.push(createConfigPayload(key));\n    }\n\n    // Publication d'état :\n    // - au premier envoi\n    // - en republish forcé\n    // - si changement\n    if (changed) {\n        outMsgs.push(createStateMessage(key, payload[key]));\n        lastSetup[key] = payload[key];\n        hasChanges = true;\n    }\n}\n\n// -----------------------------------------------------------------\n// 5) Sauvegarde état / logs\n// -----------------------------------------------------------------\nif (!setupAlreadySent || forceRepublish || hasChanges) {\n    flow.set(setupSentKey, true);\n    flow.set(lastSetupKey, lastSetup);\n\n    // On nettoie les flags de forçage une fois utilisés\n    flow.set(forceKeyFlow, false);\n    flow.set(forceAllKeyFlow, false);\n\n    if (!setupAlreadySent) {\n        node.warn(`✓ Setup INITIAL envoyé pour BMS ${slaveIdStr} (${outMsgs.length} messages)`);\n    } else if (forceRepublish) {\n        node.warn(`↻ Setup FORCÉ renvoyé pour BMS ${slaveIdStr} (${outMsgs.length} messages)`);\n    } else {\n        node.warn(`✓ Setup CHANGEMENTS détectés pour BMS ${slaveIdStr} (${outMsgs.length} messages)`);\n    }\n\n    return [outMsgs];\n} else {\n    node.debug(`⊘ Setup: aucun changement pour BMS ${slaveIdStr}`);\n    return null;\n}",
+        "func": "// ========== ACTIVE POLLING SETUP READ-ONLY - v4.2.82 ==========\n// Buts :\n// - Publier au premier passage\n// - Republier si une valeur change\n// - Republier si forçage demandé\n// - Recréer les entités HA si elles ont disparu\n// - Supporter l'apparition de nouvelles clés sans bloquer\n\n// -----------------------------------------------------------------\n// 1) Identification du BMS\n// -----------------------------------------------------------------\nlet bmsAdresse = Number(msg.bms_numero);\nlet slaveIdStr = (bmsAdresse === 0) ? \"master\" : String(bmsAdresse);\n\nif (!msg.payload || typeof msg.payload !== \"object\" || Array.isArray(msg.payload)) {\n    node.warn(`Setup To MQTT ignoré: payload invalide pour BMS ${slaveIdStr}`);\n    return null;\n}\n\nconst payload = msg.payload;\n\n// -----------------------------------------------------------------\n// MQTT / HA identity : legacy strict ou Multi-Pack.\nconst multiPack = global.get(\"multi_pack_enabled\") === true;\nconst packId = msg.pack_id || \"pack_1\";\nconst packName = msg.pack_name || \"Pack 1\";\nconst packSafe = String(packId).toLowerCase().replace(/[^a-z0-9_]+/g, \"_\");\n\nconst baseTopic = multiPack\n    ? `jkbms/${packId}/BMS_${slaveIdStr}`\n    : `BMS_${slaveIdStr}`;\n\nconst discoveryPrefix = \"homeassistant\";\n\nconst deviceName = multiPack\n    ? `${packName} - BMS_${slaveIdStr}`\n    : `BMS_${slaveIdStr}`;\n\nconst deviceID = multiPack\n    ? `${packSafe}_BMS_${slaveIdStr}_device`\n    : `${baseTopic}_device`;\n\nconst entityPrefix = multiPack\n    ? `${packSafe}_bms_${slaveIdStr}`\n    : baseTopic.toLowerCase();\n\n// -----------------------------------------------------------------\n// 2) Clés de contexte\n// -----------------------------------------------------------------\nconst setupSentKey = multiPack\n    ? `apSetupSent_${packId}_BMS_${slaveIdStr}`\n    : `apSetupSent_BMS_${slaveIdStr}`;\n\nconst lastSetupKey = multiPack\n    ? `apLastSetup_${packId}_BMS_${slaveIdStr}`\n    : `apLastSetup_BMS_${slaveIdStr}`;\n\nconst forceKeyFlow = multiPack\n    ? `forceSetupRepublish_${packId}_BMS_${slaveIdStr}`\n    : `forceSetupRepublish_BMS_${slaveIdStr}`;\n\nconst forceAllKeyFlow = multiPack\n    ? `forceSetupRepublishAll_${packId}`\n    : \"forceSetupRepublishAll\";\n\nlet setupAlreadySent = !!flow.get(setupSentKey);\nlet lastSetup = flow.get(lastSetupKey) || {};\n\nconst forceRepublish =\n    msg.force_setup_republish === true ||\n    flow.get(forceKeyFlow) === true ||\n    flow.get(forceAllKeyFlow) === true ||\n    global.get(forceKeyFlow) === true ||\n    global.get(forceAllKeyFlow) === true;\n\n// v4.2.82 migration cleanup is intentionally one-shot per BMS, but it is\n// allowed to run only after the MQTT broker has positively reported CONNECTED.\n// v4.2.81 could emit retained-delete messages while the MQTT node was still\n// disconnected, then mark cleanup complete even though those deletes had not\n// reached the broker. Versioning the flag forces one clean retry in v4.2.82.\nconst activePollingMode = multiPack && global.get(\"jkbms_active_polling_enabled\") === true;\nconst migrationCleanupKey = `apMigrationCleanup_v4_2_82_${packId}_BMS_${slaveIdStr}`;\nconst migrationCleanupNeeded = activePollingMode && flow.get(migrationCleanupKey) !== true;\nconst migrationCleanupCanRun =\n    migrationCleanupNeeded && global.get(\"jkbms_mqtt_connected\") === true;\n\n// -----------------------------------------------------------------\n// 3) Helpers\n// -----------------------------------------------------------------\nfunction formatBoolean(value) {\n    if (typeof value === \"boolean\") {\n        return value ? \"True\" : \"False\";\n    }\n    if (typeof value === \"string\") {\n        const lowerVal = value.toLowerCase();\n        if (lowerVal === \"true\") return \"True\";\n        if (lowerVal === \"false\") return \"False\";\n    }\n    return value;\n}\n\nfunction normalizeValue(value) {\n    if (typeof value === \"boolean\") {\n        return value ? \"True\" : \"False\";\n    }\n    if (typeof value === \"number\") {\n        // évite les faux changements 3.5 vs 3.500000\n        return Number(value.toFixed(6));\n    }\n    if (typeof value === \"string\") {\n        const lowerVal = value.toLowerCase();\n        if (lowerVal === \"true\") return \"True\";\n        if (lowerVal === \"false\") return \"False\";\n        const asNum = Number(value);\n        if (!Number.isNaN(asNum) && value.trim() !== \"\") {\n            return Number(asNum.toFixed(6));\n        }\n        return value.trim();\n    }\n    return value;\n}\n\nfunction inferMeta(key) {\n    // Quelques cas spécifiques conservés volontairement\n    const custom = {\n        max_charge_current_A: { unit: \"A\", min: 0, max: 600, step: 1 },\n        max_discharge_current_S: { unit: \"A\", min: 0, max: 600, step: 1 }, // clé historique conservée\n        max_balance_current_A: { unit: \"A\", min: 0, max: 10, step: 0.1 },\n        total_battery_capacity_Ah: { unit: \"Ah\", min: 1, max: 2000, step: 1 },\n        short_circuit_protection_delay_S: { unit: \"s\", min: 0, max: 5000, step: 1 },\n        charge_overcurrent_protection_delay_S: { unit: \"s\", min: 0, max: 600, step: 1 },\n        discharge_overcurrent_protection_delay_S: { unit: \"s\", min: 0, max: 600, step: 1 },\n        charge_overcurrent_protection_recovery_time_S: { unit: \"s\", min: 0, max: 3600, step: 1 },\n        discharge_overcurrent_protection_recovery_time_S: { unit: \"s\", min: 0, max: 3600, step: 1 },\n        short_circuit_protection_recovery_time_S: { unit: \"s\", min: 0, max: 600, step: 1 },\n        cell_count_N: { min: 1, max: 32, step: 1 },\n        Device_address_N: { min: 0, max: 255, step: 1 }\n    };\n\n    if (custom[key]) return custom[key];\n\n    if (key.endsWith(\"_V\"))  return { unit: \"V\",  step: 0.001 };\n    if (key.endsWith(\"_A\"))  return { unit: \"A\",  step: 0.1 };\n    if (key.endsWith(\"_Ah\")) return { unit: \"Ah\", step: 1 };\n    if (key.endsWith(\"_T\"))  return { unit: \"°C\", step: 1 };\n    if (key.endsWith(\"_S\"))  return { unit: \"s\",  step: 1 };\n    if (key.endsWith(\"_R\"))  return { step: 0.001 };\n    if (key.endsWith(\"_N\"))  return { step: 1 };\n\n    return {};\n}\n\nfunction createConfigPayload(key) {\n    const cleanKey = key === \"Device_address_N\" ? \"bms_device_address\" : key.replace(/_[A-Z]+$/, \"\").toLowerCase();\n    const entityType = \"sensor\";\n    const objectKey = key === \"Device_address_N\" ? \"bms_device_address\" : `bms_${cleanKey}`;\n\n    const configPayload = {\n        name: key === \"Device_address_N\" ? \"BMS device address\" : `BMS ${key.replace(/_[A-Z]+$/, \"\").replace(/_/g, \" \")}`,\n        unique_id: key === \"Device_address_N\" ? `${deviceID}_bms_device_address_v4` : `${deviceID}_bms_${cleanKey}_v4`,\n        object_id: `${entityPrefix}_${objectKey}`,\n        default_entity_id: `${entityType}.${entityPrefix}_${objectKey}`,\n        state_topic: `${baseTopic}/control/${cleanKey}/state`,\n        entity_category: \"diagnostic\",\n        device: {\n            identifiers: [deviceID],\n            name: deviceName,\n            manufacturer: \"Smartphoton-JK-BMS / ©JLM 2025-2026\",\n            model: payload.BMS_A || \"JK-BMS - RS485 - Ip Gateway\",\n            sw_version: \"3.5\"\n        }\n    };\n\n    configPayload.unique_id += \"_active_polling_sensor\";\n    const meta = inferMeta(key);\n    if (meta.unit !== undefined) configPayload.unit_of_measurement = meta.unit;\n\n    const configTopic = `${discoveryPrefix}/${entityType}/${deviceID}/${configPayload.object_id}/config`;\n\n    return {\n        topic: configTopic,\n        payload: JSON.stringify(configPayload),\n        retain: true,\n        pack_id: packId,\n        pack_name: packName,\n        bus_id: msg.bus_id || \"bus_1\"\n    };\n}\n\nfunction createLegacySetupDiscoveryCleanupMessages(key) {\n    // v4.2.82 - Migration Broadcasting/Legacy Multi-Pack -> Active Polling.\n    // The same SETUP object_id used to be published as \"number\" or \"switch\".\n    // Empty retained discovery payloads remove those obsolete entities before\n    // the new read-only sensor is announced.\n    if (!multiPack) return [];\n\n    const cleanKey = key === \"Device_address_N\" ? \"bms_device_address\" : key.replace(/_[A-Z]+$/, \"\").toLowerCase();\n    const objectKey = key === \"Device_address_N\" ? \"bms_device_address\" : `bms_${cleanKey}`;\n    const objectId = `${entityPrefix}_${objectKey}`;\n\n    return [\"number\", \"switch\"].map(domain => ({\n        topic: `${discoveryPrefix}/${domain}/${deviceID}/${objectId}/config`,\n        payload: \"\",\n        retain: true,\n        pack_id: packId,\n        pack_name: packName,\n        bus_id: msg.bus_id || \"bus_1\"\n    }));\n}\n\nfunction createObsoleteActivePollingSensorCleanupMessage(key) {\n    // v4.2.79 exposed LCD/heating SETUP controls as read-only sensors.\n    // Dedicated writable Active Polling switches now own these controls.\n    if (!multiPack) return null;\n\n    const cleanKey = key === \"Device_address_N\" ? \"bms_device_address\" : key.replace(/_[A-Z]+$/, \"\").toLowerCase();\n    const objectKey = key === \"Device_address_N\" ? \"bms_device_address\" : `bms_${cleanKey}`;\n    const objectId = `${entityPrefix}_${objectKey}`;\n\n    return {\n        topic: `${discoveryPrefix}/sensor/${deviceID}/${objectId}/config`,\n        payload: \"\",\n        retain: true,\n        pack_id: packId,\n        pack_name: packName,\n        bus_id: msg.bus_id || \"bus_1\"\n    };\n}\n\nfunction createStateMessage(key, value) {\n    const cleanKey = key === \"Device_address_N\" ? \"bms_device_address\" : key.replace(/_[A-Z]+$/, \"\").toLowerCase();\n    return {\n        topic: `${baseTopic}/control/${cleanKey}/state`,\n        payload: formatBoolean(value),\n        retain: true,\n        pack_id: packId,\n        pack_name: packName,\n        bus_id: msg.bus_id || \"bus_1\"\n    };\n}\n\n// -----------------------------------------------------------------\n// 4) Construction des messages\n// -----------------------------------------------------------------\n// These values have dedicated writable Active Polling switches and must not\n// be duplicated as read-only SETUP sensors.\nconst ACTIVE_POLLING_CONTROL_KEYS = new Set([\n    // Depending on the SETUP parser path the historical type suffix may\n    // already have been stripped. Accept both spellings so the dedicated\n    // writable controls are never recreated as read-only sensors.\n    \"display_always_on_switch\",\n    \"display_always_on_switch_B\",\n    \"heating_switch\",\n    \"heating_switch_B\"\n]);\n\nlet outMsgs = [];\nlet hasChanges = false;\nlet keys = Object.keys(payload).sort();\n\nfor (const key of keys) {\n    const currentNormalized = normalizeValue(payload[key]);\n    const previousNormalized = normalizeValue(lastSetup[key]);\n\n    const keyWasKnown = Object.prototype.hasOwnProperty.call(lastSetup, key);\n    const changed = !setupAlreadySent || forceRepublish || !keyWasKnown || currentNormalized !== previousNormalized;\n\n    if (ACTIVE_POLLING_CONTROL_KEYS.has(key)) {\n        // Dedicated writable Active Polling switches own these controls.\n        // v4.2.82 removes stale retained SETUP entities only once and only\n        // while MQTT is confirmed connected. This includes the obsolete\n        // read-only LCD/heating sensors created by earlier Active Polling builds.\n        if (migrationCleanupCanRun) {\n            outMsgs.push(...createLegacySetupDiscoveryCleanupMessages(key));\n            const obsoleteSensor = createObsoleteActivePollingSensorCleanupMessage(key);\n            if (obsoleteSensor) outMsgs.push(obsoleteSensor);\n        }\n        lastSetup[key] = payload[key];\n        continue;\n    }\n\n    // One-shot migration cleanup. Do not repeat retained delete messages on\n    // every MQTT reconnect or Discovery refresh.\n    if (migrationCleanupCanRun) {\n        outMsgs.push(...createLegacySetupDiscoveryCleanupMessages(key));\n    }\n\n    // Recréation config :\n    // - au premier envoi\n    // - en republish forcé (startup / MQTT reconnect)\n    // - si une nouvelle clé apparaît\n    if (!setupAlreadySent || forceRepublish || !keyWasKnown) {\n        outMsgs.push(createConfigPayload(key));\n    }\n\n    // Publication d'état :\n    // - au premier envoi\n    // - en republish forcé\n    // - si changement\n    if (changed) {\n        outMsgs.push(createStateMessage(key, payload[key]));\n        lastSetup[key] = payload[key];\n        hasChanges = true;\n    }\n}\n\n// -----------------------------------------------------------------\n// 5) Sauvegarde état / logs\n// -----------------------------------------------------------------\nif (!setupAlreadySent || forceRepublish || hasChanges || migrationCleanupCanRun) {\n    flow.set(setupSentKey, true);\n    flow.set(lastSetupKey, lastSetup);\n\n    if (migrationCleanupCanRun) {\n        flow.set(migrationCleanupKey, true);\n    }\n\n    // On nettoie les flags de forçage une fois utilisés.\n    // Global flags are used by the MQTT reconnect watcher (different flow tab).\n    flow.set(forceKeyFlow, false);\n    flow.set(forceAllKeyFlow, false);\n    global.set(forceKeyFlow, false);\n    global.set(forceAllKeyFlow, false);\n\n    if (!setupAlreadySent) {\n        node.warn(`✓ Setup INITIAL envoyé pour BMS ${slaveIdStr} (${outMsgs.length} messages)`);\n    } else if (forceRepublish) {\n        node.warn(`↻ Setup FORCÉ renvoyé pour BMS ${slaveIdStr} (${outMsgs.length} messages)`);\n    } else if (hasChanges) {\n        node.warn(`✓ Setup CHANGEMENTS détectés pour BMS ${slaveIdStr} (${outMsgs.length} messages)`);\n    } else {\n        node.warn(`✓ Setup MIGRATION cleanup v4.2.82 pour BMS ${slaveIdStr} (${outMsgs.length} messages)`);\n    }\n\n    return [outMsgs];\n} else {\n    node.debug(`⊘ Setup: aucun changement pour BMS ${slaveIdStr}`);\n    return null;\n}",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -18764,13 +18765,14 @@
         "id": "988e7d0ec4685b25",
         "type": "link out",
         "z": "a03abd8e08b468db",
+        "g": "449cbd245967c13c",
         "name": "link out 28",
         "mode": "link",
         "links": [
             "e8a2c306ebb543c3"
         ],
-        "x": 1274,
-        "y": 1139,
+        "x": 1245,
+        "y": 1200,
         "wires": []
     },
     {
@@ -18888,6 +18890,23 @@
         "wires": [
             [
                 "e17a60a00e4b3083"
+            ]
+        ]
+    },
+    {
+        "id": "a479000000000001",
+        "type": "link in",
+        "z": "a03abd8e08b468db",
+        "g": "3454d10d5fae4499",
+        "name": "Suppression dashboard 1",
+        "links": [
+            "f0a660a173c82dc1"
+        ],
+        "x": 65,
+        "y": 520,
+        "wires": [
+            [
+                "a940529ac3a159d7"
             ]
         ]
     },
@@ -19290,23 +19309,6 @@
         "wires": [
             [
                 "ca19000000000010"
-            ]
-        ]
-    },
-    {
-        "id": "a479000000000001",
-        "type": "link in",
-        "z": "a03abd8e08b468db",
-        "g": "3454d10d5fae4499",
-        "name": "Suppression dashboard 1",
-        "links": [
-            "f0a660a173c82dc1"
-        ],
-        "x": 65,
-        "y": 520,
-        "wires": [
-            [
-                "a940529ac3a159d7"
             ]
         ]
     }

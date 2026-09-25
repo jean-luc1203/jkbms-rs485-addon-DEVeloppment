@@ -1,3 +1,35 @@
+## 4.2.83 DEV — 2026-09-25
+⚠️ ⚠️
+When upgrading from previous Active Polling DEV test builds, the obsolete read-only BMS display always on switch entity may remain in the Home Assistant entity registry after its MQTT Discovery topic has been removed. Restart Home Assistant Core and remove the stale entity if necessary. Fresh installations are not affected. ⚠️ ⚠️
+
+## 4.2.82 DEV — 2026-09-25
+
+### Final Active Polling SETUP cleanup
+- Fix the remaining duplicate read-only `BMS display always on switch` sensor. The Active Polling SETUP parser can expose the key with or without its historical `_B` type suffix; both spellings are now excluded from read-only Discovery.
+- Treat both LCD and heating controls as dedicated writable controls whether their SETUP keys arrive as `display_always_on_switch[_B]` / `heating_switch[_B]`.
+- Gate one-shot retained MQTT Discovery migration cleanup on a positively connected MQTT broker. Cleanup is no longer marked complete when Node-RED is still disconnected.
+- Version the migration marker to `v4_2_82` so installations that already ran the incomplete v4.2.81 cleanup retry it exactly once after MQTT connects.
+- Track MQTT connected/disconnected/reconnecting state in global context solely for safe migration timing.
+
+## 4.2.81 DEV — 2026-09-25
+
+### Cleanup after Active Polling Multi-Pack validation
+- Remove the obsolete read-only `BMS display always on switch` MQTT Discovery sensor left by pre-v4.2.80 Active Polling builds. `LCD always on` remains the single writable LCD control.
+- Make the Broadcasting/Legacy → Active Polling MQTT Discovery cleanup one-shot per BMS instead of repeating retained delete messages during later rediscovery.
+- Stop the historical 5-minute SETUP Discovery reset in Active Polling Multi-Pack. Legacy and Multi-Pack Broadcasting keep their existing 5-minute behaviour unchanged.
+- Re-arm Active Polling SETUP Discovery once for every configured BMS after a real MQTT connection/reconnection, using per-BMS global flags so all packs/BMS are republished.
+- Clear both flow-local and cross-tab global rediscovery flags after they are consumed.
+- Normal SETUP value changes continue to publish state updates without forcing a full Discovery republish
+
+## 4.2.80 DEV — 2026-09-25
+
+### Fixed
+- Active Polling Multi-Pack SETUP values are now published as read-only Home Assistant `sensor` entities with `entity_category: diagnostic`, instead of the invalid `config` category; the dedicated LCD/heating controls remain writable switches and are not duplicated as read-only sensors.
+- Added retained MQTT Discovery cleanup when migrating current BMS SETUP entities from Multi-Pack Broadcasting/Legacy `number`/`switch` entities to Active Polling read-only sensors.
+- Added the reverse cleanup when returning from Active Polling to Multi-Pack Broadcasting, including removal of the dedicated Active Polling LCD/heating discovery entities.
+- Active Polling discovery/setup reset now uses the explicitly configured `bms_addresses` and no longer invents a `master` BMS in logs or reset state.
+- Active Polling SETUP reset now resets its own `apSetupSent_*` / `apLastSetup_*` contexts.
+
 ## 4.2.79
 
 - Preserve the manually reorganized Premium dashboard flow from flows(164).json.
