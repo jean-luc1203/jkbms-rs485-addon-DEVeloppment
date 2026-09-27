@@ -1,6 +1,7 @@
 'use strict';
 // Independent Multi-Pack RTU engine. No Legacy globals, no shared slave counter.
-// v4.2.92: add per-BMS/register latency and timeout diagnostics without changing polling timing.
+// v4.2.93: add a 100 ms quiet time between completed Serial/USB transactions.
+// Keeps v4.2.92 diagnostics and the 1000 ms response timeout unchanged; TCP timing is untouched.
 // v4.2.90 Serial transport and all v4.2.84-v4.2.89 controls keep the same behavior and mappings.
 const net = require('net');
 const {performance} = require('perf_hooks');
@@ -331,9 +332,16 @@ function newExchangeStat(){
 
 class Engine {
  constructor(config,emit,authorized){
-  this.emit=emit;this.authorized=authorized;this.stopped=false;this.timeoutMs=config.timeoutMs||1000;this.intervalMs=config.intervalMs||3000;this.states=new Map();this.frameMeta=new WeakMap();
+  this.emit=emit;this.authorized=authorized;this.stopped=false;this.timeoutMs=config.timeoutMs||1000;this.intervalMs=config.intervalMs||3000;
+  // v4.2.93 - Real USB/RS485 validation showed normal replies around 42-47 ms,
+  // with occasional completely missed transactions. Keep the response timeout
+  // unchanged and add a conservative quiet time only between Serial requests.
+  // TCP behavior remains exactly as before.
+  const configuredGap=Number(config.serialInterFrameMs);
+  this.serialInterFrameMs=Number.isFinite(configuredGap)?Math.max(0,configuredGap):100;
+  this.states=new Map();this.frameMeta=new WeakMap();
   for(const d of config.packs){
-   const state={def:d,bus:createBus(d,this),due:[],commands:[],running:false,timer:null,lastError:null,lastLive:{},responses:0,exchangeStats:{}};
+   const state={def:d,bus:createBus(d,this),due:[],commands:[],running:false,timer:null,lastError:null,lastLive:{},responses:0,exchangeStats:{},nextSerialTxAt:0};
    for(const addr of d.bms_addresses)for(const reg of [0x161e,0x161c,0x1620])state.due.push({addr,reg,at:0});
    this.states.set(d.id,state);state.bus.connect();
   }
@@ -382,12 +390,23 @@ class Engine {
   const c={addr,control,value,def,id:Date.now().toString(36)+'-'+Math.random().toString(16).slice(2,8),expires:performance.now()+15000};
   s.commands.push(c);this.status(s,c,'queued');this.wake(pack);return true;
  }
+ async waitTransportGap(s){
+  if(s.def.transport!=='serial'||this.serialInterFrameMs<=0)return;
+  const remaining=s.nextSerialTxAt-performance.now();
+  if(remaining>0)await new Promise(resolve=>setTimeout(resolve,remaining));
+ }
  async exchange(s,addr,reg,value=0,quantity=1,expect='frame'){
+  // The gap is measured from completion of the previous Serial transaction to
+  // transmission of the next one. It is deliberately outside response_ms so
+  // v4.2.92 latency diagnostics continue to measure the BMS response itself.
+  await this.waitTransportGap(s);
   const started=performance.now();
   const baseMeta={bms_numero:addr,register:reg,register_hex:registerHex(reg),register_name:registerName(reg,expect),expect,quantity,timeout_ms:this.timeoutMs};
   return new Promise((resolve,reject)=>{
    const done=(e,f)=>{
-    const meta={...baseMeta,response_ms:Number((performance.now()-started).toFixed(1))};
+    const completed=performance.now();
+    if(s.def.transport==='serial')s.nextSerialTxAt=completed+this.serialInterFrameMs;
+    const meta={...baseMeta,response_ms:Number((completed-started).toFixed(1))};
     if(e){
      this.recordExchange(s,meta,false,e.message);
      e.ap_meta=meta;
@@ -486,7 +505,7 @@ function validate(config){
 }
 module.exports={crc,packet,request,parse,CONTROL_DEFS,Engine,validate,
  start(id,config,emit,authorized){validate(config);const signature=JSON.stringify(config);const old=runtimes.get(id);if(old&&old.signature===signature)return;this.stop(id);const engine=new Engine(config,emit,authorized);runtimes.set(id,{engine,signature});},
- snapshot(id){const r=runtimes.get(id);if(!r)return [];return [...r.engine.states.values()].map(s=>({event:'health',pack_id:s.def.id,transport:s.def.transport,bus_id:s.def.bus_id,endpoint:s.def.transport==='serial'?s.def.path:`${s.def.host}:${s.def.port}`,connected:s.bus.ready,configured_bms:s.def.bms_addresses,last_live_ms:{...s.lastLive},validated_responses:s.responses,queued_commands:s.commands.length,timeout_ms:r.engine.timeoutMs,response_stats:JSON.parse(JSON.stringify(s.exchangeStats))}));},
+ snapshot(id){const r=runtimes.get(id);if(!r)return [];return [...r.engine.states.values()].map(s=>({event:'health',pack_id:s.def.id,transport:s.def.transport,bus_id:s.def.bus_id,endpoint:s.def.transport==='serial'?s.def.path:`${s.def.host}:${s.def.port}`,connected:s.bus.ready,configured_bms:s.def.bms_addresses,last_live_ms:{...s.lastLive},validated_responses:s.responses,queued_commands:s.commands.length,timeout_ms:r.engine.timeoutMs,serial_inter_frame_ms:s.def.transport==='serial'?r.engine.serialInterFrameMs:0,response_stats:JSON.parse(JSON.stringify(s.exchangeStats))}));},
  command(id,...args){const r=runtimes.get(id);return r?r.engine.command(...args):false;},
  stop(id){const r=runtimes.get(id);if(r){r.engine.stop();runtimes.delete(id);}}
 };

@@ -1,3 +1,16 @@
+## 4.2.93 DEV — Active Polling Serial inter-frame quiet time
+
+- Based on the first real Multi-Pack Active Polling USB/RS485 measurements from v4.2.92.
+- Successful real JK-BMS replies are normally very stable around 42–47 ms, while the observed failures are complete missing transactions that reach the existing 1000 ms timeout.
+- Adds a fixed **100 ms quiet time between completion of one Serial/USB transaction and transmission of the next Serial request**.
+- The 100 ms gap applies to both periodic polling and SETUP write/readback command sequences on Serial transports.
+- The gap is intentionally excluded from `response_ms`, so v4.2.92 latency diagnostics continue to measure the actual request/response latency only.
+- Keeps the **1000 ms response timeout unchanged**. No automatic retry is added in this test release.
+- **TCP timing is unchanged**; the quiet-time logic applies only to `transport: serial`.
+- Keeps all v4.2.92 per-BMS/register latency and timeout diagnostics.
+- Adds `serial_inter_frame_ms` to Active Polling health snapshots for Serial packs.
+- No SETUP register mapping, writable control, MQTT topic, Discovery naming, Legacy runtime, Broadcasting runtime or dashboard logic is changed.
+
 ## 4.2.92 DEV — Active Polling Serial diagnostics
 
 - Diagnostic-only release for the first real Multi-Pack Active Polling USB/RS485 validation.
