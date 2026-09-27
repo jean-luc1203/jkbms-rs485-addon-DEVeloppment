@@ -1,3 +1,14 @@
+## 4.2.92 DEV — Active Polling Serial diagnostics
+
+- Diagnostic-only release for the first real Multi-Pack Active Polling USB/RS485 validation.
+- Keeps the existing 1000 ms response timeout and all polling intervals unchanged.
+- Timeout logs now identify the pack, transport, BMS address, request type/register, elapsed time, timeout limit and poll/command phase.
+- Successful replies carry measured response latency.
+- With `communication_debug: true`, every validated Active Polling reply is logged with BMS, register and response time.
+- With normal logging, replies using at least 75% of the timeout window are reported as `slow response`.
+- Active Polling health snapshots now include per-BMS/per-register response statistics: attempts, successes, failures, timeouts, last/average/max latency and timestamps.
+- No SETUP mapping, writable control, MQTT topic, polling cadence, timeout value, Legacy runtime, Broadcasting runtime or dashboard logic is changed.
+
 ## 4.2.91 DEV — Translation files
 
 ## 4.2.90 DEV — Multi-Pack Active Polling: USB / Serial transport

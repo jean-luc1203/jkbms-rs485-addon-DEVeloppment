@@ -1,7 +1,7 @@
 'use strict';
 // Independent Multi-Pack RTU engine. No Legacy globals, no shared slave counter.
-// v4.2.90: add direct USB/Serial transport alongside the validated TCP transport.
-// Existing v4.2.84-v4.2.89 controls keep the same register mapping and write/readback path.
+// v4.2.92: add per-BMS/register latency and timeout diagnostics without changing polling timing.
+// v4.2.90 Serial transport and all v4.2.84-v4.2.89 controls keep the same behavior and mappings.
 const net = require('net');
 const {performance} = require('perf_hooks');
 const runtimes = new Map();
@@ -298,20 +298,77 @@ function createBus(def,owner){
  return new TcpBus(def,owner);
 }
 
+
+const REGISTER_NAMES = Object.freeze({
+  0x161c: 'STATIC',
+  0x161e: 'SETUP',
+  0x1620: 'LIVE'
+});
+
+function registerHex(reg){
+  return '0x' + Number(reg).toString(16).toUpperCase().padStart(4,'0');
+}
+
+function registerName(reg, expect='frame'){
+  if (REGISTER_NAMES[reg]) return REGISTER_NAMES[reg];
+  return expect === 'ack' ? 'WRITE' : 'REGISTER';
+}
+
+function newExchangeStat(){
+  return {
+    attempts: 0,
+    successes: 0,
+    failures: 0,
+    timeouts: 0,
+    last_ms: null,
+    avg_ms: null,
+    max_ms: null,
+    last_ok_at: null,
+    last_error: null,
+    last_error_at: null
+  };
+}
+
 class Engine {
  constructor(config,emit,authorized){
-  this.emit=emit;this.authorized=authorized;this.stopped=false;this.timeoutMs=config.timeoutMs||1000;this.intervalMs=config.intervalMs||3000;this.states=new Map();
+  this.emit=emit;this.authorized=authorized;this.stopped=false;this.timeoutMs=config.timeoutMs||1000;this.intervalMs=config.intervalMs||3000;this.states=new Map();this.frameMeta=new WeakMap();
   for(const d of config.packs){
-   const state={def:d,bus:createBus(d,this),due:[],commands:[],running:false,timer:null,lastError:null,lastLive:{},responses:0};
+   const state={def:d,bus:createBus(d,this),due:[],commands:[],running:false,timer:null,lastError:null,lastLive:{},responses:0,exchangeStats:{}};
    for(const addr of d.bms_addresses)for(const reg of [0x161e,0x161c,0x1620])state.due.push({addr,reg,at:0});
    this.states.set(d.id,state);state.bus.connect();
   }
  }
  connection(id,online){const s=this.states.get(id);if(!this.stopped)this.emit({event:'connection',pack_id:id,transport:s?.def?.transport,bus_id:s?.def?.bus_id,online});}
- error(id,error){const s=this.states.get(id);if(!this.stopped)this.emit({event:'error',pack_id:id,transport:s?.def?.transport,bus_id:s?.def?.bus_id,error});}
+ error(id,error,extra={}){const s=this.states.get(id);if(!this.stopped)this.emit({event:'error',pack_id:id,transport:s?.def?.transport,bus_id:s?.def?.bus_id,error,...extra});}
  wake(id,delay=0){const s=this.states.get(id);if(!s||this.stopped)return;clearTimeout(s.timer);s.timer=setTimeout(()=>this.step(s),delay);}
- publish(s,addr,reg,frame){if(this.stopped)return;s.responses++;if(reg===0x1620)s.lastLive[addr]=Date.now();this.emit({event:'frame',pack_id:s.def.id,pack_name:s.def.name,bus_id:s.def.bus_id,_transport:s.def.transport,bms_numero:addr,register:reg,payload:frame});}
- status(s,c,status,extra={}){if(this.stopped)return;this.emit({event:'command',pack_id:s.def.id,transport:s.def.transport,bus_id:s.def.bus_id,bms_numero:c.addr,control:c.control,status,command_id:c.id,requested_value:c.value,register:c.def.register,...extra});}
+ recordExchange(s,meta,ok,error=null){
+  const bmsKey=`BMS_${meta.bms_numero}`;
+  const regKey=meta.register_name+(meta.register_name==='WRITE'?`_${meta.register_hex}`:'');
+  if(!s.exchangeStats[bmsKey])s.exchangeStats[bmsKey]={};
+  const st=s.exchangeStats[bmsKey][regKey]||newExchangeStat();
+  st.attempts++;
+  if(ok){
+   st.successes++;
+   st.last_ms=meta.response_ms;
+   st.max_ms=st.max_ms===null?meta.response_ms:Math.max(st.max_ms,meta.response_ms);
+   st.avg_ms=st.avg_ms===null?meta.response_ms:Number((((st.avg_ms*(st.successes-1))+meta.response_ms)/st.successes).toFixed(1));
+   st.last_ok_at=Date.now();
+  }else{
+   st.failures++;
+   if(error==='response_timeout')st.timeouts++;
+   st.last_error=error||'unknown';
+   st.last_error_at=Date.now();
+  }
+  s.exchangeStats[bmsKey][regKey]=st;
+ }
+ publish(s,addr,reg,frame){
+  if(this.stopped)return;
+  const meta=this.frameMeta.get(frame)||{};
+  if(frame&&typeof frame==='object')this.frameMeta.delete(frame);
+  s.responses++;if(reg===0x1620)s.lastLive[addr]=Date.now();
+  this.emit({event:'frame',pack_id:s.def.id,pack_name:s.def.name,bus_id:s.def.bus_id,_transport:s.def.transport,bms_numero:addr,register:reg,register_hex:registerHex(reg),register_name:registerName(reg),response_ms:meta.response_ms,timeout_ms:this.timeoutMs,payload:frame});
+ }
+ status(s,c,status,extra={}){if(this.stopped)return;this.emit({event:'command',pack_id:s.def.id,transport:s.def.transport,bus_id:s.def.bus_id,bms_numero:c.addr,control:c.control,status,command_id:c.id,requested_value:c.value,register:c.def.register,register_hex:registerHex(c.def.register),...extra});}
  command(pack,addr,control,value,retained){
   const s=this.states.get(pack), def=CONTROL_DEFS[control];
   if(!s||!s.def.bms_addresses.includes(addr)||!def||retained||!this.authorized())return false;
@@ -325,7 +382,31 @@ class Engine {
   const c={addr,control,value,def,id:Date.now().toString(36)+'-'+Math.random().toString(16).slice(2,8),expires:performance.now()+15000};
   s.commands.push(c);this.status(s,c,'queued');this.wake(pack);return true;
  }
- async exchange(s,addr,reg,value=0,quantity=1,expect='frame'){return new Promise((resolve,reject)=>{if(!s.bus.send(addr,reg,value,quantity,expect,(e,f)=>e?reject(e):resolve(f)))reject(new Error('not_connected'));});}
+ async exchange(s,addr,reg,value=0,quantity=1,expect='frame'){
+  const started=performance.now();
+  const baseMeta={bms_numero:addr,register:reg,register_hex:registerHex(reg),register_name:registerName(reg,expect),expect,quantity,timeout_ms:this.timeoutMs};
+  return new Promise((resolve,reject)=>{
+   const done=(e,f)=>{
+    const meta={...baseMeta,response_ms:Number((performance.now()-started).toFixed(1))};
+    if(e){
+     this.recordExchange(s,meta,false,e.message);
+     e.ap_meta=meta;
+     reject(e);
+    }else{
+     this.recordExchange(s,meta,true);
+     if(f&&typeof f==='object')this.frameMeta.set(f,meta);
+     resolve(f);
+    }
+   };
+   if(!s.bus.send(addr,reg,value,quantity,expect,done)){
+    const e=new Error('not_connected');
+    const meta={...baseMeta,response_ms:Number((performance.now()-started).toFixed(1))};
+    this.recordExchange(s,meta,false,e.message);
+    e.ap_meta=meta;
+    reject(e);
+   }
+  });
+ }
  async step(s){
   if(this.stopped||s.running||!s.bus.ready)return;
   s.running=true;
@@ -361,13 +442,20 @@ class Engine {
       const readbackRaw=after.readInt32LE(c.def.offset), readbackValue=readbackRaw/c.def.scale;
       this.status(s,c,readbackRaw===desiredRaw?'confirmed':'not_confirmed',{previous_value:oldValue,readback_value:readbackValue,encoded_value:desiredRaw,normalized_value:desiredValue});
      }
-    }catch(e){this.status(s,c,'failed',{error:e.message});}
+    }catch(e){
+     const meta=e.ap_meta||{};
+     this.status(s,c,'failed',{error:e.message,...meta});
+     if(e.message==='response_timeout')this.error(s.def.id,e.message,{...meta,phase:'command',control:c.control});
+    }
    }else{
     s.due.sort((a,b)=>a.at-b.at);
     const job=s.due[0];
     if(job.at>performance.now())return;
     job.at=performance.now()+(job.reg===0x1620?this.intervalMs:job.reg===0x161e?20000:60000);
-    try{const f=await this.exchange(s,job.addr,job.reg);this.publish(s,job.addr,job.reg,f);}catch(e){this.error(s.def.id,e.message);}
+    try{const f=await this.exchange(s,job.addr,job.reg);this.publish(s,job.addr,job.reg,f);}catch(e){
+     const meta=e.ap_meta||{bms_numero:job.addr,register:job.reg,register_hex:registerHex(job.reg),register_name:registerName(job.reg),timeout_ms:this.timeoutMs};
+     this.error(s.def.id,e.message,{...meta,phase:'poll'});
+    }
    }
   }finally{
    s.running=false;
@@ -398,7 +486,7 @@ function validate(config){
 }
 module.exports={crc,packet,request,parse,CONTROL_DEFS,Engine,validate,
  start(id,config,emit,authorized){validate(config);const signature=JSON.stringify(config);const old=runtimes.get(id);if(old&&old.signature===signature)return;this.stop(id);const engine=new Engine(config,emit,authorized);runtimes.set(id,{engine,signature});},
- snapshot(id){const r=runtimes.get(id);if(!r)return [];return [...r.engine.states.values()].map(s=>({event:'health',pack_id:s.def.id,transport:s.def.transport,bus_id:s.def.bus_id,endpoint:s.def.transport==='serial'?s.def.path:`${s.def.host}:${s.def.port}`,connected:s.bus.ready,configured_bms:s.def.bms_addresses,last_live_ms:{...s.lastLive},validated_responses:s.responses,queued_commands:s.commands.length}));},
+ snapshot(id){const r=runtimes.get(id);if(!r)return [];return [...r.engine.states.values()].map(s=>({event:'health',pack_id:s.def.id,transport:s.def.transport,bus_id:s.def.bus_id,endpoint:s.def.transport==='serial'?s.def.path:`${s.def.host}:${s.def.port}`,connected:s.bus.ready,configured_bms:s.def.bms_addresses,last_live_ms:{...s.lastLive},validated_responses:s.responses,queued_commands:s.commands.length,timeout_ms:r.engine.timeoutMs,response_stats:JSON.parse(JSON.stringify(s.exchangeStats))}));},
  command(id,...args){const r=runtimes.get(id);return r?r.engine.command(...args):false;},
  stop(id){const r=runtimes.get(id);if(r){r.engine.stop();runtimes.delete(id);}}
 };
