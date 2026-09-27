@@ -5,16 +5,19 @@ configuration:
     description: Włącza szczegółowe logi komunikacji do diagnostyki i wsparcia.
   bms_broadcasting:
     name: 🔴 JK-BMS → Broadcasting BMS
-    description: Włącza Broadcasting JK-BMS. Multi-Pack obecnie wymaga Broadcasting.
+    description: Włącza Broadcasting JK-BMS. Wyłącz tę opcję, aby używać Active Polling.
   multi_pack_section:
     name: ────────── MULTI-PACK ──────────
-    description: Konfiguracja wielu niezależnych pakietów JK-BMS.
+    description: Konfiguracja niezależnych pakietów JK-BMS z Broadcasting lub Active Polling.
   multi_pack_enabled:
     name: 🔷 Multi-Pack → Włącz
-    description: Włącza Multi-Pack. Zalecane dla nowych instalacji Broadcasting, nawet z jednym pakietem. Każdy pakiet ma stałą identyfikację techniczną i własny transport.
+    description: Włącza architekturę Multi-Pack. Zalecane dla nowych instalacji, nawet z jednym pakietem. Każdy pakiet ma stałą identyfikację techniczną i własny transport.
+  multi_pack_active_polling:
+    name: 🔷 Multi-Pack → Active Polling
+    description: Włącza Active Polling Multi-Pack przy wyłączonym Broadcasting. Obsługuje TCP/IP i bezpośrednie USB/RS485.
   multi_pack_packs:
     name: 🔷 Multi-Pack → Pakiety
-    description: Skonfiguruj do pięciu niezależnych pakietów. Każdy może korzystać z TCP/IP albo USB/RS485.
+    description: Skonfiguruj do pięciu niezależnych pakietów. Każdy może korzystać z TCP/IP albo USB/RS485 z Broadcasting lub Active Polling.
     fields:
       id:
         name: ID pakietu
@@ -30,7 +33,10 @@ configuration:
         description: Wymagane dla pakietów TCP, np. 192.168.1.101:5000.
       path:
         name: Ścieżka szeregowa
-        description: Wymagana dla pakietów szeregowych. Użyj stałej ścieżki /dev/serial/by-id/....
+        description: Wymagana dla pakietów szeregowych. Preferuj stałą ścieżkę /dev/serial/by-id/....
+      bms_addresses:
+        name: Adresy BMS
+        description: Tylko Active Polling. Adresy BMS od 1 do 15 rozdzielone przecinkami, np. 1,2,3.
   legacy_section:
     name: ────────── LEGACY / POJEDYNCZA MAGISTRALA ──────────
     description: Konfiguracja zgodności dla dotychczasowej pojedynczej magistrali RS485.

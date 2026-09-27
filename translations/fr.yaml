@@ -5,16 +5,19 @@ configuration:
     description: Activer l'affichage détaillé des journaux de communication pour le diagnostic et le support.
   bms_broadcasting:
     name: 🔴 JK-BMS → Diffusion BMS (Broadcasting)
-    description: Activer le mode Broadcasting du JK-BMS. Le Multi-Pack nécessite actuellement le Broadcasting.
+    description: Activer le mode Broadcasting du JK-BMS. Désactiver cette option pour utiliser Active Polling.
   multi_pack_section:
     name: ────────── MULTI-PACK ──────────
-    description: Configuration de plusieurs packs JK-BMS indépendants.
+    description: Configuration de plusieurs packs JK-BMS indépendants, en Broadcasting ou Active Polling.
   multi_pack_enabled:
     name: 🔷 Multi-Pack → Activer
-    description: Activer le mode Multi-Pack. Recommandé pour les nouvelles installations en Broadcasting, même avec un seul pack. Chaque pack possède une identité technique stable et son propre transport.
+    description: Activer l'architecture Multi-Pack. Recommandé pour les nouvelles installations, même avec un seul pack. Chaque pack possède une identité technique stable et son propre transport.
+  multi_pack_active_polling:
+    name: 🔷 Multi-Pack → Active Polling
+    description: Activer Active Polling en Multi-Pack lorsque le Broadcasting est désactivé. Compatible TCP/IP et USB/RS485 direct.
   multi_pack_packs:
     name: 🔷 Multi-Pack → Packs
-    description: Configurer jusqu'à cinq packs indépendants. Chaque pack peut utiliser TCP/IP ou USB/RS485.
+    description: Configurer jusqu'à cinq packs indépendants. Chaque pack peut utiliser TCP/IP ou USB/RS485 en Broadcasting ou Active Polling.
     fields:
       id:
         name: ID du pack
@@ -30,7 +33,10 @@ configuration:
         description: Obligatoire pour un pack TCP, par exemple 192.168.1.101:5000.
       path:
         name: Chemin série
-        description: Obligatoire pour un pack série. Utiliser de préférence /dev/serial/by-id/....
+        description: Obligatoire pour un pack série. Utiliser de préférence un chemin persistant /dev/serial/by-id/....
+      bms_addresses:
+        name: Adresses BMS
+        description: Active Polling uniquement. Liste des adresses BMS à interroger, séparées par des virgules, de 1 à 15, par exemple 1,2,3.
   legacy_section:
     name: ────────── LEGACY / MONO-BUS ──────────
     description: Configuration de compatibilité pour l'ancien bus RS485 unique.

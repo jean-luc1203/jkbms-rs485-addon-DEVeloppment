@@ -17,6 +17,7 @@
     "@flowfuse/node-red-dashboard": "*",
     "node-red-contrib-os": "*",
     "node-red-node-serialport": "*",
+    "serialport": "*",
     "node-red-contrib-tcp-client2": "*",
     "node-red-contrib-buffer-parser": "*"
   },

@@ -7,7 +7,8 @@
 >
 > **Do not use this repository for a critical production installation without a backup.**
 >
-> Current test focus: **Multi-Pack Broadcasting — up to 5 packs / 80 JK-BMS, TCP/IP and USB/RS485.**
+> Current test focus: **Multi-Pack Broadcasting + Active Polling — TCP/IP and direct USB/RS485, including mixed transports.**
+
 ⭐ **If this add-on is useful to you, please star this repository!**  
 It helps other Home Assistant users discover the project and supports future development.
 
@@ -35,12 +36,29 @@ It supports one or many BMS units, alarm monitoring, Home Assistant entities, sa
 
 ---
 
-## ⚡ Multi-Pack: up to 80 JK-BMS
+## ⚡ Multi-Pack: up to 5 independent RS485 packs
 
-> **5 independent RS485 packs × up to 16 JK-BMS per pack = up to 80 BMS managed by one SmartPhoton add-on instance.**
+Multi-Pack gives each battery pack its own stable identity and its own RS485 transport. A Multi-Pack installation may contain only one pack / one BMS or several completely independent packs.
 
-Each pack is isolated and can independently use **TCP/IP** or **USB/RS485** in Broadcasting mode.  
-The current development lab validation is **5 packs / 12 BMS** with mixed TCP + real USB/RS485; **80 BMS is the supported architecture limit, not the number physically validated in the lab.**
+### Broadcasting
+
+> **5 independent RS485 packs × up to 16 JK-BMS per pack = up to 80 BMS architectural maximum.**
+
+Each pack can independently use **TCP/IP** or **USB/RS485**. Mixed TCP + USB installations are supported.
+
+The development lab has already validated Multi-Pack Broadcasting with mixed TCP and real USB/RS485 transports. The architectural maximum is larger than the number physically validated in the lab.
+
+### Active Polling
+
+Starting with **v4.2.90 DEV**, Multi-Pack Active Polling uses the same per-pack transport model:
+
+- TCP/IP RS485 gateway;
+- direct local USB/RS485 serial adapter;
+- mixed TCP + Serial/USB installations.
+
+For Active Polling, the BMS addresses to query are explicitly configured per pack with `bms_addresses`. The current implementation accepts addresses **1 to 15**.
+
+The v4.2.90 engine has been validated against the Active Polling simulator with mixed Serial/TCP transports. **Real JK-BMS validation through direct USB/RS485 is the current test phase.**
 
 ## 🎬 Legacy vs Multi-Pack
 
@@ -53,51 +71,58 @@ Click the animation to watch the full video.
     width="900">
 </a>
 
+Multi-Pack introduction video:  
+https://youtu.be/bzFI4VkLZN0
+
 ---
 
-## v4.2.68 — Multi-Pack test release
+## v4.2.90 — Multi-Pack Active Polling TCP + USB/Serial test release
 
-The current test release introduces the new **Multi-Pack architecture** while preserving the historical **Legacy** mode.
+The current DEV release extends the Multi-Pack architecture to **Active Polling over both TCP/IP and direct USB/RS485** while preserving the already validated Multi-Pack Broadcasting runtime.
 
 Key points:
 
-- Up to **5 independent RS485 battery packs**, with up to **16 JK-BMS per pack** — **80 BMS maximum** in Multi-Pack Broadcasting mode.
-- Each pack can independently use **TCP/IP** or a local **USB/RS485 serial adapter**.
-- Mixed TCP + USB installations are supported.
-- Stable pack identities: `pack_1` to `pack_5`.
+- Up to **5 independent RS485 battery packs** with stable IDs `pack_1` to `pack_5`.
+- Per-pack transport: **TCP/IP gateway** or **direct USB/RS485 serial adapter**.
+- Mixed TCP + USB/Serial installations are supported.
+- **Broadcasting** remains supported in Multi-Pack and is currently the most widely used communication mode.
+- **Active Polling** is now supported in Multi-Pack with explicit BMS address lists per pack.
+- Active Polling can read LIVE, STATIC and SETUP frames and can modify supported BMS configuration settings with ACK + readback confirmation.
+- Current Active Polling SETUP coverage: **30 numeric settings + 9 switches** validated.
+- `cell_count`, connection wire resistance and device address remain intentionally read-only in the add-on.
 - Per-pack MQTT / Home Assistant isolation plus global installation aggregation.
 - Dedicated **SmartPhoton JK-BMS Multi-Pack Premium** dashboard and diagnostics.
 - Compact Home Assistant Multi-Pack summaries are rate-limited to protect Recorder; richer detail remains available through MQTT and Premium views.
-- Improved LIVE-based communication Health and alarm handling.
-- Backward compatibility with existing Legacy installations and earlier Multi-Pack configuration files.
-- Development validation includes **5 packs / 12 BMS** with four TCP simulator buses plus one real USB/RS485 bus.
+- Backward compatibility with existing Legacy installations and earlier Multi-Pack configuration files is preserved.
 
-> **Current limitation:** Multi-Pack supports **Broadcasting mode only** in this release. Multi-Pack Active Polling is planned for a future version.
+> **DEV status:** the new direct USB/RS485 Active Polling transport is ready for real-BMS validation. Use this development repository for testing before production release.
 
 ---
 
 ## Recommended architecture for new installations
 
-For a **new installation using Broadcasting**, start directly with **Multi-Pack**, even if you currently have only **one battery pack**. This keeps the installation on the scalable architecture from day one and allows growth up to **5 packs / 80 BMS** without changing the overall runtime model.
+For new installations, use **Multi-Pack** even if there is only one battery pack or one BMS. Multi-Pack is now the common scalable architecture for both **Broadcasting** and **Active Polling**.
 
-This gives you a stable pack identity, explicit TCP/USB transport and a direct upgrade path if a second or third pack is added later.
+This gives you:
 
-Use **Legacy mode** mainly for:
+- stable pack identity;
+- explicit TCP or USB/RS485 transport per pack;
+- clean isolation when several packs contain the same BMS address;
+- a direct migration path from one pack to several packs;
+- the new pack-aware MQTT and Home Assistant structure.
 
-- existing installations that should remain unchanged;
-- installations that currently require **Active Polling**;
-- compatibility or troubleshooting during migration.
+The historical **Legacy** runtime remains available for compatibility with existing installations. It is now functionally frozen: new development is focused on Multi-Pack rather than adding new features to the Legacy communication engine.
 
 `multi_pack_enabled` remains `false` by default for backward compatibility, so existing users are never migrated automatically.
 
 ### Runtime architectures
 
-| Architecture | Recommended use | Transport | Current polling support |
+| Architecture | Recommended use | Transport | Communication support |
 |---|---|---|---|
-| **Multi-Pack** | Recommended for new Broadcasting installations, from 1 to 5 packs | Per pack: TCP or USB/RS485 | Up to 16 BMS/pack, 80 BMS total; Active Polling planned |
-| **Legacy** | Existing installations and Active Polling | One USB/RS485 bus or one TCP gateway | Broadcasting + Active Polling |
+| **Multi-Pack** | New installations, from one pack upward | Per pack: TCP or USB/RS485 | Broadcasting + Active Polling |
+| **Legacy** | Existing installations that should remain unchanged during migration | One USB/RS485 bus or one TCP gateway | Broadcasting + Active Polling, compatibility runtime |
 
-Multi-Pack is an architecture, not a fourth RS485 protocol mode. The communication modes remain Active Polling, Broadcasting and CAN Bus.
+Multi-Pack is an architecture, not a fourth RS485 protocol mode. The communication modes remain **Active Polling**, **Broadcasting** and **CAN Bus**.
 
 ---
 
@@ -128,22 +153,26 @@ Supported JK-BMS models include:
 
 | Feature | Description |
 |---|---|
-| Variable cell count | Automatically adapts to supported packs from 1S to 16S |
+| Variable cell count | Automatically reads the cell count from the BMS and adapts supported packs from 1S to 16S |
 | RS485 USB | Local USB/RS485 adapters with persistent `/dev/serial/by-id/...` paths |
 | RS485 TCP/IP | Ethernet/Wi-Fi transparent gateways |
-| Multi-BMS | Legacy single-bus operation and new independent Multi-Pack buses |
-| Multi-Pack | Up to 5 independent packs × up to 16 BMS each = **80 BMS maximum**, each pack TCP or serial/USB in Broadcasting mode |
+| Multi-BMS | Legacy single-bus operation and independent Multi-Pack buses |
+| Multi-Pack | Up to 5 independent packs, each with its own TCP or USB/RS485 transport |
+| Multi-Pack Broadcasting | Up to 16 BMS per pack in the current architecture |
+| Multi-Pack Active Polling | Explicit BMS addresses 1..15 per pack; TCP and USB/RS485 supported in v4.2.90 DEV |
 | CAN Bus | Direct CAN communication on compatible JK-BMS hardware |
 | MQTT Discovery | Automatic Home Assistant devices and entities |
 | Alarm monitoring | RS485 alarm monitoring and global alarm aggregation |
 | Communication Health | Adaptive diagnostics, incident memory and per-BMS/per-pack analysis |
-| BMS configuration | Settings can be changed when the active communication mode safely supports it |
+| BMS configuration | Supported SETUP parameters can be changed in Active Polling with confirmation/readback |
 | Premium dashboards | Automatic professional Home Assistant / HTML dashboard generation |
 | Docker standalone | Can run independently from Home Assistant OS |
 
 ### Variable cell-count support
 
 The real cell count reported by the BMS is used for minimum, maximum, average and delta calculations. Unused cell slots are excluded, avoiding misleading values on 4S, 8S, 15S and other non-16S systems.
+
+The add-on intentionally **reads but does not write** `cell_count`. Changing the physical BMS cell count should be done with the official JK-BMS application; SmartPhoton then detects and uses the configured value automatically.
 
 ---
 
@@ -157,7 +186,9 @@ bms_broadcasting: false
 
 SmartPhoton queries each configured BMS directly. It can monitor live data, alarms, cells and temperatures, detect missing BMS units, measure response latency/timeouts and modify supported settings.
 
-**Current scope:** Active Polling is supported in **Legacy** mode. Multi-Pack Active Polling is planned.
+Active Polling is supported in both **Legacy** and **Multi-Pack**. In Multi-Pack, enable `multi_pack_active_polling` and provide explicit `bms_addresses` for every configured pack.
+
+Multi-Pack Active Polling supports both **TCP/IP gateways** and **direct USB/RS485 adapters**. Serial runs at **115200 baud, 8 data bits, no parity, 1 stop bit**.
 
 ## 2. Broadcasting — JK-BMS RS485 Master
 
@@ -167,7 +198,7 @@ bms_broadcasting: true
 
 One JK-BMS acts as RS485 master and SmartPhoton listens to the bus. This mode supports multi-BMS reception, alarms, MQTT publishing, detected-BMS analysis and serial/TCP frame diagnostics. Settings that cannot safely be changed while listening are presented as read-only.
 
-**Multi-Pack currently uses this mode.**
+Broadcasting is supported in Multi-Pack with independent TCP or USB/RS485 transports for each pack.
 
 ## 3. CAN Bus
 
@@ -177,13 +208,12 @@ CAN Bus uses the second RJ45 connector of compatible JK-BMS units for direct CAN
 
 # Configuration
 
-## New installation — recommended one-pack Multi-Pack USB example
-
-Even with one pack, this is the recommended structure for a new Broadcasting installation:
+## Multi-Pack Broadcasting — one pack / USB example
 
 ```yaml
 bms_broadcasting: true
 multi_pack_enabled: true
+multi_pack_active_polling: false
 
 multi_pack_packs:
   - id: pack_1
@@ -192,29 +222,79 @@ multi_pack_packs:
     path: /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0
 ```
 
-## Multi-Pack TCP example
+## Multi-Pack Active Polling — one pack / direct USB example
+
+This is the recommended first real-hardware test for v4.2.90:
 
 ```yaml
-bms_broadcasting: true
+bms_broadcasting: false
 multi_pack_enabled: true
+multi_pack_active_polling: true
+CAN_bus_usage: false
+non_broadcasting_data_interval_s: 3
+
+multi_pack_packs:
+  - id: pack_1
+    name: Main battery
+    transport: serial
+    path: /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0
+    bms_addresses: "1,2"
+```
+
+`bms_addresses` is required for every pack in Multi-Pack Active Polling. Use a comma-separated list of unique JK-BMS addresses from **1 to 15**, for example `1`, `1,2` or `1,2,3`.
+
+## Multi-Pack Active Polling — TCP example
+
+```yaml
+bms_broadcasting: false
+multi_pack_enabled: true
+multi_pack_active_polling: true
+CAN_bus_usage: false
 
 multi_pack_packs:
   - id: pack_1
     name: House battery
     transport: tcp
     gateway_ip_port: 192.168.1.101:5000
+    bms_addresses: "1,2,3"
 
   - id: pack_2
     name: Garage battery
     transport: tcp
     gateway_ip_port: 192.168.1.102:5000
+    bms_addresses: "1,2"
 ```
 
-## Mixed TCP + USB example
+## Multi-Pack Active Polling — mixed TCP + USB example
+
+```yaml
+bms_broadcasting: false
+multi_pack_enabled: true
+multi_pack_active_polling: true
+CAN_bus_usage: false
+
+multi_pack_packs:
+  - id: pack_1
+    name: House battery
+    transport: serial
+    path: /dev/serial/by-id/usb-FTDI_HOUSE-if00-port0
+    bms_addresses: "1,2"
+
+  - id: pack_2
+    name: Garage battery
+    transport: tcp
+    gateway_ip_port: 192.168.1.102:5000
+    bms_addresses: "1,2"
+```
+
+Each serial pack must have its **own physical USB/RS485 adapter and unique path**. The same serial path cannot be assigned to two packs.
+
+## Multi-Pack Broadcasting — mixed TCP + USB example
 
 ```yaml
 bms_broadcasting: true
 multi_pack_enabled: true
+multi_pack_active_polling: false
 
 multi_pack_packs:
   - id: pack_1
@@ -228,12 +308,6 @@ multi_pack_packs:
     path: /dev/serial/by-id/usb-FTDI_GARAGE-if00-port0
 ```
 
-Each serial pack must have its **own physical USB/RS485 adapter and unique path**. The same serial path cannot be assigned to two packs.
-
-### Multi-Pack capacity
-
-Each independent Multi-Pack RS485 bus can contain **1 Master plus up to 15 additional JK-BMS addresses**, for **up to 16 BMS per pack**. With five packs configured, one add-on instance can therefore manage **up to 80 BMS**.
-
 ### Multi-Pack fields
 
 | Field | Meaning |
@@ -241,8 +315,9 @@ Each independent Multi-Pack RS485 bus can contain **1 Master plus up to 15 addit
 | `id` | Stable technical ID: `pack_1` to `pack_5` |
 | `name` | Friendly name shown in dashboards |
 | `transport` | `tcp` or `serial` |
-| `gateway_ip_port` | TCP endpoint such as `192.168.1.101:5000` |
-| `path` | Persistent serial path such as `/dev/serial/by-id/...` |
+| `gateway_ip_port` | TCP endpoint such as `192.168.1.101:5000`; required for TCP packs |
+| `path` | Persistent serial path such as `/dev/serial/by-id/...`; required for serial packs |
+| `bms_addresses` | Active Polling only: comma-separated BMS addresses 1..15, for example `1,2,3` |
 
 Keep the technical `id` stable after commissioning. The friendly `name` can be changed without changing the pack identity.
 
@@ -279,9 +354,11 @@ gateway_ip_port: 192.168.1.100:5000
 | Parameter | Description |
 |---|---|
 | `communication_debug` | Detailed communication logging |
-| `bms_broadcasting` | `true` = Broadcasting, `false` = Active Polling in Legacy |
+| `bms_broadcasting` | `true` = Broadcasting; `false` is required for Active Polling |
 | `multi_pack_enabled` | Enables the Multi-Pack runtime |
-| `multi_pack_packs` | Pack definitions (`id`, `name`, `transport`, endpoint/path) |
+| `multi_pack_active_polling` | Enables the Multi-Pack Active Polling engine when Broadcasting is disabled |
+| `multi_pack_packs` | Pack definitions (`id`, `name`, `transport`, endpoint/path and optional Active Polling addresses) |
+| `bms_addresses` | Explicit BMS addresses queried by Multi-Pack Active Polling, 1..15 |
 | `jkbms_path` | Legacy USB/RS485 path and backward-compatible serial fallback |
 | `jkbms_count` | Total number of BMS units on the Legacy bus, 1 to 15 |
 | `use_gateway` | Use the Legacy TCP/IP gateway instead of local serial |
@@ -304,7 +381,7 @@ Go to **Home Assistant → Settings → System → Hardware → All Hardware** a
 /dev/serial/by-id/...
 ```
 
-Common working USB/RS485 chipsets include **FTDI**, **CH340** and **CP2102**. Persistent `/dev/serial/by-id/...` paths are preferred over `/dev/ttyUSB0`. Interfaces that appear only as `ttyACM0` are not recommended for this RS485 use case.
+Common working USB/RS485 chipsets include **FTDI**, **CH340** and **CP2102**. Persistent `/dev/serial/by-id/...` paths are preferred over `/dev/ttyUSB0`.
 
 ### TCP/IP gateway support
 
@@ -343,9 +420,11 @@ For **Legacy runtime**, `dashboard_mode` controls the two dashboard systems intr
 
 The HTML interface is responsive for desktop, tablet and smartphone and includes fast navigation, detailed BMS views, cell diagnostics, alarms, history charts and SmartPhoton module navigation.
 
-For **Multi-Pack Premium**, SmartPhoton generates the dedicated **SmartPhoton JK-BMS Multi-Pack** dashboard with Overview, per-Pack/BMS views and Diagnostics. Legacy Lovelace sidebar dashboards are removed while Multi-Pack is active and are recreated automatically if the runtime returns to Legacy.
+For **Multi-Pack Premium**, SmartPhoton generates the dedicated **SmartPhoton JK-BMS Multi-Pack** dashboard with Overview, per-Pack/BMS views and Diagnostics.
 
-Dashboard content is currently generated in **French or English**. The Home Assistant add-on configuration interface itself has translations for **de, en, es, fr, it, pl and ru**.
+The historical Legacy Lovelace dashboards are being adapted to the new pack-aware Multi-Pack entity/topic structure so users can keep a familiar dashboard presentation while migrating to the new communication architecture.
+
+Dashboard content is currently generated in **French or English**. The Home Assistant add-on configuration interface itself has translations for **de, en, es, fr, it, pl, pt and ru**.
 
 ### Premium previews
 
@@ -370,6 +449,15 @@ The add-on publishes three main MQTT data categories:
 1. Live data
 2. Configuration parameters
 3. Static specifications
+
+In Multi-Pack, the pack identity is part of the MQTT namespace, for example:
+
+```text
+jkbms/pack_1/BMS_1/Cell_1_volt
+jkbms/pack_2/BMS_1/Cell_1_volt
+```
+
+This allows the same BMS address to exist independently in several packs.
 
 [MQTT Topics Documentation](https://github.com/jean-luc1203/jkbms-rs485-addon/blob/main/Documentation/mqtt_topics_documentation.md)
 
@@ -457,16 +545,23 @@ See [SAFETY.md](SAFETY.md).
 
 1. Open **Home Assistant → Settings → Add-ons → Add-on Store**.
 2. Open the three-dot menu → **Repositories**.
-3. Add:
+3. Add the appropriate production or development repository.
+4. Install **JK-BMS wired management**.
+5. Configure MQTT and communication settings.
+6. For a new installation, prefer Multi-Pack even with one pack.
+7. Start the add-on.
+
+Development repository:
+
+```text
+https://github.com/jean-luc1203/jkbms-rs485-addon-DEVeloppment
+```
+
+Production repository:
 
 ```text
 https://github.com/jean-luc1203/jkbms-rs485-addon
 ```
-
-4. Install **JK-BMS wired management**.
-5. Configure MQTT and communication settings.
-6. For a new Broadcasting installation, prefer Multi-Pack even with one pack.
-7. Start the add-on.
 
 ---
 
@@ -493,7 +588,7 @@ Many SmartPhoton JK-BMS installations are located in Germany.
 
 This add-on is developed and maintained in free time. Support helps fund new JK-BMS hardware, compatibility testing, bug fixes, documentation, dashboard improvements and community support.
 
-[![Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y8Y3YHYZP)
+[![Ko-fi](https://ko-fi.com/Y8Y3YHYZP)](https://ko-fi.com/Y8Y3YHYZP)
 
 ---
 
@@ -525,9 +620,12 @@ Before opening an issue:
 
 # Roadmap
 
-Planned work after the Multi-Pack Broadcasting test phase:
+Current work after v4.2.90:
 
-- **Multi-Pack Active Polling**;
+- real JK-BMS validation of **Multi-Pack Active Polling over direct USB/RS485**;
+- validation with several BMS addresses on one serial Multi-Pack bus;
+- mixed real-world TCP + USB/RS485 Active Polling validation;
+- adaptation of the historical Legacy Home Assistant dashboards to the new pack-aware Multi-Pack entities/topics;
 - continued migration testing from Legacy to Multi-Pack;
 - additional Docker Multi-Pack validation;
 - CAN and communication diagnostics improvements;

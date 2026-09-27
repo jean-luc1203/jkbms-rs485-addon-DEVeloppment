@@ -5,16 +5,19 @@ configuration:
     description: Detaillierte Kommunikationsprotokolle für Diagnose und Support aktivieren.
   bms_broadcasting:
     name: 🔴 JK-BMS → BMS-Broadcasting
-    description: Broadcasting-Modus des JK-BMS aktivieren. Multi-Pack benötigt derzeit Broadcasting.
+    description: Broadcasting-Modus des JK-BMS aktivieren. Für Active Polling diese Option deaktivieren.
   multi_pack_section:
     name: ────────── MULTI-PACK ──────────
-    description: Konfiguration mehrerer unabhängiger JK-BMS-Packs.
+    description: Konfiguration unabhängiger JK-BMS-Packs mit Broadcasting oder Active Polling.
   multi_pack_enabled:
     name: 🔷 Multi-Pack → Aktivieren
-    description: Multi-Pack aktivieren. Für neue Broadcasting-Installationen empfohlen, auch mit nur einem Pack. Jeder Pack besitzt eine stabile technische ID und einen eigenen Transport.
+    description: Multi-Pack aktivieren. Für neue Installationen empfohlen, auch mit nur einem Pack. Jeder Pack besitzt eine stabile technische ID und einen eigenen Transport.
+  multi_pack_active_polling:
+    name: 🔷 Multi-Pack → Active Polling
+    description: Multi-Pack Active Polling bei deaktiviertem Broadcasting aktivieren. Unterstützt TCP/IP und direktes USB/RS485.
   multi_pack_packs:
     name: 🔷 Multi-Pack → Packs
-    description: Bis zu fünf unabhängige Packs konfigurieren. Jeder Pack kann TCP/IP oder USB/RS485 verwenden.
+    description: Bis zu fünf unabhängige Packs konfigurieren. Jeder Pack kann TCP/IP oder USB/RS485 mit Broadcasting oder Active Polling verwenden.
     fields:
       id:
         name: Pack-ID
@@ -30,7 +33,10 @@ configuration:
         description: Für TCP-Packs erforderlich, z. B. 192.168.1.101:5000.
       path:
         name: Serieller Pfad
-        description: Für serielle Packs erforderlich. Einen persistenten /dev/serial/by-id/... Pfad verwenden.
+        description: Für serielle Packs erforderlich. Bevorzugt einen persistenten /dev/serial/by-id/... Pfad verwenden.
+      bms_addresses:
+        name: BMS-Adressen
+        description: Nur Active Polling. Kommagetrennte BMS-Adressen von 1 bis 15, z. B. 1,2,3.
   legacy_section:
     name: ────────── LEGACY / EINZELBUS ──────────
     description: Kompatibilitätskonfiguration für den bisherigen einzelnen RS485-Bus.

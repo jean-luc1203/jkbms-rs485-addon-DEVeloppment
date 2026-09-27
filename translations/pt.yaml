@@ -5,16 +5,19 @@ configuration:
     description: Ativa registos detalhados de comunicação para diagnóstico e suporte.
   bms_broadcasting:
     name: 🔴 JK-BMS → Broadcasting BMS
-    description: Ativa Broadcasting do JK-BMS. Multi-Pack requer atualmente Broadcasting.
+    description: Ativa Broadcasting do JK-BMS. Desative esta opção para usar Active Polling.
   multi_pack_section:
     name: ────────── MULTI-PACK ──────────
-    description: Configuração de vários packs JK-BMS independentes.
+    description: Configuração de packs JK-BMS independentes com Broadcasting ou Active Polling.
   multi_pack_enabled:
     name: 🔷 Multi-Pack → Ativar
-    description: Ativa Multi-Pack. Recomendado para novas instalações Broadcasting, mesmo com apenas um pack. Cada pack tem uma identidade técnica estável e o seu próprio transporte.
+    description: Ativa a arquitetura Multi-Pack. Recomendado para novas instalações, mesmo com apenas um pack. Cada pack tem uma identidade técnica estável e o seu próprio transporte.
+  multi_pack_active_polling:
+    name: 🔷 Multi-Pack → Active Polling
+    description: Ativa Active Polling Multi-Pack quando Broadcasting está desativado. Suporta TCP/IP e USB/RS485 direto.
   multi_pack_packs:
     name: 🔷 Multi-Pack → Packs
-    description: Configure até cinco packs independentes. Cada pack pode usar TCP/IP ou USB/RS485.
+    description: Configure até cinco packs independentes. Cada pack pode usar TCP/IP ou USB/RS485 com Broadcasting ou Active Polling.
     fields:
       id:
         name: ID do pack
@@ -30,7 +33,10 @@ configuration:
         description: Obrigatório para packs TCP, por exemplo 192.168.1.101:5000.
       path:
         name: Caminho série
-        description: Obrigatório para packs série. Utilize um caminho persistente /dev/serial/by-id/....
+        description: Obrigatório para packs série. Prefira um caminho persistente /dev/serial/by-id/....
+      bms_addresses:
+        name: Endereços BMS
+        description: Apenas Active Polling. Lista de endereços BMS separados por vírgulas, de 1 a 15, por exemplo 1,2,3.
   legacy_section:
     name: ────────── LEGACY / BARRAMENTO ÚNICO ──────────
     description: Configuração de compatibilidade para o barramento RS485 histórico único.

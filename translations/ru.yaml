@@ -5,16 +5,19 @@ configuration:
     description: Включает подробные журналы связи для диагностики и поддержки.
   bms_broadcasting:
     name: 🔴 JK-BMS → Broadcasting BMS
-    description: Включает Broadcasting JK-BMS. Multi-Pack в настоящее время требует Broadcasting.
+    description: Включает Broadcasting JK-BMS. Отключите эту опцию для использования Active Polling.
   multi_pack_section:
     name: ────────── MULTI-PACK ──────────
-    description: Настройка нескольких независимых пакетов JK-BMS.
+    description: Настройка независимых пакетов JK-BMS с Broadcasting или Active Polling.
   multi_pack_enabled:
     name: 🔷 Multi-Pack → Включить
-    description: Включает Multi-Pack. Рекомендуется для новых установок Broadcasting, даже с одним пакетом. Каждый пакет имеет стабильный технический ID и собственный транспорт.
+    description: Включает архитектуру Multi-Pack. Рекомендуется для новых установок, даже с одним пакетом. Каждый пакет имеет стабильный технический ID и собственный транспорт.
+  multi_pack_active_polling:
+    name: 🔷 Multi-Pack → Active Polling
+    description: Включает Multi-Pack Active Polling при отключенном Broadcasting. Поддерживает TCP/IP и прямой USB/RS485.
   multi_pack_packs:
     name: 🔷 Multi-Pack → Пакеты
-    description: Настройте до пяти независимых пакетов. Каждый может использовать TCP/IP или USB/RS485.
+    description: Настройте до пяти независимых пакетов. Каждый может использовать TCP/IP или USB/RS485 с Broadcasting или Active Polling.
     fields:
       id:
         name: ID пакета
@@ -30,7 +33,10 @@ configuration:
         description: Обязательно для TCP-пакетов, например 192.168.1.101:5000.
       path:
         name: Последовательный путь
-        description: Обязательно для serial-пакетов. Используйте постоянный путь /dev/serial/by-id/....
+        description: Обязательно для serial-пакетов. Предпочтительно использовать постоянный путь /dev/serial/by-id/....
+      bms_addresses:
+        name: Адреса BMS
+        description: Только Active Polling. Адреса BMS от 1 до 15 через запятую, например 1,2,3.
   legacy_section:
     name: ────────── LEGACY / ОДНА ШИНА ──────────
     description: Настройка совместимости для прежней единственной шины RS485.

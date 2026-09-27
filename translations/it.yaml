@@ -5,16 +5,19 @@ configuration:
     description: Abilita i log dettagliati di comunicazione per diagnostica e supporto.
   bms_broadcasting:
     name: 🔴 JK-BMS → BMS Broadcasting
-    description: Abilita Broadcasting del JK-BMS. Multi-Pack richiede attualmente Broadcasting.
+    description: Abilita Broadcasting del JK-BMS. Disabilita questa opzione per usare Active Polling.
   multi_pack_section:
     name: ────────── MULTI-PACK ──────────
-    description: Configurazione di più pack JK-BMS indipendenti.
+    description: Configurazione di pack JK-BMS indipendenti con Broadcasting o Active Polling.
   multi_pack_enabled:
     name: 🔷 Multi-Pack → Abilita
-    description: Abilita Multi-Pack. Consigliato per le nuove installazioni Broadcasting, anche con un solo pack. Ogni pack ha un’identità tecnica stabile e un proprio trasporto.
+    description: Abilita l'architettura Multi-Pack. Consigliata per le nuove installazioni, anche con un solo pack. Ogni pack ha un’identità tecnica stabile e un proprio trasporto.
+  multi_pack_active_polling:
+    name: 🔷 Multi-Pack → Active Polling
+    description: Abilita Active Polling Multi-Pack quando Broadcasting è disabilitato. Supporta TCP/IP e USB/RS485 diretto.
   multi_pack_packs:
     name: 🔷 Multi-Pack → Pack
-    description: Configura fino a cinque pack indipendenti. Ogni pack può usare TCP/IP oppure USB/RS485.
+    description: Configura fino a cinque pack indipendenti. Ogni pack può usare TCP/IP oppure USB/RS485 con Broadcasting o Active Polling.
     fields:
       id:
         name: ID pack
@@ -30,7 +33,10 @@ configuration:
         description: Obbligatorio per pack TCP, ad esempio 192.168.1.101:5000.
       path:
         name: Percorso seriale
-        description: Obbligatorio per pack seriali. Usa un percorso persistente /dev/serial/by-id/....
+        description: Obbligatorio per pack seriali. Preferire un percorso persistente /dev/serial/by-id/....
+      bms_addresses:
+        name: Indirizzi BMS
+        description: Solo Active Polling. Elenco di indirizzi BMS separati da virgole, da 1 a 15, ad esempio 1,2,3.
   legacy_section:
     name: ────────── LEGACY / BUS SINGOLO ──────────
     description: Configurazione di compatibilità per il bus RS485 storico singolo.

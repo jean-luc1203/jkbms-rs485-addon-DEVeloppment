@@ -1,3 +1,89 @@
+## 4.2.91 DEV — Translation files
+
+## 4.2.90 DEV — Multi-Pack Active Polling: USB / Serial transport
+
+- Adds direct USB/RS485 Serial transport to the new Multi-Pack Active Polling engine.
+- A pack can now use either `transport: tcp` or `transport: serial`; mixed TCP + Serial installations are supported.
+- Serial settings: JK-BMS RS485 at 115200 baud, 8N1.
+- Keeps the same per-pack exclusive transaction queue, response validation, timeout isolation, SETUP readback and command confirmation already validated on TCP.
+- Supports explicit `bms_addresses` on Serial exactly like TCP.
+- Adds transport metadata to Active Polling health / connection / command events.
+- Preserves all 39 writable SETUP controls validated through v4.2.89; no register mapping changes.
+- Legacy communication remains untouched.
+- Adds `serialport` as an explicit runtime dependency instead of relying on the Node-RED serial node's transitive dependency.
+- Existing Multi-Pack Broadcasting Serial support remains unchanged.
+
+# v4.2.89 DEV — Active Polling: Smart Sleep Voltage
+
+- Base: v4.2.88 DEV, validated end-to-end on the 3+2 simulator topology.
+- Adds one writable numeric SETUP control in Active Polling Multi-Pack:
+  - `smart_sleep_voltage` — register `0x1000`, SETUP offset 6, INT32 ×1000.
+- Home Assistant range intentionally follows the existing Legacy writer: **2.50 to 4.50 V**, step **0.01 V**.
+- Uses the already validated generic write path: fresh SETUP → FC 0x10 / 2 registers → ACK → fresh SETUP → exact readback → `confirmed`.
+- Bumps the one-shot Active Polling discovery migration marker to `v4_2_89` so the historical read-only sensor is removed and recreated as a writable `number`.
+- No Legacy/Broadcasting node, wire, position or node ID is changed.
+- `cell_count`, `Device_address` and `Connexion_wire_resistance_1` deliberately remain read-only in this release. Cell count requires resynchronisation testing; device address remains protected; wire-resistance writing is not promoted until its real-device write path is independently confirmed.
+
+## 4.2.88 DEV — 2026-09-26
+
+### Active Polling Multi-Pack — writable switch batch
+- Add seven writable Home Assistant `switch` controls in Active Polling Multi-Pack: charging, discharging, balance, Smart Sleep, Disable PCL module, Timed Stored Data, and Charging Floating Mode.
+- Keep LCD Always On and Heating unchanged; Active Polling now exposes nine dedicated writable switches in total.
+- Use the existing Legacy register mapping without changing Legacy nodes:
+  - charging `0x1070`, discharging `0x1074`, balance `0x1078` as 32-bit SETUP 0/1 values;
+  - Smart Sleep / PCL / Timed Stored Data / Charging Floating Mode as read-modify-write bits in shared register `0x1114` using masks `0x0040`, `0x0080`, `0x0100`, `0x0200`.
+- Preserve the validated transaction discipline for every switch: fresh SETUP read, targeted write, ACK, fresh SETUP readback, exact confirmation.
+- Publish switch states directly from the fresh SETUP frame so the `0x1114` controls do not depend on the historical buffer-parser bit definitions.
+- Extend one-shot MQTT discovery cleanup to remove obsolete read-only SETUP entities for the newly dedicated switches.
+- Version the migration marker to `v4_2_88`.
+- No Legacy/Broadcasting acquisition or write nodes are modified.
+
+## 4.2.87 DEV — 2026-09-26
+
+### Active Polling Multi-Pack — fourth writable SETUP batch
+- Add writable Home Assistant `number` controls for eight thermal protection thresholds: charge over-temperature protection/recovery, discharge over-temperature protection/recovery, charge under-temperature protection/recovery, and power-tube (MOS) over-temperature protection/recovery.
+- Keep the exact register/offset/scale mapping already used by the Legacy SETUP parser and writers (`0x104C` through `0x1068`, signed 32-bit values at 0.1 °C resolution).
+- Keep Home Assistant ranges and 0.5 °C steps aligned with the existing Legacy discovery path.
+- Preserve the validated per-pack/per-BMS transaction discipline: fresh SETUP read, targeted FC 0x10 write, ACK, fresh SETUP readback, and command confirmation.
+- Version the one-shot MQTT discovery migration marker to `v4_2_87` so the eight former read-only SETUP sensors are replaced cleanly by writable `number` entities.
+- No Legacy/Broadcasting acquisition or write nodes are modified.
+
+## 4.2.86 DEV — 2026-09-26
+
+### Active Polling Multi-Pack — third writable SETUP batch
+- Add writable Home Assistant `number` controls for charge/discharge overcurrent protection delay and recovery time.
+- Add writable `short circuit protection delay`, `short circuit protection recovery time`, and `max balance current` controls.
+- Keep the same per-pack/per-BMS Active Polling transaction discipline validated in 4.2.84/4.2.85: fresh SETUP read, targeted FC 0x10 write, ACK, fresh SETUP readback, and command confirmation.
+- Keep integer-only validation for the six timing controls; `max balance current` keeps 0.1 A steps and the current Legacy write-path range of 0–2 A.
+- Version the one-shot MQTT discovery migration marker to `v4_2_86` so the seven former read-only SETUP sensors are replaced cleanly by writable `number` entities.
+- No Legacy/Broadcasting acquisition or write nodes are modified.
+
+## 4.2.85 DEV — 2026-09-26
+
+### Active Polling Multi-Pack — second writable SETUP batch
+- Keep the five numeric controls validated end-to-end in v4.2.84 unchanged.
+- Add nine writable voltage/SOC settings in Active Polling Multi-Pack, using the same per-pack/per-BMS queued write, fresh SETUP read, FC 0x10 write, immediate SETUP readback and confirmation path.
+- New writable controls: cell undervoltage protection/recovery, cell overvoltage protection/recovery, SOC 100% voltage, SOC 0% voltage, request charge voltage, request float voltage and power-off voltage.
+- Keep write ranges aligned with the existing Legacy write functions; this DEV build does not broaden Legacy limits.
+- Version MQTT Discovery migration cleanup to `v4_2_85` so the nine entities move from read-only `sensor` to writable `number` exactly once after MQTT is connected.
+- Preserve the v4.2.84 LCD/heating switches and first five numeric controls.
+- No Legacy write node, Legacy transport, dashboard layout or Multi-Pack topology logic is modified.
+
+## 4.2.84 DEV — 2026-09-25
+
+### Active Polling Multi-Pack — first writable numeric SETUP controls
+- Add five writable Home Assistant `number` controls in Active Polling Multi-Pack while keeping all other SETUP values read-only diagnostics:
+  - `max_charge_current_A` → `max_charge_current` (`0x102C`)
+  - `max_discharge_current_S` → `max_discharge_current` (`0x1038`)
+  - `total_battery_capacity_Ah` → `total_battery_capacity_ah` (`0x107C`)
+  - `balance_trigger_voltage_V` → `balance_trigger_voltage` (`0x1014`)
+  - `balance_starting_voltage_V` → `balance_starting_voltage` (`0x1084`)
+- Keep the validated writable `LCD always on` and `Heating enable` switches unchanged.
+- Numeric writes use JK FC `0x10`, quantity `2`, 4-byte big-endian encoded values, with the same `/1000` SETUP scaling used by the existing parser/Legacy write paths.
+- Every command performs a fresh SETUP read on the exact target BMS, writes on the same per-pack TCP bus, immediately rereads SETUP and reports `confirmed` only when the readback matches the requested encoded value.
+- Keep per-pack command queues and bus exclusivity, so identical BMS addresses in different packs remain isolated.
+- Reject retained commands, unsupported controls, invalid targets, unauthorized modifications and out-of-range numeric values before transmission.
+
 ## 4.2.83 DEV — 2026-09-25
 ⚠️ ⚠️
 When upgrading from previous Active Polling DEV test builds, the obsolete read-only BMS display always on switch entity may remain in the Home Assistant entity registry after its MQTT Discovery topic has been removed. Restart Home Assistant Core and remove the stale entity if necessary. Fresh installations are not affected. ⚠️ ⚠️
