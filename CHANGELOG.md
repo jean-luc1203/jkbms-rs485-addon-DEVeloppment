@@ -1,3 +1,7 @@
+## 4.2.94  DEV — 2026-09-27
+- Creating documentation for configuring the multi-pack
+- Updating translation files
+
 ## 4.2.93 DEV — Active Polling Serial inter-frame quiet time
 
 - Based on the first real Multi-Pack Active Polling USB/RS485 measurements from v4.2.92.

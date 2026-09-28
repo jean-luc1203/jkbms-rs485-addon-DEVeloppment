@@ -17,7 +17,7 @@ configuration:
     description: Activa Active Polling Multi-Pack cuando Broadcasting está desactivado. Compatible con TCP/IP y USB/RS485 directo.
   multi_pack_packs:
     name: 🔷 Multi-Pack → Packs
-    description: Configura hasta cinco packs independientes. Cada pack puede utilizar TCP/IP o USB/RS485 con Broadcasting o Active Polling.
+    description: "Configura hasta cinco packs independientes. Cada pack puede utilizar TCP/IP o USB/RS485 con Broadcasting o Active Polling. Guía de configuración: https://github.com/jean-luc1203/jkbms-rs485-addon-DEVeloppment/blob/main/Documentation/MULTI-PACK-CONFIG.md"
     fields:
       id:
         name: ID del pack
