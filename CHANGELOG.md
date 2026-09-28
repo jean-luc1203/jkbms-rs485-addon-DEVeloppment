@@ -1,3 +1,5 @@
+## 4.2.95  DEV — 2026-09-27
+
 ## 4.2.94  DEV — 2026-09-27
 - Creating documentation for configuring the multi-pack
 - Updating translation files

@@ -8,7 +8,7 @@ configuration:
     description: Activa Broadcasting del JK-BMS. Desactiva esta opción para utilizar Active Polling.
   multi_pack_section:
     name: ────────── MULTI-PACK ──────────
-    description: Configuración de packs JK-BMS independientes con Broadcasting o Active Polling.
+    description: "Configuración de packs JK-BMS independientes con Broadcasting o Active Polling. Guía de configuración: https://github.com/jean-luc1203/jkbms-rs485-addon-DEVeloppment/blob/main/Documentation/MULTI-PACK-CONFIG.md"
   multi_pack_enabled:
     name: 🔷 Multi-Pack → Activar
     description: Activa la arquitectura Multi-Pack. Recomendado para nuevas instalaciones, incluso con un solo pack. Cada pack tiene una identidad técnica estable y su propio transporte.
@@ -17,7 +17,7 @@ configuration:
     description: Activa Active Polling Multi-Pack cuando Broadcasting está desactivado. Compatible con TCP/IP y USB/RS485 directo.
   multi_pack_packs:
     name: 🔷 Multi-Pack → Packs
-    description: "Configura hasta cinco packs independientes. Cada pack puede utilizar TCP/IP o USB/RS485 con Broadcasting o Active Polling. Guía de configuración: https://github.com/jean-luc1203/jkbms-rs485-addon-DEVeloppment/blob/main/Documentation/MULTI-PACK-CONFIG.md"
+    description: "Configura hasta cinco packs independientes. Cada pack puede utilizar TCP/IP o USB/RS485 con Broadcasting o Active Polling."
     fields:
       id:
         name: ID del pack
