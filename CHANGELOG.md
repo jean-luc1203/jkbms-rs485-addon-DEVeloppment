@@ -1,4 +1,4 @@
-## 4.2.96  DEV — 2026-09-29
+## 4.2.96  DEV — 2026-09-30
 Multi-Pack Broadcasting SETUP fix
 - Add missing Heating and Charging Floating Mode entities in Multi-Pack Broadcasting.
 - Correct Smart Sleep, Disable PCL and Timed Stored Data bit decoding in register 0x1114.
