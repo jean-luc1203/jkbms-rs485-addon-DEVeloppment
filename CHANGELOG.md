@@ -1,9 +1,9 @@
 ## 4.2.96  DEV — 2026-09-30
-Multi-Pack Broadcasting SETUP fix
-- Add missing Heating and Charging Floating Mode entities in Multi-Pack Broadcasting.
+Broadcasting SETUP fix — Legacy & Multi-Pack
+- Add missing Heating and Charging Floating Mode entities in Legacy and Multi-Pack Broadcasting.
 - Correct Smart Sleep, Disable PCL and Timed Stored Data bit decoding in register 0x1114.
-- Complete MQTT Discovery cleanup when switching from Active Polling back to Broadcasting.
-- No change to Legacy communication or Active Polling transport.
+- Complete MQTT Discovery cleanup when switching from Active Polling back to Multi-Pack Broadcasting.
+- No change to Active Polling transport or Legacy Active Polling.
 
 ## 4.2.95  DEV — 2026-09-27
 
