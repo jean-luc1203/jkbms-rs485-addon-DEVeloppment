@@ -1,3 +1,4 @@
+## 4.2.99 DEV — 2026-10-01
 ## 4.2.98 DEV — 2026-10-01
 BMS auto-détection Active Polling
 
