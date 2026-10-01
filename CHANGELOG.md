@@ -1,3 +1,14 @@
+## 4.2.97 DEV — 2026-10-01
+
+### Fix
+- Fixed Premium dashboard BMS address mapping in Legacy Broadcasting mode.
+- Dashboard now follows the BMS addresses actually detected on the bus.
+- Discovery reset logic updated to use the same detected addresses.
+
+### Compatibility
+- Existing `BMS_master + BMS_1`, `BMS_2`, etc. configurations remain supported.
+- Legacy Active Polling and Multi-Pack modes are unchanged.
+
 ## 4.2.96  DEV — 2026-09-30
 Broadcasting SETUP fix — Legacy & Multi-Pack
 - Add missing Heating and Charging Floating Mode entities in Legacy and Multi-Pack Broadcasting.
