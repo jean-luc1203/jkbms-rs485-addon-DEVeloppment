@@ -1,8 +1,11 @@
 'use strict';
 // Independent Multi-Pack RTU engine. No Legacy globals, no shared slave counter.
-// v4.2.93: add a 100 ms quiet time between completed Serial/USB transactions.
-// Keeps v4.2.92 diagnostics and the 1000 ms response timeout unchanged; TCP timing is untouched.
-// v4.2.90 Serial transport and all v4.2.84-v4.2.89 controls keep the same behavior and mappings.
+// v4.2.98: automatic BMS discovery for Multi-Pack Active Polling.
+// Empty/omitted bms_addresses (or bms_discovery="auto") scans addresses 1..15.
+// Discovery uses a short dedicated timeout and does NOT apply normal runtime
+// timeout/reset semantics to expected absent addresses.
+// v4.2.93 100 ms Serial quiet time and the 1000 ms normal runtime timeout remain unchanged.
+// Legacy communication is outside this module and is not modified.
 const net = require('net');
 const {performance} = require('perf_hooks');
 const runtimes = new Map();
@@ -128,12 +131,25 @@ class TcpBus {
   s.on('close',()=>{if(s!==this.socket)return;clearTimeout(this.connectionTimer);this.ready=false;this.buffer=Buffer.alloc(0);this.owner.connection(this.def.id,false);this.finish(new Error('connection_closed'));if(!this.closed)this.retry=setTimeout(()=>this.connect(),1500);});
  }
  finish(error,frame){const p=this.pending;if(!p)return;this.pending=null;clearTimeout(this.timer);p.done(error,frame);}
- send(addr,reg,value,quantity,expect,done){
+ send(addr,reg,value,quantity,expect,done,options={}){
   if(!this.ready||this.pending||this.closed)return false;
+  const timeoutMs=Number.isFinite(Number(options.timeoutMs))&&Number(options.timeoutMs)>0
+   ? Number(options.timeoutMs)
+   : this.owner.timeoutMs;
+  const resetOnTimeout=options.resetOnTimeout!==false;
   this.pending={addr,reg,quantity,expect,done};
-  this.timer=setTimeout(()=>{ // close socket before any next transaction: quarantine late replies
-   this.ready=false;this.socket.destroy();this.finish(new Error('response_timeout'));
-  },this.owner.timeoutMs);
+  this.timer=setTimeout(()=>{
+   if(resetOnTimeout){
+    // Normal runtime behavior: close socket before any next transaction so
+    // late replies cannot contaminate the following exchange.
+    this.ready=false;this.socket.destroy();this.finish(new Error('response_timeout'));
+   }else{
+    // Discovery behavior: an absent address is expected, so keep the TCP
+    // transport alive. A later frame for another address is rejected by the
+    // pending address/register validation.
+    this.buffer=Buffer.alloc(0);this.finish(new Error('response_timeout'));
+   }
+  },timeoutMs);
   this.socket.write(request(addr,reg,value,quantity));return true;
  }
  stop(){this.closed=true;clearTimeout(this.retry);clearTimeout(this.connectionTimer);clearTimeout(this.timer);this.ready=false;this.finish(new Error("stopped"));if(this.socket)this.socket.destroy();}
@@ -264,11 +280,24 @@ class SerialBus {
    this.port=null;this.scheduleRetry();
   }
  }
- send(addr,reg,value,quantity,expect,done){
+ send(addr,reg,value,quantity,expect,done,options={}){
   if(!this.ready||this.pending||this.closed||!this.port)return false;
   const frame=request(addr,reg,value,quantity);
+  const timeoutMs=Number.isFinite(Number(options.timeoutMs))&&Number(options.timeoutMs)>0
+   ? Number(options.timeoutMs)
+   : this.owner.timeoutMs;
+  const resetOnTimeout=options.resetOnTimeout!==false;
   this.pending={addr,reg,quantity,expect,done};this.lastTx=frame;
-  this.timer=setTimeout(()=>this.reset(new Error('response_timeout')),this.owner.timeoutMs);
+  this.timer=setTimeout(()=>{
+   if(resetOnTimeout){
+    // Normal runtime behavior, unchanged from v4.2.95.
+    this.reset(new Error('response_timeout'));
+   }else{
+    // Discovery behavior: no BMS at this address is expected and must not
+    // trigger a close/reopen cycle. Clear parser/echo state before continuing.
+    this.buffer=Buffer.alloc(0);this.lastTx=null;this.finish(new Error('response_timeout'));
+   }
+  },timeoutMs);
   const p=this.port;
   try{
    p.write(frame,e=>{
@@ -333,18 +362,39 @@ function newExchangeStat(){
 class Engine {
  constructor(config,emit,authorized){
   this.emit=emit;this.authorized=authorized;this.stopped=false;this.timeoutMs=config.timeoutMs||1000;this.intervalMs=config.intervalMs||3000;
+  const configuredDiscoveryTimeout=Number(config.discoveryTimeoutMs);
+  this.discoveryTimeoutMs=Number.isFinite(configuredDiscoveryTimeout)
+   ? Math.max(100,Math.min(1000,configuredDiscoveryTimeout))
+   : 250;
   // v4.2.93 - Real USB/RS485 validation showed normal replies around 42-47 ms,
   // with occasional completely missed transactions. Keep the response timeout
   // unchanged and add a conservative quiet time only between Serial requests.
-  // TCP behavior remains exactly as before.
+  // TCP behavior remains exactly as before during normal runtime.
   const configuredGap=Number(config.serialInterFrameMs);
   this.serialInterFrameMs=Number.isFinite(configuredGap)?Math.max(0,configuredGap):100;
   this.states=new Map();this.frameMeta=new WeakMap();
   for(const d of config.packs){
-   const state={def:d,bus:createBus(d,this),due:[],commands:[],running:false,timer:null,lastError:null,lastLive:{},responses:0,exchangeStats:{},nextSerialTxAt:0};
-   for(const addr of d.bms_addresses)for(const reg of [0x161e,0x161c,0x1620])state.due.push({addr,reg,at:0});
-   this.states.set(d.id,state);state.bus.connect();
+   // Keep runtime discovery state private to the engine. The wrapper may reuse
+   // the Node-RED config object when ap.start() is called again; mutating that
+   // shared object would change the config signature and restart the engine.
+   const runtimeDef={
+    ...d,
+    bms_addresses:Array.isArray(d.bms_addresses)?[...d.bms_addresses]:[]
+   };
+   const autoDiscovery=runtimeDef.bms_discovery==='auto'||runtimeDef.bms_addresses.length===0;
+   const state={
+    def:runtimeDef,bus:createBus(runtimeDef,this),due:[],commands:[],running:false,timer:null,lastError:null,
+    lastLive:{},responses:0,exchangeStats:{},nextSerialTxAt:0,
+    autoDiscovery,discoveryComplete:!autoDiscovery,discoveryRunning:false,
+    discoveryRetryAt:0,discoveredBms:autoDiscovery?[]:[...runtimeDef.bms_addresses]
+   };
+   if(!autoDiscovery)this.populateDue(state,runtimeDef.bms_addresses);
+   this.states.set(runtimeDef.id,state);state.bus.connect();
   }
+ }
+ populateDue(s,addresses){
+  s.due=[];
+  for(const addr of addresses)for(const reg of [0x161e,0x161c,0x1620])s.due.push({addr,reg,at:0});
  }
  connection(id,online){const s=this.states.get(id);if(!this.stopped)this.emit({event:'connection',pack_id:id,transport:s?.def?.transport,bus_id:s?.def?.bus_id,online});}
  error(id,error,extra={}){const s=this.states.get(id);if(!this.stopped)this.emit({event:'error',pack_id:id,transport:s?.def?.transport,bus_id:s?.def?.bus_id,error,...extra});}
@@ -395,41 +445,136 @@ class Engine {
   const remaining=s.nextSerialTxAt-performance.now();
   if(remaining>0)await new Promise(resolve=>setTimeout(resolve,remaining));
  }
- async exchange(s,addr,reg,value=0,quantity=1,expect='frame'){
+ async exchange(s,addr,reg,value=0,quantity=1,expect='frame',options={}){
   // The gap is measured from completion of the previous Serial transaction to
-  // transmission of the next one. It is deliberately outside response_ms so
-  // v4.2.92 latency diagnostics continue to measure the BMS response itself.
+  // transmission of the next one. It remains outside response_ms.
   await this.waitTransportGap(s);
   const started=performance.now();
-  const baseMeta={bms_numero:addr,register:reg,register_hex:registerHex(reg),register_name:registerName(reg,expect),expect,quantity,timeout_ms:this.timeoutMs};
+  const effectiveTimeout=Number.isFinite(Number(options.timeoutMs))&&Number(options.timeoutMs)>0
+   ? Number(options.timeoutMs)
+   : this.timeoutMs;
+  const recordStats=options.recordStats!==false;
+  const baseMeta={
+   bms_numero:addr,register:reg,register_hex:registerHex(reg),
+   register_name:registerName(reg,expect),expect,quantity,timeout_ms:effectiveTimeout
+  };
   return new Promise((resolve,reject)=>{
    const done=(e,f)=>{
     const completed=performance.now();
+    // Preserve the validated 100 ms Serial quiet time for discovery too.
     if(s.def.transport==='serial')s.nextSerialTxAt=completed+this.serialInterFrameMs;
     const meta={...baseMeta,response_ms:Number((completed-started).toFixed(1))};
     if(e){
-     this.recordExchange(s,meta,false,e.message);
+     if(recordStats)this.recordExchange(s,meta,false,e.message);
      e.ap_meta=meta;
      reject(e);
     }else{
-     this.recordExchange(s,meta,true);
+     if(recordStats)this.recordExchange(s,meta,true);
      if(f&&typeof f==='object')this.frameMeta.set(f,meta);
      resolve(f);
     }
    };
-   if(!s.bus.send(addr,reg,value,quantity,expect,done)){
+   const busOptions={
+    timeoutMs:effectiveTimeout,
+    resetOnTimeout:options.resetOnTimeout!==false
+   };
+   if(!s.bus.send(addr,reg,value,quantity,expect,done,busOptions)){
     const e=new Error('not_connected');
     const meta={...baseMeta,response_ms:Number((performance.now()-started).toFixed(1))};
-    this.recordExchange(s,meta,false,e.message);
+    if(recordStats)this.recordExchange(s,meta,false,e.message);
     e.ap_meta=meta;
     reject(e);
    }
   });
  }
+
+ async discover(s){
+  if(this.stopped||!s.autoDiscovery||s.discoveryComplete||s.discoveryRunning||!s.bus.ready)return;
+  const now=performance.now();
+  if(now<s.discoveryRetryAt)return;
+
+  s.discoveryRunning=true;
+  const found=[];
+  let transportLost=false;
+  this.emit({
+   event:'discovery',phase:'start',pack_id:s.def.id,pack_name:s.def.name,
+   transport:s.def.transport,bus_id:s.def.bus_id,
+   scan_from:1,scan_to:15,timeout_ms:this.discoveryTimeoutMs
+  });
+
+  try{
+   for(let addr=1;addr<=15;addr++){
+    if(this.stopped||!s.bus.ready){transportLost=true;break;}
+    try{
+     // SETUP is used because its validated frame contains the embedded device
+     // address, giving an additional protection against false positives.
+     const f=await this.exchange(
+      s,addr,0x161e,0,1,'frame',
+      {timeoutMs:this.discoveryTimeoutMs,resetOnTimeout:false,recordStats:false}
+     );
+     found.push(addr);
+     const meta=this.frameMeta.get(f)||{};
+     if(f&&typeof f==='object')this.frameMeta.delete(f);
+     this.emit({
+      event:'discovery',phase:'found',pack_id:s.def.id,pack_name:s.def.name,
+      transport:s.def.transport,bus_id:s.def.bus_id,bms_numero:addr,
+      response_ms:meta.response_ms,timeout_ms:this.discoveryTimeoutMs
+     });
+    }catch(e){
+     // response_timeout is the normal "address not present" result during
+     // discovery and must not become a runtime fault or warning.
+     if(e.message==='not_connected'||e.message==='connection_closed'||e.message==='serial_error'){
+      transportLost=true;break;
+     }
+     if(e.message!=='response_timeout'){
+      this.emit({
+       event:'discovery',phase:'probe_error',pack_id:s.def.id,pack_name:s.def.name,
+       transport:s.def.transport,bus_id:s.def.bus_id,bms_numero:addr,
+       error:e.message,timeout_ms:this.discoveryTimeoutMs
+      });
+     }
+    }
+   }
+
+   if(transportLost){
+    // Re-run after transport reconnection; do not publish an incomplete list.
+    s.discoveryRetryAt=performance.now()+1000;
+    return;
+   }
+
+   s.discoveredBms=[...found];
+   s.def.bms_addresses=[...found];
+
+   if(found.length){
+    this.populateDue(s,found);
+    s.discoveryComplete=true;
+    s.discoveryRetryAt=0;
+   }else{
+    // No BMS at startup: keep the pack alive and retry later without flooding
+    // the bus or Home Assistant logs.
+    s.discoveryComplete=false;
+    s.discoveryRetryAt=performance.now()+60000;
+   }
+
+   this.emit({
+    event:'discovery',phase:'complete',pack_id:s.def.id,pack_name:s.def.name,
+    transport:s.def.transport,bus_id:s.def.bus_id,
+    discovered_bms:[...found],count:found.length,
+    retry_ms:found.length?0:60000,timeout_ms:this.discoveryTimeoutMs
+   });
+  }finally{
+   s.discoveryRunning=false;
+  }
+ }
+
  async step(s){
   if(this.stopped||s.running||!s.bus.ready)return;
   s.running=true;
   try {
+   if(s.autoDiscovery&&!s.discoveryComplete){
+    await this.discover(s);
+    return;
+   }
    const c=s.commands.shift();
    if(c){
     try{
@@ -478,7 +623,14 @@ class Engine {
    }
   }finally{
    s.running=false;
-   if(!this.stopped){const next=s.commands.length?25:Math.max(25,Math.min(...s.due.map(j=>j.at))-performance.now());this.wake(s.def.id,Math.min(next,1000));}
+   if(!this.stopped){
+    const next=s.commands.length
+     ? 25
+     : (s.due.length
+        ? Math.max(25,Math.min(...s.due.map(j=>j.at))-performance.now())
+        : Math.max(25,s.discoveryRetryAt-performance.now()));
+    this.wake(s.def.id,Math.min(Math.max(25,next),1000));
+   }
   }
  }
  stop(){this.stopped=true;for(const s of this.states.values()){clearTimeout(s.timer);s.bus.stop();}this.states.clear();}
@@ -500,12 +652,18 @@ function validate(config){
   }else throw new Error('Invalid pack transport');
   if(physical.has(key))throw new Error('Duplicate transport endpoint');
   physical.add(key);
-  if(!Array.isArray(p.bms_addresses)||!p.bms_addresses.length||p.bms_addresses.some(a=>!Number.isInteger(a)||a<1||a>15)||new Set(p.bms_addresses).size!==p.bms_addresses.length)throw new Error('Explicit BMS addresses required');
+  const autoDiscovery=p.bms_discovery==='auto'||(Array.isArray(p.bms_addresses)&&p.bms_addresses.length===0);
+  if(autoDiscovery){
+   p.bms_discovery='auto';
+   if(!Array.isArray(p.bms_addresses))p.bms_addresses=[];
+  }else if(!Array.isArray(p.bms_addresses)||!p.bms_addresses.length||p.bms_addresses.some(a=>!Number.isInteger(a)||a<1||a>15)||new Set(p.bms_addresses).size!==p.bms_addresses.length){
+   throw new Error('Invalid manual BMS addresses');
+  }
  }
 }
 module.exports={crc,packet,request,parse,CONTROL_DEFS,Engine,validate,
  start(id,config,emit,authorized){validate(config);const signature=JSON.stringify(config);const old=runtimes.get(id);if(old&&old.signature===signature)return;this.stop(id);const engine=new Engine(config,emit,authorized);runtimes.set(id,{engine,signature});},
- snapshot(id){const r=runtimes.get(id);if(!r)return [];return [...r.engine.states.values()].map(s=>({event:'health',pack_id:s.def.id,transport:s.def.transport,bus_id:s.def.bus_id,endpoint:s.def.transport==='serial'?s.def.path:`${s.def.host}:${s.def.port}`,connected:s.bus.ready,configured_bms:s.def.bms_addresses,last_live_ms:{...s.lastLive},validated_responses:s.responses,queued_commands:s.commands.length,timeout_ms:r.engine.timeoutMs,serial_inter_frame_ms:s.def.transport==='serial'?r.engine.serialInterFrameMs:0,response_stats:JSON.parse(JSON.stringify(s.exchangeStats))}));},
+ snapshot(id){const r=runtimes.get(id);if(!r)return [];return [...r.engine.states.values()].map(s=>({event:'health',pack_id:s.def.id,transport:s.def.transport,bus_id:s.def.bus_id,endpoint:s.def.transport==='serial'?s.def.path:`${s.def.host}:${s.def.port}`,connected:s.bus.ready,configured_bms:s.def.bms_addresses,discovery_mode:s.autoDiscovery?'auto':'manual',discovery_complete:s.discoveryComplete,discovered_bms:[...s.discoveredBms],last_live_ms:{...s.lastLive},validated_responses:s.responses,queued_commands:s.commands.length,timeout_ms:r.engine.timeoutMs,serial_inter_frame_ms:s.def.transport==='serial'?r.engine.serialInterFrameMs:0,response_stats:JSON.parse(JSON.stringify(s.exchangeStats))}));},
  command(id,...args){const r=runtimes.get(id);return r?r.engine.command(...args):false;},
  stop(id){const r=runtimes.get(id);if(r){r.engine.stop();runtimes.delete(id);}}
 };
