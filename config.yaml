@@ -1,6 +1,6 @@
 ---
 name: "JK-BMS wired management"
-version: 4.2.99
+version: 4.2.100
 slug: "smartphoton_jkbms"
 description: DEV / TEST - JK-BMS Management via RS485, CAN bus, USB or TCP/IP Gateway
 url: https://domosimple.eu/forum/thread-917.html
@@ -51,6 +51,9 @@ options:
       name: "Pack 1"
       transport: "tcp"
       gateway_ip_port: "192.168.1.100:5000"
+      # Active Polling: "auto" scans addresses 1..15.
+      # Expert/manual mode remains available with e.g. "1,3,7".
+      bms_addresses: "auto"
 
   # Legacy / mono-bus
   legacy_section: "────────── LEGACY / MONO-BUS ──────────"
@@ -65,6 +68,13 @@ options:
   mqttadresse_port: "core-mosquitto.local.hass.io:1883"
   mqttuser: "username"
   mqttpass: "password"
+
+  # Home Assistant long-term statistics
+  # off       = no long-term statistics
+  # essential = core BMS/pack values + cell summary + temperatures
+  # cells     = essential + individual cell voltages (recommended)
+  # full      = all eligible numeric sensors (largest Recorder/statistics footprint)
+  long_term_statistics: "cells"
 
   # Telemetry
   Send_bip: true
@@ -109,6 +119,7 @@ schema:
   mqttadresse_port: str?
   mqttuser: str?
   mqttpass: password?
+  long_term_statistics: list(off|essential|cells|full)?
 
   # Telemetry
   Send_bip: bool

@@ -116,47 +116,41 @@ Example:
 
 ### `bms_addresses`
 
-Used by **Active Polling**.
+Used by **Multi-Pack Active Polling**.
 
-Enter the RS485 addresses of the BMS units connected to this bus, separated by commas.
+The recommended setting is:
 
-Examples:
-
-```text
-1
+```yaml
+bms_addresses: "auto"
 ```
 
-```text
-1,2
-```
+In `auto` mode SmartPhoton scans JK-BMS addresses **1 to 15** when the Active Polling runtime starts and keeps every address that answers correctly.
 
-```text
-1,2,3
-```
-
-Valid JK-BMS addresses are currently:
-
-```text
-1 to 15
-```
-
-Addresses do not need to be consecutive.
-
-For example:
+The scan does **not** stop at the first missing address. A bus containing:
 
 ```text
 1,3,7
 ```
 
-is valid.
+is therefore valid and will be detected correctly.
+
+Manual/expert mode remains available:
+
+```yaml
+bms_addresses: "1,3,7"
+```
+
+Manual addresses must be unique on the same RS485 bus and between **1 and 15**.
+
+If the field is omitted or empty, Active Polling also uses automatic discovery.
+
+Automatic discovery uses a dedicated short probe timeout. An absent address is considered normal during the scan and does not trigger the heavy runtime timeout/reconnect behaviour used for a real communication failure.
 
 ---
 
 # Configuration examples
 
-## 1. One USB/RS485 interface
-
-![Single USB pack](config.yaml-1.png)
+## 1. One USB/RS485 interface — automatic discovery
 
 ```yaml
 multi_pack_enabled: true
@@ -167,7 +161,7 @@ multi_pack_packs:
     name: Pack 1 - Real
     transport: serial
     path: /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0
-    bms_addresses: 1,2
+    bms_addresses: "auto"
 ```
 
 Typical use:
@@ -185,9 +179,7 @@ USB/RS485 adapter
 
 ---
 
-## 2. One TCP/IP gateway
-
-![Single TCP pack](config.yaml-2.png)
+## 2. One TCP/IP gateway — automatic discovery
 
 ```yaml
 multi_pack_enabled: true
@@ -198,28 +190,12 @@ multi_pack_packs:
     name: Pack 1 - TCP
     transport: tcp
     gateway_ip_port: 192.168.0.175:5031
-    bms_addresses: 1,2,3
-```
-
-Typical use:
-
-```text
-Home Assistant
-      │
-     LAN
-      │
-RS485/TCP gateway
-      │
-      ├── BMS address 1
-      ├── BMS address 2
-      └── BMS address 3
+    bms_addresses: "auto"
 ```
 
 ---
 
-## 3. Two independent packs
-
-![Two packs](config.yaml-3.png)
+## 3. Manual / expert address list
 
 ```yaml
 multi_pack_enabled: true
@@ -227,95 +203,78 @@ multi_pack_active_polling: true
 
 multi_pack_packs:
   - id: pack_1
-    name: Pack 1
-    transport: tcp
-    gateway_ip_port: 192.168.0.175:5031
-    bms_addresses: 1,2,3
-
-  - id: pack_2
-    name: Pack 2
-    transport: tcp
-    gateway_ip_port: 192.168.0.175:5032
-    bms_addresses: 1,2
+    name: Workshop
+    transport: serial
+    path: /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0
+    bms_addresses: "1,3,7"
 ```
 
-Each pack has its own independent communication interface.
+Use manual mode only when you intentionally want to limit polling to known addresses.
+
+---
+
+## 4. Several independent packs
+
+Each pack has its own independent communication interface and can use automatic discovery independently.
+
+```yaml
+multi_pack_enabled: true
+multi_pack_active_polling: true
+
+multi_pack_packs:
+  - id: pack_1
+    name: House
+    transport: serial
+    path: /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0
+    bms_addresses: "auto"
+
+  - id: pack_2
+    name: Garage
+    transport: tcp
+    gateway_ip_port: 192.168.0.131:8887
+    bms_addresses: "auto"
+
+  - id: pack_3
+    name: Workshop
+    transport: tcp
+    gateway_ip_port: 192.168.0.175:5032
+    bms_addresses: "1,2"
+```
 
 The same BMS addresses may be reused on different packs because the buses are independent.
 
 ---
 
-## 4. Three packs — mixed USB and TCP
+# Home Assistant long-term statistics
 
-![Three mixed packs](config.yaml-4.png)
-
-```yaml
-multi_pack_enabled: true
-multi_pack_active_polling: true
-
-multi_pack_packs:
-  - id: pack_1
-    name: House
-    transport: serial
-    path: /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0
-    bms_addresses: 1,2
-
-  - id: pack_2
-    name: Garage
-    transport: tcp
-    gateway_ip_port: 192.168.0.131:8887
-    bms_addresses: 1
-
-  - id: pack_3
-    name: Workshop
-    transport: tcp
-    gateway_ip_port: 192.168.0.175:5032
-    bms_addresses: 1,2
-```
-
-Serial and TCP transports can be freely combined in the same Multi-Pack configuration.
-
----
-
-## 5. Five packs — mixed interfaces
-
-![Five mixed packs](config.yaml-5.png)
+The add-on can selectively add:
 
 ```yaml
-multi_pack_enabled: true
-multi_pack_active_polling: true
-
-multi_pack_packs:
-  - id: pack_1
-    name: House
-    transport: serial
-    path: /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0
-    bms_addresses: 1,2
-
-  - id: pack_2
-    name: Garage
-    transport: tcp
-    gateway_ip_port: 192.168.0.131:8887
-    bms_addresses: 1
-
-  - id: pack_3
-    name: Workshop
-    transport: tcp
-    gateway_ip_port: 192.168.0.175:5032
-    bms_addresses: 1,2
-
-  - id: pack_4
-    name: Technical room
-    transport: serial
-    path: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART-if00-port0
-    bms_addresses: 1,2,3
-
-  - id: pack_5
-    name: Annex
-    transport: tcp
-    gateway_ip_port: 192.168.0.150:5000
-    bms_addresses: 1
+state_class: measurement
 ```
+
+to eligible MQTT Discovery sensors so Home Assistant can generate long-term statistics.
+
+Configuration:
+
+```yaml
+long_term_statistics: "cells"
+```
+
+Available modes:
+
+| Mode | Behaviour |
+|---|---|
+| `off` | No SmartPhoton numeric sensors are opted into long-term statistics |
+| `essential` | Main BMS/pack values, SOC/SOH, voltage/current/power, capacity summaries, cell summary and temperatures |
+| `cells` | `essential` plus individual cell voltages — recommended default |
+| `full` | All eligible numeric sensors; largest Recorder/statistics footprint |
+
+`cells` is the recommended default because it keeps useful degradation/imbalance history while avoiding unnecessary long-term statistics for every numeric diagnostic/configuration entity.
+
+Changing this option republishes MQTT Discovery so Home Assistant can update the `state_class` metadata.
+
+Note: enabling long-term statistics does not mean every raw state is kept forever in Recorder. Home Assistant creates its own long-term statistics for eligible sensors.
 
 ---
 
@@ -333,7 +292,12 @@ RS485 over TCP/IP:
     gateway_ip_port: IP:PORT
 
 Active Polling:
-    bms_addresses: 1,2,3...
+    bms_addresses: "auto"     # recommended
+or
+    bms_addresses: "1,3,7"    # manual/expert mode
+
+Long-term statistics:
+    long_term_statistics: "cells"  # recommended
 
 Maximum currently supported:
     5 packs
@@ -347,11 +311,4 @@ Important:
 - Each TCP pack should use its own gateway or TCP endpoint.
 - BMS addresses must be unique on the same RS485 bus.
 - The same BMS addresses can be reused on different packs.
-
----
-
-## Planned improvement
-
-A future version will support automatic JK-BMS discovery on an RS485 bus by scanning addresses **1 to 15**.
-
-Manual address configuration will remain useful for advanced or fixed installations.
+- Automatic Active Polling discovery scans addresses 1 through 15 and supports gaps such as `1,3,7`.

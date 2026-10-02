@@ -1,3 +1,8 @@
+## 4.2.100 DEV — 2026-10-02
+- Added automatic BMS address discovery for Multi-Pack Active Polling.
+- Added selective Home Assistant long-term statistics (state_class) support.
+- Updated configuration, documentation and translations.
+
 ## 4.2.99 DEV — 2026-10-01
 ## 4.2.98 DEV — 2026-10-01
 BMS auto-détection Active Polling

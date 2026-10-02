@@ -36,7 +36,7 @@ configuration:
         description: Обязательно для serial-пакетов. Предпочтительно использовать постоянный путь /dev/serial/by-id/....
       bms_addresses:
         name: Адреса BMS
-        description: Только Active Polling. Адреса BMS от 1 до 15 через запятую, например 1,2,3.
+        description: Только Active Polling. Используйте auto (рекомендуется) для автоматического сканирования адресов 1..15 или задайте список вручную через запятую, например 1,3,7.
   legacy_section:
     name: ────────── LEGACY / ОДНА ШИНА ──────────
     description: Настройка совместимости для прежней единственной шины RS485.
@@ -51,22 +51,25 @@ configuration:
     description: Использует TCP/IP-шлюз вместо локального USB/RS485 в режиме Legacy.
   gateway_ip_port:
     name: 🟨 JK-BMS → IP шлюза + порт
-    description: IP-адрес и TCP-порт шлюза JK-BMS Legacy, например 192.168.1.100:5000.
+    description: "IP-адрес и TCP-порт шлюза JK-BMS Legacy, например 192.168.1.100:5000."
   non_broadcasting_data_interval_s:
     name: ⏱️ JK-BMS → Интервал Active Polling (с)
-    description: 'Время между LIVE-циклами при отключенном Broadcasting. Допустимый диапазон: 1–30 секунд.'
+    description: "Время между LIVE-циклами при отключенном Broadcasting. Допустимый диапазон: 1–30 секунд."
   CAN_bus_usage:
     name: 🔴 JK-BMS → Использование шины CAN
     description: Включает связь и передачу CAN, когда CAN-интерфейс физически подключен.
   mqttadresse_port:
     name: 🚩 MQTT → Адрес брокера + порт
-    description: Адрес и порт MQTT-брокера, например core-mosquitto.local.hass.io:1883.
+    description: "Адрес и порт MQTT-брокера, например core-mosquitto.local.hass.io:1883."
   mqttuser:
     name: 🚩 MQTT → Имя пользователя
     description: Имя пользователя для подключения к MQTT-брокеру.
   mqttpass:
     name: 🚩 MQTT → Пароль
     description: Пароль для подключения к MQTT-брокеру.
+  long_term_statistics:
+    name: 📈 Home Assistant → Долгосрочная статистика
+    description: "Выбирает, какие числовые датчики получают state_class: measurement для долгосрочной статистики Home Assistant. off = нет, essential = основные значения BMS/пакета, cells = essential + напряжения отдельных ячеек (рекомендуется), full = все подходящие числовые датчики."
   Send_bip:
     name: 📊 Анонимная статистика использования
     description: При запуске отправляет анонимный ping использования. Личные данные не передаются.
@@ -87,4 +90,4 @@ configuration:
     description: Язык dashboard SmartPhoton Premium.
   dashboard_mode:
     name: 🎨 Dashboard → Режим
-    description: 'Только для Legacy runtime: legacy = Home Assistant/Lovelace, html = HTML dashboard, both = оба. Multi-Pack Premium использует отдельный Multi-Pack dashboard.'
+    description: "Только для Legacy runtime: legacy = Home Assistant/Lovelace, html = HTML dashboard, both = оба. Multi-Pack Premium использует отдельный Multi-Pack dashboard."

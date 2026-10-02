@@ -359,6 +359,7 @@ gateway_ip_port: 192.168.1.100:5000
 | `multi_pack_active_polling` | Enables the Multi-Pack Active Polling engine when Broadcasting is disabled |
 | `multi_pack_packs` | Pack definitions (`id`, `name`, `transport`, endpoint/path and optional Active Polling addresses) |
 | `bms_addresses` | Explicit BMS addresses queried by Multi-Pack Active Polling, 1..15 |
+| `long_term_statistics` | Home Assistant long-term statistics mode: `off`, `essential`, `cells` (recommended), or `full` |
 | `jkbms_path` | Legacy USB/RS485 path and backward-compatible serial fallback |
 | `jkbms_count` | Total number of BMS units on the Legacy bus, 1 to 15 |
 | `use_gateway` | Use the Legacy TCP/IP gateway instead of local serial |
@@ -470,6 +471,27 @@ The add-on provides extensive Home Assistant entities for monitoring and automat
 ### Recorder protection in Multi-Pack
 
 Detailed Multi-Pack traffic can be very large. Home Assistant summaries are deliberately compact and rate-limited to protect Recorder, while richer detailed data remains available through MQTT and Premium dashboards.
+
+### Long-term statistics
+
+SmartPhoton can selectively enable Home Assistant **long-term statistics** for useful BMS measurements by adding `state_class: measurement` through MQTT Discovery.
+
+The behaviour is controlled by:
+
+```yaml
+long_term_statistics: "cells"
+```
+
+Available modes:
+
+- `off` — no long-term statistics;
+- `essential` — main BMS/pack measurements only;
+- `cells` — essential measurements plus individual cell voltages (**recommended**);
+- `full` — all eligible numeric sensors.
+
+This selective approach keeps useful historical data such as SOC, voltage, current, power, temperatures and cell imbalance while limiting unnecessary Recorder/statistics growth.
+
+📘 **Detailed guide:** [Home Assistant Long-Term Statistics](Documentation/LONG-TERM-STATISTICS.md)
 
 ---
 
