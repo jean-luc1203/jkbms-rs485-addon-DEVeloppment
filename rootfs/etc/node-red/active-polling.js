@@ -1,7 +1,14 @@
 'use strict';
 // Independent Multi-Pack RTU engine. No Legacy globals, no shared slave counter.
+// dev71 candidate: permit address 0 on the independently addressed JK UART1 RTU bus.
+// Address 0 is treated as a normal, explicitly targeted JK address here;
+// no Modbus broadcast semantics or changes to Legacy/Broadcasting are introduced.
+// v4.2.99 / dev70: automatic BMS discovery + writable DRY1/DRY2 configuration.
+// DRY trigger source/value/release writes use the JK 0x1400 Modbus block and
+// are confirmed only after a fresh STATIC / device-info (0x161C) readback.
+// LIVE byte 281 remains state-only and is never written.
 // v4.2.98: automatic BMS discovery for Multi-Pack Active Polling.
-// Empty/omitted bms_addresses (or bms_discovery="auto") scans addresses 1..15.
+// Empty/omitted bms_addresses (or bms_discovery="auto") scans addresses 0..15.
 // Discovery uses a short dedicated timeout and does NOT apply normal runtime
 // timeout/reset semantics to expected absent addresses.
 // v4.2.93 100 ms Serial quiet time and the 1000 ms normal runtime timeout remain unchanged.
@@ -58,8 +65,56 @@ const CONTROL_DEFS = Object.freeze({
  charge_undertemperature_protection: {kind:'number', register:0x105C, offset:98, scale:10, min:-40, max:50},
  charge_undertemperature_protection_recovery: {kind:'number', register:0x1060, offset:102, scale:10, min:-40, max:50},
  power_tube_overtemperature_protection: {kind:'number', register:0x1064, offset:106, scale:10, min:30, max:100},
- power_tube_overtemperature_protection_recovery: {kind:'number', register:0x1068, offset:110, scale:10, min:30, max:100}
+ power_tube_overtemperature_protection_recovery: {kind:'number', register:0x1068, offset:110, scale:10, min:30, max:100},
+ // dev70 - DRY1/DRY2 configuration lives in the STATIC / Device Info map
+ // (Modbus 0x1400 block), not in SETUP and not in LIVE byte 281.
+ //
+ // Source registers share one 16-bit Modbus word with a neighbouring byte:
+ //   0x14E4 = [LCD buzzer trigger][DRY1 trigger]
+ //   0x14E6 = [DRY2 trigger][UART protocol library version]
+ //
+ // Trigger / release values are signed 32-bit raw values. Their engineering
+ // unit depends on the selected trigger source; the SCADA layer may translate
+ // these values for display, but this engine writes and verifies the raw value.
+ dry1_trigger: {kind:'static_select', register:0x14E4, offset:235, neighborOffset:234, byte:'low', dry:1, min:0, max:14, integer:true},
+ dry2_trigger: {kind:'static_select', register:0x14E6, offset:236, neighborOffset:237, byte:'high', dry:2, min:0, max:14, integer:true},
+ dry1_trigger_value: {kind:'static_number', register:0x14F0, offset:246, dry:1, role:'trigger', min:-2147483648, max:2147483647, integer:true},
+ dry1_release_value: {kind:'static_number', register:0x14F4, offset:250, dry:1, role:'release', min:-2147483648, max:2147483647, integer:true},
+ dry2_trigger_value: {kind:'static_number', register:0x14F8, offset:254, dry:2, role:'trigger', min:-2147483648, max:2147483647, integer:true},
+ dry2_release_value: {kind:'static_number', register:0x14FC, offset:258, dry:2, role:'release', min:-2147483648, max:2147483647, integer:true}
 });
+
+// Raw signed INT32 bounds are representation limits, NOT hardware operating ranges.
+// The supplied Modbus V1.1 map specifies no DRY threshold scale or valid range.
+// Only trigger 8 has field evidence for direct °C (60/50 on the operator's BMS).
+const DRY_TRIGGER_RULES = Object.freeze({
+ 0:{label:'Off',hasValues:false},
+ 1:{label:'Low SoC',hasValues:true,relation:'lt'},
+ 2:{label:'Battery Over Voltage',hasValues:true,relation:'gt'},
+ 3:{label:'Battery Under Voltage',hasValues:true,relation:'lt'},
+ 4:{label:'Battery Cell Over Voltage',hasValues:true,relation:'gt'},
+ 5:{label:'Battery Cell Under Voltage',hasValues:true,relation:'lt'},
+ 6:{label:'Charge Over Current',hasValues:true,relation:'gt'},
+ 7:{label:'Discharge Over Current',hasValues:true,relation:'gt'},
+ 8:{label:'Battery Over Temperature',hasValues:true,relation:'gt',unit:'°C'},
+ 9:{label:'MOSFET Over Temperature',hasValues:true,relation:'gt'},
+ 10:{label:'System Alarm',hasValues:false},
+ 11:{label:'Battery Low Temperature',hasValues:true,relation:'lt'},
+ 12:{label:'Remote Control',hasValues:false},
+ 13:{label:'Above SoC',hasValues:true,relation:'gt'},
+ 14:{label:'MOSFET Abnormal',hasValues:false}
+});
+function dryRule(code){return DRY_TRIGGER_RULES[code] || null;}
+function dryValidatePair(code,t,r){
+ const rule=dryRule(code);
+ if(!rule)return {ok:false,error:'dry_trigger_code_unsupported'};
+ if(!rule.hasValues)return {ok:true};
+ if(!Number.isInteger(t)||!Number.isInteger(r)||t< -2147483648||t>2147483647||r< -2147483648||r>2147483647)return {ok:false,error:'dry_threshold_invalid_int32'};
+ // Coherence guard; equality is deliberately disallowed (no hysteresis).
+ if(rule.relation==='gt'&&!(t>r))return {ok:false,error:'dry_trigger_must_be_greater_than_release'};
+ if(rule.relation==='lt'&&!(t<r))return {ok:false,error:'dry_trigger_must_be_lower_than_release'};
+ return {ok:true};
+}
 
 function crc(b) { let c=65535; for(const v of b){c^=v;for(let i=0;i<8;i++)c=c&1?(c>>>1)^0xa001:c>>>1;}return c; }
 function packet(b){return Buffer.concat([b,Buffer.from([crc(b)&255,crc(b)>>>8])]);}
@@ -79,8 +134,8 @@ function parse(buffer){
  while(b.length>=5){
   let n=0;
   if(b.subarray(0,4).equals(Buffer.from('55aaeb90','hex')))n=308;
-  else if(b[0]>=1&&b[0]<=15&&b[1]===16)n=8;
-  else if(b[0]>=1&&b[0]<=15&&b[1]===0x90)n=5;
+  else if(b[0]<=15&&b[1]===16)n=8;
+  else if(b[0]<=15&&b[1]===0x90)n=5;
   else {b=b.subarray(1);continue;}
   if(b.length<n)break;
   const f=b.subarray(0,n);
@@ -426,8 +481,8 @@ class Engine {
   s.responses++;if(reg===0x1620)s.lastLive[addr]=Date.now();
   this.emit({event:'frame',pack_id:s.def.id,pack_name:s.def.name,bus_id:s.def.bus_id,_transport:s.def.transport,bms_numero:addr,register:reg,register_hex:registerHex(reg),register_name:registerName(reg),response_ms:meta.response_ms,timeout_ms:this.timeoutMs,payload:frame});
  }
- status(s,c,status,extra={}){if(this.stopped)return;this.emit({event:'command',pack_id:s.def.id,transport:s.def.transport,bus_id:s.def.bus_id,bms_numero:c.addr,control:c.control,status,command_id:c.id,requested_value:c.value,register:c.def.register,register_hex:registerHex(c.def.register),...extra});}
- command(pack,addr,control,value,retained){
+ status(s,c,status,extra={}){if(this.stopped)return;this.emit({event:'command',pack_id:s.def.id,transport:s.def.transport,bus_id:s.def.bus_id,bms_numero:c.addr,control:c.control,status,command_id:c.id,requested_value:c.value,register:c.def.register,register_hex:registerHex(c.def.register),request_id:c.requestId||null,previous_value:c.previousValue,source_code:c.sourceCode,unit:c.unit||null,...extra});}
+ command(pack,addr,control,value,retained,meta={}){
   const s=this.states.get(pack), def=CONTROL_DEFS[control];
   if(!s||!s.def.bms_addresses.includes(addr)||!def||retained||!this.authorized())return false;
   if(def.kind==='switch'||def.kind==='switch32'){
@@ -437,7 +492,11 @@ class Engine {
    if(def.integer===true&&!Number.isInteger(value))return false;
   }
   if(s.commands.length>=16)return false;
-  const c={addr,control,value,def,id:Date.now().toString(36)+'-'+Math.random().toString(16).slice(2,8),expires:performance.now()+15000};
+  if(def.dry && (s.activeDry===addr || s.commands.some(q=>q.addr===addr&&q.def.dry)))return false;
+  if(meta.request_id!==undefined && (typeof meta.request_id!=='string'||!/^dry-[a-zA-Z0-9-]{8,100}$/.test(meta.request_id)))return false;
+  if(meta.expected_raw!==undefined && !Number.isInteger(meta.expected_raw))return false;
+  if(meta.expected_source!==undefined && (!Number.isInteger(meta.expected_source)||meta.expected_source<0||meta.expected_source>255))return false;
+  const c={addr,control,value,def,id:Date.now().toString(36)+'-'+Math.random().toString(16).slice(2,8),expires:performance.now()+15000,requestId:meta.request_id,expectedRaw:meta.expected_raw,expectedSource:meta.expected_source};
   s.commands.push(c);this.status(s,c,'queued');this.wake(pack);return true;
  }
  async waitTransportGap(s){
@@ -454,6 +513,7 @@ class Engine {
    ? Number(options.timeoutMs)
    : this.timeoutMs;
   const recordStats=options.recordStats!==false;
+  if(options.beforeSend)options.beforeSend();
   const baseMeta={
    bms_numero:addr,register:reg,register_hex:registerHex(reg),
    register_name:registerName(reg,expect),expect,quantity,timeout_ms:effectiveTimeout
@@ -499,11 +559,11 @@ class Engine {
   this.emit({
    event:'discovery',phase:'start',pack_id:s.def.id,pack_name:s.def.name,
    transport:s.def.transport,bus_id:s.def.bus_id,
-   scan_from:1,scan_to:15,timeout_ms:this.discoveryTimeoutMs
+   scan_from:0,scan_to:15,timeout_ms:this.discoveryTimeoutMs
   });
 
   try{
-   for(let addr=1;addr<=15;addr++){
+   for(let addr=0;addr<=15;addr++){
     if(this.stopped||!s.bus.ready){transportLost=true;break;}
     try{
      // SETUP is used because its validated frame contains the embedded device
@@ -577,12 +637,23 @@ class Engine {
    }
    const c=s.commands.shift();
    if(c){
+    if(c.def.dry)s.activeDry=c.addr;
     try{
      if(performance.now()>c.expires)throw new Error('command_expired');
      if(!this.authorized())throw new Error('not_authorized');
-     // Fresh SETUP read on the exact BMS before every command. This keeps the
-     // same isolation and readback discipline already validated for 0x1114.
-     const before=await this.exchange(s,c.addr,0x161e);this.publish(s,c.addr,0x161e,before);
+     const staticControl=c.def.kind==='static_select'||c.def.kind==='static_number';
+     // Existing controls are verified against SETUP (0x161E). DRY1/DRY2
+     // configuration is verified against STATIC / Device Info (0x161C).
+     const verifyReg=staticControl?0x161c:0x161e;
+     const before=await this.exchange(s,c.addr,verifyReg);this.publish(s,c.addr,verifyReg,before);
+     if(staticControl){
+      if(this.stopped)throw new Error('stopped');
+      c.previousValue=c.def.kind==='static_select'?before.readUInt8(c.def.offset):before.readInt32LE(c.def.offset);
+      c.sourceCode=before.readUInt8(c.def.dry===1?235:236);
+      c.unit=c.def.kind==='static_number'?(dryRule(c.sourceCode)?.unit||'brut'):'code';
+      if(c.expectedRaw!==undefined&&c.expectedRaw!==c.previousValue)throw new Error('dry_value_changed');
+      if(c.expectedSource!==undefined&&c.expectedSource!==c.sourceCode)throw new Error('dry_source_changed');
+     }
      if(c.def.kind==='switch'){
       const old=before.readUInt16LE(282), desired=c.value?old|c.def.mask:old&~c.def.mask;
       if(!this.authorized()||performance.now()>c.expires)throw new Error('authorization_or_expiry');
@@ -597,6 +668,72 @@ class Engine {
       const after=await this.exchange(s,c.addr,0x161e);this.publish(s,c.addr,0x161e,after);
       const readbackRaw=after.readInt32LE(c.def.offset), readback=readbackRaw!==0;
       this.status(s,c,readbackRaw===desiredRaw?'confirmed':'not_confirmed',{previous_value:oldValue,readback_value:readback,encoded_value:desiredRaw});
+     }else if(c.def.kind==='static_select'){
+      const old=before.readUInt8(c.def.offset), desired=Number(c.value);
+
+      // Before activating a threshold-based DRY source, validate the currently
+      // staged Trigger/Release values. Safe workflow:
+      //   source Off -> stage values -> select the final source.
+      const triggerOffset=c.def.dry===1?246:254;
+      const releaseOffset=c.def.dry===1?250:258;
+      const pair=dryValidatePair(
+       desired,
+       before.readInt32LE(triggerOffset),
+       before.readInt32LE(releaseOffset)
+      );
+      if(!pair.ok)throw new Error(pair.error);
+
+      // 0x14E4 and 0x14E6 each contain two adjacent UINT8 fields. Preserve the
+      // neighbouring byte with a read/modify/write so we never alter the LCD
+      // buzzer source or the UART protocol library version.
+      const neighbor=before.readUInt8(c.def.neighborOffset);
+      const encoded=c.def.byte==='low'
+       ? ((neighbor<<8)|desired)
+       : ((desired<<8)|neighbor);
+
+      if(this.stopped||!this.authorized()||performance.now()>c.expires)throw new Error('authorization_or_expiry');
+      if(desired!==old){
+       await this.exchange(s,c.addr,c.def.register,encoded,1,'ack',{beforeSend:()=>{if(this.stopped||!this.authorized()||performance.now()>c.expires)throw new Error('authorization_or_expiry');}});
+       this.status(s,c,'acknowledged',{previous_value:old,encoded_value:encoded,source_frame:'STATIC'});
+      }
+
+      const after=await this.exchange(s,c.addr,0x161c);this.publish(s,c.addr,0x161c,after);
+      const readback=after.readUInt8(c.def.offset);
+      this.status(
+       s,c,readback===desired && after.readUInt8(c.def.neighborOffset)===neighbor?'confirmed':'not_confirmed',
+       {previous_value:old,readback_value:readback,encoded_value:encoded,neighbor_preserved:after.readUInt8(c.def.neighborOffset)===neighbor,source_frame:'STATIC'}
+      );
+     }else if(c.def.kind==='static_number'){
+      const oldRaw=before.readInt32LE(c.def.offset), desiredRaw=Math.round(c.value);
+      const sourceOffset=c.def.dry===1?235:236;
+      const sourceCode=before.readUInt8(sourceOffset);
+      const rule=dryRule(sourceCode);
+      if(!rule)throw new Error('dry_trigger_code_unsupported');
+
+      // For an active threshold-based source, keep Trigger/Release coherent.
+      // If the source is Off/event-only, raw values may be staged first; the
+      // final source selection above performs the pair validation.
+      if(rule.hasValues){
+       const triggerOffset=c.def.dry===1?246:254;
+       const releaseOffset=c.def.dry===1?250:258;
+       const triggerValue=c.def.role==='trigger'?desiredRaw:before.readInt32LE(triggerOffset);
+       const releaseValue=c.def.role==='release'?desiredRaw:before.readInt32LE(releaseOffset);
+       const pair=dryValidatePair(sourceCode,triggerValue,releaseValue);
+       if(!pair.ok)throw new Error(pair.error);
+      }
+
+      if(!this.authorized()||performance.now()>c.expires)throw new Error('authorization_or_expiry');
+      if(desiredRaw!==oldRaw){
+       await this.exchange(s,c.addr,c.def.register,desiredRaw,2,'ack',{beforeSend:()=>{if(this.stopped||!this.authorized()||performance.now()>c.expires)throw new Error('authorization_or_expiry');}});
+       this.status(s,c,'acknowledged',{previous_value:oldRaw,encoded_value:desiredRaw,source_frame:'STATIC'});
+      }
+
+      const after=await this.exchange(s,c.addr,0x161c);this.publish(s,c.addr,0x161c,after);
+      const readbackRaw=after.readInt32LE(c.def.offset);
+      this.status(
+       s,c,readbackRaw===desiredRaw && after.readUInt8(sourceOffset)===sourceCode?'confirmed':'not_confirmed',
+       {previous_value:oldRaw,readback_value:readbackRaw,encoded_value:desiredRaw,source_frame:'STATIC'}
+      );
      }else{
       const oldRaw=before.readInt32LE(c.def.offset), oldValue=oldRaw/c.def.scale;
       const desiredRaw=Math.round(c.value*c.def.scale), desiredValue=desiredRaw/c.def.scale;
@@ -610,7 +747,7 @@ class Engine {
      const meta=e.ap_meta||{};
      this.status(s,c,'failed',{error:e.message,...meta});
      if(e.message==='response_timeout')this.error(s.def.id,e.message,{...meta,phase:'command',control:c.control});
-    }
+    }finally{if(c.def.dry)s.activeDry=null;}
    }else{
     s.due.sort((a,b)=>a.at-b.at);
     const job=s.due[0];
@@ -656,12 +793,12 @@ function validate(config){
   if(autoDiscovery){
    p.bms_discovery='auto';
    if(!Array.isArray(p.bms_addresses))p.bms_addresses=[];
-  }else if(!Array.isArray(p.bms_addresses)||!p.bms_addresses.length||p.bms_addresses.some(a=>!Number.isInteger(a)||a<1||a>15)||new Set(p.bms_addresses).size!==p.bms_addresses.length){
+  }else if(!Array.isArray(p.bms_addresses)||!p.bms_addresses.length||p.bms_addresses.some(a=>!Number.isInteger(a)||a<0||a>15)||new Set(p.bms_addresses).size!==p.bms_addresses.length){
    throw new Error('Invalid manual BMS addresses');
   }
  }
 }
-module.exports={crc,packet,request,parse,CONTROL_DEFS,Engine,validate,
+module.exports={crc,packet,request,parse,CONTROL_DEFS,DRY_TRIGGER_RULES,dryValidatePair,Engine,validate,
  start(id,config,emit,authorized){validate(config);const signature=JSON.stringify(config);const old=runtimes.get(id);if(old&&old.signature===signature)return;this.stop(id);const engine=new Engine(config,emit,authorized);runtimes.set(id,{engine,signature});},
  snapshot(id){const r=runtimes.get(id);if(!r)return [];return [...r.engine.states.values()].map(s=>({event:'health',pack_id:s.def.id,transport:s.def.transport,bus_id:s.def.bus_id,endpoint:s.def.transport==='serial'?s.def.path:`${s.def.host}:${s.def.port}`,connected:s.bus.ready,configured_bms:s.def.bms_addresses,discovery_mode:s.autoDiscovery?'auto':'manual',discovery_complete:s.discoveryComplete,discovered_bms:[...s.discoveredBms],last_live_ms:{...s.lastLive},validated_responses:s.responses,queued_commands:s.commands.length,timeout_ms:r.engine.timeoutMs,serial_inter_frame_ms:s.def.transport==='serial'?r.engine.serialInterFrameMs:0,response_stats:JSON.parse(JSON.stringify(s.exchangeStats))}));},
  command(id,...args){const r=runtimes.get(id);return r?r.engine.command(...args):false;},

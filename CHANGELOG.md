@@ -1,3 +1,11 @@
+## 1.0.0-dev71 CANDIDATE — 2026-10-14 — Issue #31 (JK UART1 address 0)
+- New base: DEV70 Multi-Pack flow / independent active-polling.js. Replaces older 4.2.100 DEV tree; archived as backup-before-multipack-dev71-20261014.
+- Active Polling JK addresses 0..15, manual selection and auto scan. Strict target/CRC/ACK/SETUP address matching, reject stray replies.
+- BMS_0 identity preserved through telemetry/MQTT/HA discovery, aggregate, alarms, DRY audit; Broadcasting master behavior preserved.
+- Serial/TCP simulation tests passed for 0+2 and 1+2; physical validation pending.
+- Multi-Pack Broadcasting on RS485-2 remains supported via separate HAOS VM / independent transport.
+- Read docs/ISSUE31_DEV71_TESTING.md before installing. Not a stable release.
+
 ## 4.2.100 DEV — 2026-10-02
 - Added automatic BMS address discovery for Multi-Pack Active Polling.
 - Added selective Home Assistant long-term statistics (state_class) support.

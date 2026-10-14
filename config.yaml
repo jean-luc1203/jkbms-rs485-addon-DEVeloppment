@@ -1,8 +1,8 @@
 ---
-name: "JK-BMS wired management"
-version: 4.2.100
+name: "SmartPhoton JK-BMS Multi-Pack DEV71"
+version: 1.0.0-dev71
 slug: "smartphoton_jkbms"
-description: DEV / TEST - JK-BMS Management via RS485, CAN bus, USB or TCP/IP Gateway
+description: DEV71 candidate - JK-BMS Multi-Pack Active Polling address 0 / Broadcasting
 url: https://domosimple.eu/forum/thread-917.html
 ingress: false
 ingress_stream: false
@@ -51,8 +51,8 @@ options:
       name: "Pack 1"
       transport: "tcp"
       gateway_ip_port: "192.168.1.100:5000"
-      # Active Polling: "auto" scans addresses 1..15.
-      # Expert/manual mode remains available with e.g. "1,3,7".
+      # Active Polling: "auto" scans JK UART1 addresses 0..15.
+      # Expert/manual mode remains available with e.g. "0,2" or "1,3,7".
       bms_addresses: "auto"
 
   # Legacy / mono-bus

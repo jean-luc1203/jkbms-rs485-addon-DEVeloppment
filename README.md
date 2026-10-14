@@ -1,5 +1,9 @@
 # ⚠️ DEVELOPMENT / TESTING VERSION
 
+> **DEV71 candidate — Issue #31 / 14 Oct 2026.** This branch now contains the independently tested Multi-Pack 1.0.0-dev71 candidate based on the supplied DEV70 flow, *not* the old v4.2.100 development snapshot. Address `0` is supported on JK **RS485-1** in Active Polling (manual and auto `0..15`); Multi-Pack Broadcasting remains available on **RS485-2**. This is **not yet hardware-validated**. Read the [two-bus test guide](docs/ISSUE31_DEV71_TESTING.md) before installing. [Restore pre-DEV71 snapshot](https://github.com/jean-luc1203/jkbms-rs485-addon-DEVeloppment/tree/backup-before-multipack-dev71-20261014).
+
+
+
 > **This repository contains the development version of SmartPhoton JK-BMS.**
 >
 > It is intended for testing and validation before release to the production repository.
@@ -56,7 +60,7 @@ Starting with **v4.2.90 DEV**, Multi-Pack Active Polling uses the same per-pack 
 - direct local USB/RS485 serial adapter;
 - mixed TCP + Serial/USB installations.
 
-For Active Polling, the BMS addresses to query are explicitly configured per pack with `bms_addresses`. The current implementation accepts addresses **1 to 15**.
+For Active Polling, the BMS addresses to query are explicitly configured per pack with `bms_addresses`. The current **DEV71 candidate** accepts JK addresses **0 to 15** (manual or automatic scanning).
 
 The v4.2.90 engine has been validated against the Active Polling simulator with mixed Serial/TCP transports. **Real JK-BMS validation through direct USB/RS485 is the current test phase.**
 
@@ -76,7 +80,7 @@ https://youtu.be/bzFI4VkLZN0
 
 ---
 
-## v4.2.90 — Multi-Pack Active Polling TCP + USB/Serial test release
+## Earlier milestone: v4.2.90 — Multi-Pack Active Polling TCP + USB/Serial
 
 The current DEV release extends the Multi-Pack architecture to **Active Polling over both TCP/IP and direct USB/RS485** while preserving the already validated Multi-Pack Broadcasting runtime.
 
