@@ -1,8 +1,6 @@
 # ⚠️ DEVELOPMENT / TESTING VERSION
 
-> **DEV71 candidate — Issue #31 / 14 Oct 2026.** This branch now contains the independently tested Multi-Pack 1.0.0-dev71 candidate based on the supplied DEV70 flow, *not* the old v4.2.100 development snapshot. Address `0` is supported on JK **RS485-1** in Active Polling (manual and auto `0..15`); Multi-Pack Broadcasting remains available on **RS485-2**. This is **not yet hardware-validated**. Read the [two-bus test guide](docs/ISSUE31_DEV71_TESTING.md) before installing. [Restore pre-DEV71 snapshot](https://github.com/jean-luc1203/jkbms-rs485-addon-DEVeloppment/tree/backup-before-multipack-dev71-20261014).
-
-
+> **DEV72.1 candidate — 17 October 2026.** The locally proven Multi-Pack source build now restores the separate Node-RED persistent directory `/config/smartphoton_jkbms_multipack/` and local add-on slug `smartphoton_jkbms_multipack` (Legacy remains at `/config/smartphoton_jkbms/`). Includes the SCADA Recorder Audit/Diagnostics compact-attributes correction and preserves Issue #31 Active Polling address `0..15`. **On the reference HAOS, four packs and ten BMS are online using real RS485 BMS addresses 1 and 2 plus TCP laboratory simulators; physical 0+2 and simultaneous dual-bus RS485 tests are still pending.** See [field-proven sanitized HAOS options](docs/DEV72_1_HAOS_WORKING_ACTIVE_POLLING_OPTIONS.md) and the [integration checklist](docs/DEV72_INTEGRATION_TESTS.md).
 
 > **This repository contains the development version of SmartPhoton JK-BMS.**
 >
