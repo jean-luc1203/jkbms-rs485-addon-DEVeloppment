@@ -1,3 +1,14 @@
+## 1.0.0-dev72 CANDIDATE — 2026-10-17 — Issue #31 + SCADA Recorder hotfix
+- Based strictly on the GitHub DEV71 candidate. Preserves independent Multi-Pack Active Polling JK UART1 addresses 0..15, manual/auto discovery, exact address/CRC/SETUP matching, and separate Broadcasting on RS485-2.
+- Retains the DEV71 DRY audit handling of BMS address 0. The independent active-polling.js engine and the Issue #31 test documentation remain unchanged.
+- Ports the field-validated DEV70.1 SCADA Recorder correction into two existing Node-RED functions only: SCADA Central Audit (dev70) and BUILD SMARTPHOTON SCADA MENU (dev66).
+- Home Assistant Audit and Diagnostics now receive bounded summary attributes; full command/alarm audit is retained in Node-RED and published separately on jkbms/scada/audit/snapshot.
+- MQTT Discovery refresh for SCADA Audit reduced from every 30 seconds to approximately hourly (retained discovery); removes periodic SCADA audit SNAPSHOT INFO log spam.
+- Preserves all 441 Node-RED nodes, wires, IDs and the 103 function nodes; static JavaScript parsing passed.
+- Field validation: DEV70.1 Recorder hotfix passed on HAOS 192.168.0.217 (four packs / ten BMS, no new Recorder attribute-size warnings in the observed interval).
+- Combined DEV72 is NOT YET field-tested. Issue #31 physical UART1 address 0 + UART2 Broadcasting dual-bus tests are STILL PENDING. Not a stable release; do not replace the working DEV70.1 add-on without a controlled test.
+- Test plan: docs/DEV72_INTEGRATION_TESTS.md; Issue #31: docs/ISSUE31_DEV71_TESTING.md.
+
 ## 1.0.0-dev71 CANDIDATE — 2026-10-14 — Issue #31 (JK UART1 address 0)
 - New base: DEV70 Multi-Pack flow / independent active-polling.js. Replaces older 4.2.100 DEV tree; archived as backup-before-multipack-dev71-20261014.
 - Active Polling JK addresses 0..15, manual selection and auto scan. Strict target/CRC/ACK/SETUP address matching, reject stray replies.
