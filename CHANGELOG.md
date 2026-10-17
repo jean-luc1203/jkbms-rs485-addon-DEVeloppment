@@ -5,7 +5,9 @@
 - Preserve existing `/config/smartphoton_jkbms_multipack/` data; do NOT migrate, replace or delete a separate `/config/smartphoton_jkbms/` directory automatically.
 - Bump the add-on version to `1.0.0-dev72.1` to allow update/rebuild after local source sync. HAOS frontend's inactive Update button is a known separate Core/Supervisor coordinator refresh issue, NOT caused by userDir.
 - All DEV72 flow, recorder and Issue #31 address-0 Active Polling/RS485-2 Broadcasting code remain byte-for-byte unchanged.
-- Validation required: local built image must report `Node-RED is using userDir = /config/smartphoton_jkbms_multipack/`; verify current BMS telemetry, both Audit/Diagnostics entities, retained context, no Recorder warnings and Issue #31 tests before merging PR #9.
+- Field test 2026-10-17: the owner installed and started DEV72.1 successfully on HAOS 18.3 / Core 2026.10.2 / Supervisor 2026.10.2, with `Node-RED is using userDir = /config/smartphoton_jkbms_multipack/`, MQTT connected, 4 packs/10 BMS communicating (real addresses 1+2; remaining eight simulated over TCP), SCADA and Premium dashboards synced, Premium diagnostics OK. This demonstrates the working installation but does **not** validate physical address 0, simultaneous RS485-1/RS485-2 operation, every end-user configuration, or long-term Recorder stability.
+- Field-proven HAOS options (secrets anonymized): `docs/DEV72_1_HAOS_WORKING_ACTIVE_POLLING_OPTIONS.md`. A reference user-config does NOT become a global `config.yaml` default; keep safe/disconnected initial defaults.
+- **User-reported problem:** public DEV71 main still had a legacy Node-RED userDir and does not include these DEV72.1 fixes; publish the corrected code, not private site credentials.
 
 ## 1.0.0-dev72 CANDIDATE — 2026-10-17 — Issue #31 + SCADA Recorder hotfix
 - Packaging: retain existing local Multi-Pack add-on slug `smartphoton_jkbms_multipack` so HAOS updates the installed add-on in place (not the legacy `smartphoton_jkbms` slug).
