@@ -36,3 +36,11 @@
 ## Rollback
 
 Keep DEV70.1 on the working HAOS until DEV72's acceptance tests finish. Preserve backups of `config.yaml`, `CHANGELOG.md`, `rootfs/etc/node-red/flows.json` and add-on settings before trial deployment.
+
+## DEV72.1 — Multi-Pack persistent runtime path regression test
+
+- Verify Node-RED startup logs `Node-RED is using userDir = /config/smartphoton_jkbms_multipack/` and `User directory: /config/smartphoton_jkbms_multipack/`.
+- Confirm `config.js` resolves `settings.js`, `nodesDir` and `contextStorage.default.config.dir` under the same Multi-Pack directory. Confirm the init-nodered startup script uses this directory for `flows.json`, `version`, and backups.
+- Check that existing Multi-Pack persistent context and Node-RED settings are retained. Do not automatically move the unrelated or stale directory `/config/smartphoton_jkbms/` over the Multi-Pack directory.
+- The source tree backup under `/addons` does not by itself back up `/config` persistent data; create a separate HAOS backup before rollout.
+- HAOS local add-on update dialog can be temporarily disabled following a store reload due to Core update-entity refresh lag. Use the HAOS host CLI `ha apps list`, `ha apps reload` and `ha apps update <actual-local-slug>` (or `ha apps rebuild <actual-local-slug>` when appropriate) if the UI remains stale.
