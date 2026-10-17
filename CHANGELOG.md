@@ -1,3 +1,12 @@
+## 1.0.0-dev72.1 CANDIDATE — 2026-10-17 — Multi-Pack persistent userDir correction
+- Fix packaging regression introduced in DEV71/DEV72: Node-RED runtime paths returned to the validated persistent Multi-Pack directory `/config/smartphoton_jkbms_multipack/`.
+- `rootfs/etc/node-red/config.js`: restore paths for settings.js, userDir, nodesDir, and localfilesystem context/global-variables.
+- `rootfs/etc/s6-overlay/s6-rc.d/init-nodered/run`: restore the Multi-Pack directory throughout flow initialization and version/flow copies.
+- Preserve existing `/config/smartphoton_jkbms_multipack/` data; do NOT migrate, replace or delete a separate `/config/smartphoton_jkbms/` directory automatically.
+- Bump the add-on version to `1.0.0-dev72.1` to allow update/rebuild after local source sync. HAOS frontend's inactive Update button is a known separate Core/Supervisor coordinator refresh issue, NOT caused by userDir.
+- All DEV72 flow, recorder and Issue #31 address-0 Active Polling/RS485-2 Broadcasting code remain byte-for-byte unchanged.
+- Validation required: local built image must report `Node-RED is using userDir = /config/smartphoton_jkbms_multipack/`; verify current BMS telemetry, both Audit/Diagnostics entities, retained context, no Recorder warnings and Issue #31 tests before merging PR #9.
+
 ## 1.0.0-dev72 CANDIDATE — 2026-10-17 — Issue #31 + SCADA Recorder hotfix
 - Packaging: retain existing local Multi-Pack add-on slug `smartphoton_jkbms_multipack` so HAOS updates the installed add-on in place (not the legacy `smartphoton_jkbms` slug).
 - Based strictly on the GitHub DEV71 candidate. Preserves independent Multi-Pack Active Polling JK UART1 addresses 0..15, manual/auto discovery, exact address/CRC/SETUP matching, and separate Broadcasting on RS485-2.
