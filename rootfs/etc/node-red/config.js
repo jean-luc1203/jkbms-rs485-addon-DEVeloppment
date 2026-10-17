@@ -1,6 +1,6 @@
 console.log("✅ config.js is being loaded");
 
-const config = require("/config/smartphoton_jkbms/settings.js");
+const config = require("/config/smartphoton_jkbms_multipack/settings.js");
 
 const fs = require("fs");
 const options = JSON.parse(fs.readFileSync("/data/options.json", "utf8"));
@@ -23,9 +23,9 @@ if ("theme" in options && options.theme !== "default") {
 
 config.debugUseColors = false;
 config.flowFile = "flows.json";
-config.nodesDir = "/config/smartphoton_jkbms/nodes";
+config.nodesDir = "/config/smartphoton_jkbms_multipack/nodes";
 config.uiPort = 1891;
-config.userDir = "/config/smartphoton_jkbms/";
+config.userDir = "/config/smartphoton_jkbms_multipack/";
 config.httpNodeRoot = "/endpoint";
 
 // Explicit runtime metadata for URL logging; no credentials are exposed.
@@ -45,7 +45,7 @@ config.contextStorage = {
   default: {
     module: "localfilesystem",
     config: {
-      dir: "/config/smartphoton_jkbms/global-variables",
+      dir: "/config/smartphoton_jkbms_multipack/global-variables",
       flushInterval: "5"
     }
   }

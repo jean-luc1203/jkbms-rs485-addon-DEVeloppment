@@ -1,0 +1,80 @@
+# DEV72 integration candidate — Issue #31 + SCADA Recorder hotfix
+
+> **Status (2026-10-17): DEV72.1 runtime verified on reference HAOS with Active Polling at physical addresses 1+2, four packs / ten BMS including TCP lab simulators. Combined physical BMS 0+2 and simultaneous dual RS485 buses remain UNTESTED.**
+> Base: DEV71 GitHub main (2026-10-14). Recorder patch: DEV70.1 validated on HAOS (2026-10-17).
+
+## Scope and preservation
+
+- **Keep Issue #31:** JK UART1 RS485-1 Active Polling permits addresses **0..15**, including BMS address 0 and nonconsecutive addresses (e.g. 0+2). Automatic scan/manual selection and the strict target/CRC/ACK/SETUP validation remain unchanged.
+- **Keep broadcasting:** RS485-2 Broadcasting via independent transport or separate HAOS VM still supported; no changes to its engine.
+- **Keep DRY audit for BMS_0:** The DEV71-specific validation in `SCADA Central Audit (dev70)` remains `Number(e.bms_numero)<0` (rather than DEV70.1's earlier `<1`).
+- **No transport changes:** `rootfs/etc/node-red/active-polling.js`, IDs, 441 flow nodes, all wires, and all other 101 functions remain unchanged.
+
+## Recorder / audit fix (ported from DEV70.1)
+
+1. HA MQTT Discovery Audit and Diagnostics entities expose bounded summary attributes, not arrays of command/alarm history that exceed Home Assistant Recorder's 16,384-byte attribute limit.
+2. The complete bounded SCADA audit remains in Node-RED context and on retained MQTT topic `jkbms/scada/audit/snapshot` (not used as HA state attributes).
+3. Audit MQTT Discovery republishing is at most roughly hourly instead of at every 30-second snapshot. The periodic `SCADA audit SNAPSHOT ... -> AUDIT + DIAG mirror` INFO log is removed.
+4. The two modified Node-RED functions are `SCADA Central Audit (dev70)` and `BUILD SMARTPHOTON SCADA MENU (dev66)`.
+
+## Acceptance test — avoid replacing known-good DEV70.1 blindly
+
+1. Deploy DEV72.1 with an HAOS backup of config, flow and Node-RED context. Verify version `1.0.0-dev72.1`, MQTT connection, SCADA/dashboard loading. This startup/telemetry baseline passed on the owner's reference HAOS with physical BMS 1+2 and TCP lab simulators.
+2. In an RS485-1 test with JK-BMS address **0 and 2**, validate Active Polling telemetry, MQTT Home Assistant unique identities, precise target mapping and readbacks; test manual/auto scan separately. Reference: [Issue #31 DEV71 test plan](ISSUE31_DEV71_TESTING.md).
+3. In a **separate RS485-2 setup or VM**, verify Broadcasting and ensure no cross-bus masters or settings writes.
+4. Verify `sensor.smartphoton_jk_bms_multi_pack_audit` and `sensor.smartphoton_jk_bms_multi_pack_diagnostics` update with compact attributes. Check `history_count` is retained while command history arrays are not sent as HA state attributes.
+5. Subscribe to `jkbms/scada/audit/snapshot` to confirm detailed history remains available; confirm no cyclic audit INFO logs every 30s.
+6. Over at least one hour, check Recorder for *new* `State attributes ... exceed maximum size of 16384 bytes` warnings. Test a BMS 0 DRY audit event and ensure BMS 0 identity is not discarded.
+7. Confirm basic Pack/BMS readings and controls continue to work. Record screenshots/logs and then decide whether to merge the DEV72 PR into `main`.
+
+## Test provenance and limits
+
+- **DEV70.1 Recorder** tested in the field on HAOS 192.168.0.217: four packs, ten BMS, both HA sensors updating; no new oversized Recorder warnings observed during the user's test window.
+- **DEV71 Issue #31** simulation tests (0+2 and 1+2) reported in its prior changelog; physical two-bus validation pending.
+- **DEV72.1 combined build** now passed an owner-operated HAOS 18.3 startup/SCADA/Active Polling (1+2) field test (4 packs, 10 BMS including eight simulated over TCP); physical address 0 and two-bus broadcasting tests pending. This remains a development release.
+
+## Rollback
+
+DEV72.1 is now running on the reference HAOS; the previous DEV70.1 source backup must remain available for rollback. Preserve backups of `config.yaml`, `CHANGELOG.md`, `rootfs/etc/node-red/flows.json` and add-on settings before trial deployment.
+
+## DEV72.1 — Multi-Pack persistent runtime path regression test
+
+- Verify Node-RED startup logs `Node-RED is using userDir = /config/smartphoton_jkbms_multipack/` and `User directory: /config/smartphoton_jkbms_multipack/`.
+- Confirm `config.js` resolves `settings.js`, `nodesDir` and `contextStorage.default.config.dir` under the same Multi-Pack directory. Confirm the init-nodered startup script uses this directory for `flows.json`, `version`, and backups.
+- Check that existing Multi-Pack persistent context and Node-RED settings are retained. Do not automatically move the unrelated or stale directory `/config/smartphoton_jkbms/` over the Multi-Pack directory.
+- The source tree backup under `/addons` does not by itself back up `/config` persistent data; create a separate HAOS backup before rollout.
+- HAOS local add-on update dialog can be temporarily disabled following a store reload due to Core update-entity refresh lag. Use the HAOS host CLI `ha apps list`, `ha apps reload` and `ha apps update <actual-local-slug>` (or `ha apps rebuild <actual-local-slug>` when appropriate) if the UI remains stale.
+
+## Persistence and separation policy (Legacy vs Multi-Pack)
+
+**Decision recorded 2026-10-17:** The packaged `flows.json` takes priority on each add-on start for ongoing development and testing. Node-RED editor flow changes are not guaranteed to survive a restart, by design for now. Do **not** switch to user-edited-flow precedence without a separate decision.
+
+The two add-ons are intentionally isolated within the same HAOS configuration mount:
+
+| Component | Legacy | Multi-Pack |
+| --- | --- | --- |
+| Local add-on slug | `smartphoton_jkbms` | `smartphoton_jkbms_multipack` |
+| Node-RED userDir | `/config/smartphoton_jkbms/` | `/config/smartphoton_jkbms_multipack/` |
+| Flows and Node-RED credentials | Within Legacy userDir | Within Multi-Pack userDir |
+| Persisted `settings.js`, `nodes/` | Within Legacy userDir | Within Multi-Pack userDir |
+| `global-variables/` contextStorage | Within Legacy userDir | Within Multi-Pack userDir |
+| Runtime `version`, `flows.backup` | Within Legacy userDir | Within Multi-Pack userDir |
+
+Files enforcing these differences:
+- `rootfs/etc/node-red/config.js` (the four Node-RED runtime paths; Multi-Pack also loads its Active Polling module independently).
+- `rootfs/etc/s6-overlay/s6-rc.d/init-nodered/run` (initialization and flow/setting/version/backup paths). Legacy and Multi-Pack implementations use the same logic, with different target directories.
+- `config.yaml` (distinct add-on slug).
+- `rootfs/etc/node-red/active-polling.js` (independent Multi-Pack engine; not present in the Legacy release).
+
+**Important scope:** Home Assistant Lovelace dashboards are stored in the HAOS shared `/config/dashboards/` location, not under Node-RED userDir. Avoid naming collisions by using the dedicated `smart_jkbms_multipack.json` / `smart_jkbms_scada.json` files and `smart-jkbms-multipack` / `smart-jkbms-scada` dashboard URLs. The Node-RED flow's exec nodes pass these file paths explicitly to `dashboard_sync.js`. HAOS `/data` and the add-on options are independently managed by Supervisor for each add-on.
+
+Before releasing a new candidate, check that **no startup config file has reverted to `/config/smartphoton_jkbms/` in the Multi-Pack**, and that flow overwriting at startup is retained until the user explicitly changes that development policy.
+
+
+## Public DEV71 -> DEV72.1 upgrade warning
+
+The DEV71 GitHub `main` add-on had an incorrect `slug: smartphoton_jkbms` and persisted Node-RED content under `/config/smartphoton_jkbms/`, which also belongs to Legacy. The locally proven DEV72.1 source requires `slug: smartphoton_jkbms_multipack` and `/config/smartphoton_jkbms_multipack/` to **keep Legacy and Multi-Pack independent**.
+
+**Users of DEV71 who installed it with the old slug may not receive an in-place upgrade after the slug fix.** Check which add-on Supervisor reports installed, back up HAOS and Node-RED context, and migrate deliberately to the proper Multi-Pack identity. Do not delete Legacy data or silently copy a Legacy Node-RED directory over the Multi-Pack directory. The release cannot auto-correct an existing wrong-slug install. Users already running local Multi-Pack under the correct slug can update/rebuild from source normally.
+
+The working reference configuration is [documented with fictitious IPs and placeholder credentials](DEV72_1_HAOS_WORKING_ACTIVE_POLLING_OPTIONS.md), **not** hard-coded as the general add-on defaults. Keep safe defaults for a new installation.

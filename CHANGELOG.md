@@ -1,3 +1,26 @@
+## 1.0.0-dev72.1 CANDIDATE — 2026-10-17 — Multi-Pack persistent userDir correction
+- Fix packaging regression introduced in DEV71/DEV72: Node-RED runtime paths returned to the validated persistent Multi-Pack directory `/config/smartphoton_jkbms_multipack/`.
+- `rootfs/etc/node-red/config.js`: restore paths for settings.js, userDir, nodesDir, and localfilesystem context/global-variables.
+- `rootfs/etc/s6-overlay/s6-rc.d/init-nodered/run`: restore the Multi-Pack directory throughout flow initialization and version/flow copies.
+- Preserve existing `/config/smartphoton_jkbms_multipack/` data; do NOT migrate, replace or delete a separate `/config/smartphoton_jkbms/` directory automatically.
+- Bump the add-on version to `1.0.0-dev72.1` to allow update/rebuild after local source sync. HAOS frontend's inactive Update button is a known separate Core/Supervisor coordinator refresh issue, NOT caused by userDir.
+- All DEV72 flow, recorder and Issue #31 address-0 Active Polling/RS485-2 Broadcasting code remain byte-for-byte unchanged.
+- Field test 2026-10-17: the owner installed and started DEV72.1 successfully on HAOS 18.3 / Core 2026.10.2 / Supervisor 2026.10.2, with `Node-RED is using userDir = /config/smartphoton_jkbms_multipack/`, MQTT connected, 4 packs/10 BMS communicating (real addresses 1+2; remaining eight simulated over TCP), SCADA and Premium dashboards synced, Premium diagnostics OK. This demonstrates the working installation but does **not** validate physical address 0, simultaneous RS485-1/RS485-2 operation, every end-user configuration, or long-term Recorder stability.
+- Field-proven HAOS options (secrets anonymized): `docs/DEV72_1_HAOS_WORKING_ACTIVE_POLLING_OPTIONS.md`. A reference user-config does NOT become a global `config.yaml` default; keep safe/disconnected initial defaults.
+- **User-reported problem:** public DEV71 main still had a legacy Node-RED userDir and does not include these DEV72.1 fixes; publish the corrected code, not private site credentials.
+
+## 1.0.0-dev72 CANDIDATE — 2026-10-17 — Issue #31 + SCADA Recorder hotfix
+- Packaging: retain existing local Multi-Pack add-on slug `smartphoton_jkbms_multipack` so HAOS updates the installed add-on in place (not the legacy `smartphoton_jkbms` slug).
+- Based strictly on the GitHub DEV71 candidate. Preserves independent Multi-Pack Active Polling JK UART1 addresses 0..15, manual/auto discovery, exact address/CRC/SETUP matching, and separate Broadcasting on RS485-2.
+- Retains the DEV71 DRY audit handling of BMS address 0. The independent active-polling.js engine and the Issue #31 test documentation remain unchanged.
+- Ports the field-validated DEV70.1 SCADA Recorder correction into two existing Node-RED functions only: SCADA Central Audit (dev70) and BUILD SMARTPHOTON SCADA MENU (dev66).
+- Home Assistant Audit and Diagnostics now receive bounded summary attributes; full command/alarm audit is retained in Node-RED and published separately on jkbms/scada/audit/snapshot.
+- MQTT Discovery refresh for SCADA Audit reduced from every 30 seconds to approximately hourly (retained discovery); removes periodic SCADA audit SNAPSHOT INFO log spam.
+- Preserves all 441 Node-RED nodes, wires, IDs and the 103 function nodes; static JavaScript parsing passed.
+- Field validation: DEV70.1 Recorder hotfix passed on HAOS 192.168.0.217 (four packs / ten BMS, no new Recorder attribute-size warnings in the observed interval).
+- Combined DEV72 is NOT YET field-tested. Issue #31 physical UART1 address 0 + UART2 Broadcasting dual-bus tests are STILL PENDING. Not a stable release; do not replace the working DEV70.1 add-on without a controlled test.
+- Test plan: docs/DEV72_INTEGRATION_TESTS.md; Issue #31: docs/ISSUE31_DEV71_TESTING.md.
+
 ## 1.0.0-dev71 CANDIDATE — 2026-10-14 — Issue #31 (JK UART1 address 0)
 - New base: DEV70 Multi-Pack flow / independent active-polling.js. Replaces older 4.2.100 DEV tree; archived as backup-before-multipack-dev71-20261014.
 - Active Polling JK addresses 0..15, manual selection and auto scan. Strict target/CRC/ACK/SETUP address matching, reject stray replies.
