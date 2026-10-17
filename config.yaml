@@ -1,8 +1,8 @@
 ---
-name: "SmartPhoton JK-BMS Multi-Pack DEV71"
-version: 1.0.0-dev71
+name: "SmartPhoton JK-BMS Multi-Pack DEV72"
+version: 1.0.0-dev72
 slug: "smartphoton_jkbms"
-description: DEV71 candidate - JK-BMS Multi-Pack Active Polling address 0 / Broadcasting
+description: DEV72 candidate - JK UART1 address 0 Active Polling + SCADA Recorder fix / Broadcasting
 url: https://domosimple.eu/forum/thread-917.html
 ingress: false
 ingress_stream: false
