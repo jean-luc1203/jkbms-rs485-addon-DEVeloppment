@@ -1,4 +1,5 @@
 ## 1.0.0-dev72 CANDIDATE — 2026-10-17 — Issue #31 + SCADA Recorder hotfix
+- Packaging: retain existing local Multi-Pack add-on slug `smartphoton_jkbms_multipack` so HAOS updates the installed add-on in place (not the legacy `smartphoton_jkbms` slug).
 - Based strictly on the GitHub DEV71 candidate. Preserves independent Multi-Pack Active Polling JK UART1 addresses 0..15, manual/auto discovery, exact address/CRC/SETUP matching, and separate Broadcasting on RS485-2.
 - Retains the DEV71 DRY audit handling of BMS address 0. The independent active-polling.js engine and the Issue #31 test documentation remain unchanged.
 - Ports the field-validated DEV70.1 SCADA Recorder correction into two existing Node-RED functions only: SCADA Central Audit (dev70) and BUILD SMARTPHOTON SCADA MENU (dev66).
