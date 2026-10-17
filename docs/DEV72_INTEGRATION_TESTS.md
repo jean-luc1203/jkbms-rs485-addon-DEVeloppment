@@ -44,3 +44,28 @@ Keep DEV70.1 on the working HAOS until DEV72's acceptance tests finish. Preserve
 - Check that existing Multi-Pack persistent context and Node-RED settings are retained. Do not automatically move the unrelated or stale directory `/config/smartphoton_jkbms/` over the Multi-Pack directory.
 - The source tree backup under `/addons` does not by itself back up `/config` persistent data; create a separate HAOS backup before rollout.
 - HAOS local add-on update dialog can be temporarily disabled following a store reload due to Core update-entity refresh lag. Use the HAOS host CLI `ha apps list`, `ha apps reload` and `ha apps update <actual-local-slug>` (or `ha apps rebuild <actual-local-slug>` when appropriate) if the UI remains stale.
+
+## Persistence and separation policy (Legacy vs Multi-Pack)
+
+**Decision recorded 2026-10-17:** The packaged `flows.json` takes priority on each add-on start for ongoing development and testing. Node-RED editor flow changes are not guaranteed to survive a restart, by design for now. Do **not** switch to user-edited-flow precedence without a separate decision.
+
+The two add-ons are intentionally isolated within the same HAOS configuration mount:
+
+| Component | Legacy | Multi-Pack |
+| --- | --- | --- |
+| Local add-on slug | `smartphoton_jkbms` | `smartphoton_jkbms_multipack` |
+| Node-RED userDir | `/config/smartphoton_jkbms/` | `/config/smartphoton_jkbms_multipack/` |
+| Flows and Node-RED credentials | Within Legacy userDir | Within Multi-Pack userDir |
+| Persisted `settings.js`, `nodes/` | Within Legacy userDir | Within Multi-Pack userDir |
+| `global-variables/` contextStorage | Within Legacy userDir | Within Multi-Pack userDir |
+| Runtime `version`, `flows.backup` | Within Legacy userDir | Within Multi-Pack userDir |
+
+Files enforcing these differences:
+- `rootfs/etc/node-red/config.js` (the four Node-RED runtime paths; Multi-Pack also loads its Active Polling module independently).
+- `rootfs/etc/s6-overlay/s6-rc.d/init-nodered/run` (initialization and flow/setting/version/backup paths). Legacy and Multi-Pack implementations use the same logic, with different target directories.
+- `config.yaml` (distinct add-on slug).
+- `rootfs/etc/node-red/active-polling.js` (independent Multi-Pack engine; not present in the Legacy release).
+
+**Important scope:** Home Assistant Lovelace dashboards are stored in the HAOS shared `/config/dashboards/` location, not under Node-RED userDir. Avoid naming collisions by using the dedicated `smart_jkbms_multipack.json` / `smart_jkbms_scada.json` files and `smart-jkbms-multipack` / `smart-jkbms-scada` dashboard URLs. The Node-RED flow's exec nodes pass these file paths explicitly to `dashboard_sync.js`. HAOS `/data` and the add-on options are independently managed by Supervisor for each add-on.
+
+Before releasing a new candidate, check that **no startup config file has reverted to `/config/smartphoton_jkbms/` in the Multi-Pack**, and that flow overwriting at startup is retained until the user explicitly changes that development policy.
