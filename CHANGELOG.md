@@ -1,3 +1,11 @@
+## 1.0.0-dev72.2 CANDIDATE (SCADA packaging) — 2026-10-18 — branch only, not released
+- Fix fresh-HAOS 404 for `smart-jkbms-scada/process`: ship the exact reference HTML and two WebP images used by the working production installation, under `rootfs/etc/smartphoton_jkbms_multipack/www/`.
+- At add-on startup, copy only those three known assets to `/config/www/smartphoton_jkbms_multipack/` when missing/different, without deleting other files. An incomplete package logs a warning rather than stopping acquisition.
+- No changes to `flows.json`, RS485 transports, Active Polling engine, Broadcasting, MQTT Discovery, Recorder logic or Legacy installation.
+- Known separate issue remains: Active Polling physical address 0 reads SETUP/LIVE/STATIC correctly but BMS_0 numeric SETUP Discovery is missing; **not fixed by this SCADA-only candidate**.
+- The issue #31 real-world setup with RS485-1 Active Polling USB BMS 0+2 on test HAOS and RS485-2 passive Broadcasting TCP on production HAOS has been demonstrated. Command writes and long-term endurance remain unvalidated.
+- Test this branch independently using a Home Assistant repository URL with `#fix/dev72-scada-packaged-assets`; keep production `main` at DEV72.1 until test sign-off. See `docs/SCADA_ASSETS_PACKAGING.md`.
+
 ## 1.0.0-dev72.1 CANDIDATE — 2026-10-17 — Multi-Pack persistent userDir correction
 - Fix packaging regression introduced in DEV71/DEV72: Node-RED runtime paths returned to the validated persistent Multi-Pack directory `/config/smartphoton_jkbms_multipack/`.
 - `rootfs/etc/node-red/config.js`: restore paths for settings.js, userDir, nodesDir, and localfilesystem context/global-variables.
