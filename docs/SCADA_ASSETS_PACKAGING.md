@@ -28,6 +28,43 @@ The rootfs paths become `/etc/smartphoton_jkbms_multipack/www/...` in the image,
 
 The copy is idempotent, compares file contents and replaces only the three known assets. It does **not** delete unknown files, touch Node-RED flows, alter Premium licence files or change transport configuration. If the assets have not been included in the image, the add-on logs a warning instead of aborting battery monitoring.
 
+## Install this candidate directly from GitHub on HAOS Test
+
+Home Assistant Supervisor supports choosing a Git repository branch using `#<branch>` in its repository URL. **Do not replace or remove the normal main repository.** Add the following as a **second add-on repository** on HAOS Test:
+
+```text
+https://github.com/jean-luc1203/jkbms-rs485-addon-DEVeloppment#fix/dev72-scada-packaged-assets
+```
+
+This branch identifies itself as `1.0.0-dev72.2` ("SCADA TEST") while `main` remains at `1.0.0-dev72.1`.
+
+**Safety / two installations:** Home Assistant may show two separate add-ons with the same internal slug originating from different repositories. Both add-ons share `/config/smartphoton_jkbms_multipack/`, `/config/www/smartphoton_jkbms_multipack/`, TCP port `1891`, the physical RS485 port and MQTT discovery IDs. **Never start both together.** Back up HAOS Test and its add-on settings first. Stop DEV72.1 on HAOS Test, disable its auto-start/watchdog while testing, then install and start the candidate. **Do not touch HAOS production.**
+
+Each distinct Supervisor add-on has separate `/data` licence identity. Premium may temporarily report `missing_key` / `install_id_mismatch` on this new candidate. This does not prevent testing whether the assets are installed. To test the actual SCADA sidebar from this candidate, use a correctly issued licence for that instance. Do not copy secrets to GitHub. An unlicensed candidate may remove its dashboard registration; restarting the licensed original add-on should restore that dashboard. Stop the candidate before restarting the original.
+
+With the candidate running, verify the startup log and files:
+
+```sh
+ls -lh /config/www/smartphoton_jkbms_multipack/scada/index.html
+ls -lh /config/www/smartphoton_jkbms_multipack/assets/*.webp
+```
+
+Open this **direct** HTML URL first:
+
+```text
+http://192.168.0.184:8123/local/smartphoton_jkbms_multipack/scada/index.html
+```
+
+Only then test the registered dashboard:
+
+```text
+http://192.168.0.184:8123/smart-jkbms-scada/process
+```
+
+A Home Assistant dashboard registering successfully does **not** prove the iframe HTML asset exists. Test both separately.
+
+Once verified, stop the candidate, re-enable the original add-on auto-start as appropriate, start DEV72.1, and ensure telemetry and Premium dashboards resume. Do not uninstall the candidate until its logs are saved. Removing the temporary second repository afterwards is optional.
+
 ## Verification on fresh HAOS
 
 1. Ensure all three source files are committed on the candidate branch before building/testing it.
