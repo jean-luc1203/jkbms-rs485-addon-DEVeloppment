@@ -1,3 +1,12 @@
+## 1.0.0-dev73 CANDIDATE — 2026-10-18 — Physical BMS 0 SETUP Discovery (branch only)
+- Fix the remaining Active Polling address-0 MQTT/HA Discovery mismatch: the `Active Polling SETUP discovery` Node-RED function previously remapped physical JK address `0` to the Broadcasting-only name `master`, while SETUP rediscovery keys used `BMS_0`.
+- Preserve `BMS_0` consistently for Active Polling MQTT control/state topics, Home Assistant numeric SETUP entities, device identifiers, state tracking, migration cleanup and reconnect-triggered rediscovery.
+- Preserve `BMS_master` identity for historical Legacy and Multi-Pack Broadcasting; BMS address 2 and other addressed BMS remain unchanged.
+- Change **one** Node-RED function inside `flows.json`. Preserve all 441 nodes / 103 function nodes and all links, as well as the DEV72.2 SCADA packaging, Recorder hotfix and independent JK UART1 engine.
+- Internal execution tests on the real Node-RED function passed for physical address 0, address 2, pack isolation, MQTT reconnect republish and Broadcasting/Legacy master naming. Regression test script: `tests/dev73-bms0-setup-discovery.test.cjs`.
+- **Not yet validated on physical BMS hardware.** Test on HAOS Test `192.168.0.184`, address 0+2, with no write commands; production Broadcasting HAOS remains unchanged.
+- Candidate GitHub branch: `fix/dev73-bms0-setup-discovery`. No merge to `main` before the owner's test and explicit approval.
+
 ## 1.0.0-dev72.2 DEV (SCADA packaging) — 2026-10-18 — validated on HAOS Test
 - Fix fresh-HAOS 404 for `smart-jkbms-scada/process`: ship the exact reference HTML and two WebP images used by the working production installation, under `rootfs/etc/smartphoton_jkbms_multipack/www/`.
 - At add-on startup, copy only those three known assets to `/config/www/smartphoton_jkbms_multipack/` when missing/different, without deleting other files. An incomplete package logs a warning rather than stopping acquisition.
