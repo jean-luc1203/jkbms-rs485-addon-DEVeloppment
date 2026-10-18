@@ -5,6 +5,45 @@
 # Configure Node-RED avant exécution
 # ==============================================================================
 
+# Install the versioned SCADA interface and image assets into HAOS /local.
+# Keep this independent of the persistent Node-RED userDir and never delete
+# unrelated files or directories under /config/www.
+SCADA_SOURCE="/etc/smartphoton_jkbms_multipack/www"
+SCADA_TARGET="/config/www/smartphoton_jkbms_multipack"
+SCADA_FILES=(
+    "scada/index.html"
+    "assets/bms-default.webp"
+    "assets/pack-default.webp"
+)
+SCADA_READY=true
+for relative_path in "${SCADA_FILES[@]}"; do
+    if [[ ! -f "${SCADA_SOURCE}/${relative_path}" ]]; then
+        SCADA_READY=false
+        bashio::log.warning "SCADA packaged asset missing: ${relative_path}"
+    fi
+done
+
+if [[ "${SCADA_READY}" == true ]]; then
+    mkdir -p "${SCADA_TARGET}/scada" "${SCADA_TARGET}/assets" \
+        || bashio::exit.nok "Failed to create SCADA /config/www directories"
+    for relative_path in "${SCADA_FILES[@]}"; do
+        source_file="${SCADA_SOURCE}/${relative_path}"
+        target_file="${SCADA_TARGET}/${relative_path}"
+        if ! cmp -s "${source_file}" "${target_file}"; then
+            cp -f "${source_file}" "${target_file}.tmp" \
+                || bashio::exit.nok "Failed to stage SCADA asset: ${relative_path}"
+            chmod 0644 "${target_file}.tmp" \
+                || bashio::exit.nok "Failed to chmod SCADA asset: ${relative_path}"
+            mv -f "${target_file}.tmp" "${target_file}" \
+                || bashio::exit.nok "Failed to install SCADA asset: ${relative_path}"
+        fi
+    done
+    bashio::log.info "SmartPhoton SCADA web assets available under /local/smartphoton_jkbms_multipack/"
+else
+    # Monitoring must remain operational even if optional SCADA files are absent.
+    bashio::log.warning "SCADA assets are incomplete in this add-on image; /local SCADA may return 404."
+fi
+
 # Assure que la configuration existe
 if ! bashio::fs.directory_exists '/config/smartphoton_jkbms_multipack/'; then
     mkdir -p /config/smartphoton_jkbms_multipack/nodes \
