@@ -1177,6 +1177,22 @@ html,body{min-width:0}
   .detail-panel .detail-body{padding-top:14px}
 }
 
+/* DEV74.2 desktop HA iframe fix (screenshots 1537px):
+   the original minmax(420px,1fr) rail/process row was compressed to fit the
+   viewport, letting the fifth Installation KPI paint over Trend. Keep the
+   industrial two-column diagram but size this row to its natural content. */
+@media(min-width:1501px){
+  .main{
+    grid-template-rows:max-content max-content max-content minmax(218px,max-content) max-content;
+    align-content:start;overflow-y:auto;overflow-x:hidden;
+  }
+  .main>.process,.main>.rail{height:auto;min-height:0}
+  .main>.rail .kpi{flex:0 0 auto;min-height:104px}
+  .main>.rail .alarmbox{flex:0 0 auto;min-height:92px}
+  .main>.bottom{grid-row:4;min-height:218px}
+  .main>.demo{grid-row:5}
+}
+
 </style>
 </head>
 <body>
