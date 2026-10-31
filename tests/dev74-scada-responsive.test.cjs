@@ -121,6 +121,18 @@ for(const expected of [
   '.main>.demo{grid-row:5}'
 ]) assert(desktopFix.includes(expected),'Missing desktop rail layout rule: '+expected);
 
+// Visual follow-up: compact the naturally sized desktop Installation rail so
+// the process canvas is not mostly empty, without returning to fixed heights.
+const desktopDensity=style.slice(style.indexOf('DEV74.2 desktop density follow-up'));
+assert(desktopDensity.length>450, 'Missing desktop Installation density follow-up');
+for(const expected of [
+  '@media(min-width:1501px)',
+  '.main>.rail{padding:12px;gap:8px}',
+  '.main>.rail .kpi{min-height:0;flex:0 0 auto;padding:9px 11px}',
+  '.main>.rail .alarmbox{min-height:0;flex:0 0 auto;padding:10px}',
+  '.main>.process .synoptic{top:78px;bottom:15px}',
+]) assert(desktopDensity.includes(expected),'Missing desktop density rule: '+expected);
+
 // Check CSS block balance, ignoring comments and quoted content.
 let depth=0,quote='',comment=false;
 for(let i=0;i<style.length;i++){
