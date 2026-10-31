@@ -18,9 +18,9 @@ const bms = html.slice(html.indexOf('function openBms(packId,bms){'), html.index
 assert.match(bms, /class="detail-hero bms-operator-hero"/);
 assert.match(bms, /class="detail-block bms-operator-block"/);
 assert.match(bms, /function openBms\(packId,bms\)/);
-assert.match(html, /function openPack\(id\)/);
-assert.match(html, /function openBmsControls\(packId,bms,preserveScroll=false\)/);
-assert.match(html, /function openBmsTechnicalParameters\(packId,bms,preserveScroll=false\)/);
+assert.ok(/function openPack\(id\)/.test(html), 'SCADA openPack(id) missing');
+assert.ok(/function openBmsControls\(packId,bms,preserveScroll=false\)/.test(html), 'SCADA scroll-preserving openBmsControls signature missing');
+assert.ok(/function openBmsTechnicalParameters\(packId,bms,preserveScroll=false\)/.test(html), 'SCADA scroll-preserving openBmsTechnicalParameters signature missing');
 
 const responsive = style.slice(style.indexOf('DEV74.2 — SCADA responsive'));
 assert(responsive.length > 6000, 'Missing responsive stylesheet');
