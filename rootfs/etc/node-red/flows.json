@@ -10788,7 +10788,8 @@
     "wires": [
       [
         "13b6b22d1a8e5d02",
-        "34cada0000000002"
+        "34cada0000000002",
+        "74a0000000000002"
       ]
     ]
   },
@@ -11053,6 +11054,100 @@
     "name": "EXEC SCADA DASHBOARD DELETE",
     "x": 1265,
     "y": 1340,
+    "wires": [
+      [
+        "d476000000000001"
+      ],
+      [
+        "d476000000000001"
+      ],
+      [
+        "d476000000000001"
+      ]
+    ]
+  },
+  {
+    "id": "74a0000000000002",
+    "type": "function",
+    "z": "a03abd8e08b468db",
+    "x": 580,
+    "y": 1410,
+    "name": "BUILD SMARTPHOTON GLOW MENU (dev74)",
+    "func": "// DEV74: Glow Premium sidebar. Independent of SCADA and legacy dashboards.\nconst FEATURE = \"dashboard_premium\";\nconst DASHBOARD_FILE = \"/config/dashboards/smart_jkbms_glow.json\";\nconst DASHBOARD_URL_PATH = \"smart-jkbms-glow\";\nconst runtimeMode = String(\n    global.get(\"premium.runtime_mode\") ||\n    global.get(\"jkbms_runtime_mode\") ||\n    \"legacy\"\n).trim().toLowerCase();\nconst features = global.get(\"premium.features\") || {};\nconst allowed =\n    runtimeMode === \"multi_pack\" &&\n    global.get(\"premium.multi_pack_premium_available\") === true &&\n    features[FEATURE] === true;\nif (!allowed) {\n    node.status({fill:\"grey\",shape:\"ring\",text:\"Glow: Premium Multi-Pack required\"});\n    msg.filename = DASHBOARD_FILE;\n    return [null, msg];\n}\nconst dashboard = {\n    dashboard_meta: {\n        url_path: DASHBOARD_URL_PATH,\n        title: \"SmartPhoton Glow\",\n        icon: \"mdi:lightning-bolt-circle\",\n        show_in_sidebar: true,\n        require_admin: false\n    },\n    config: {\n        views: [{\n            type: \"panel\",\n            path: \"monitor\",\n            title: \"SmartPhoton Glow\",\n            icon: \"mdi:lightning-bolt-circle\",\n            cards: [{\n                type: \"iframe\",\n                url: \"/local/smartphoton_jkbms_multipack/glow/index.html?v=dev74\",\n                aspect_ratio: \"56.25%\"\n            }]\n        }]\n    }\n};\nmsg.payload = JSON.stringify(dashboard);\nmsg.filename = DASHBOARD_FILE;\nnode.status({fill:\"green\",shape:\"dot\",text:\"Glow sidebar ready\"});\nnode.warn(\"DEV74 SmartPhoton Glow sidebar ready -> smart-jkbms-glow\");\nreturn [msg,null];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "wires": [
+      [
+        "74a0000000000003"
+      ],
+      [
+        "74a0000000000005"
+      ]
+    ]
+  },
+  {
+    "id": "74a0000000000003",
+    "type": "file",
+    "z": "a03abd8e08b468db",
+    "name": "dashboard SmartPhoton Glow",
+    "filename": "filename",
+    "filenameType": "msg",
+    "appendNewline": false,
+    "createDir": true,
+    "overwriteFile": "true",
+    "encoding": "utf8",
+    "x": 900,
+    "y": 1390,
+    "wires": [
+      [
+        "74a0000000000004"
+      ]
+    ]
+  },
+  {
+    "id": "74a0000000000004",
+    "type": "exec",
+    "z": "a03abd8e08b468db",
+    "command": "node /etc/node-red/dashboard_sync.js upsert /config/dashboards/smart_jkbms_glow.json",
+    "addpay": "",
+    "append": "",
+    "useSpawn": "false",
+    "timer": "",
+    "winHide": false,
+    "oldrc": false,
+    "name": "EXEC GLOW DASHBOARD UPSERT",
+    "x": 1250,
+    "y": 1390,
+    "wires": [
+      [
+        "d476000000000001"
+      ],
+      [
+        "d476000000000001"
+      ],
+      [
+        "d476000000000001"
+      ]
+    ]
+  },
+  {
+    "id": "74a0000000000005",
+    "type": "exec",
+    "z": "a03abd8e08b468db",
+    "command": "node /etc/node-red/dashboard_sync.js delete /config/dashboards/smart_jkbms_glow.json",
+    "addpay": "",
+    "append": "",
+    "useSpawn": "false",
+    "timer": "",
+    "winHide": false,
+    "oldrc": false,
+    "name": "EXEC GLOW DASHBOARD DELETE",
+    "x": 1250,
+    "y": 1430,
     "wires": [
       [
         "d476000000000001"
