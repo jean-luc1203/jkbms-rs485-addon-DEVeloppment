@@ -12,7 +12,7 @@ const sync=fs.readFileSync(path.join(base,'rootfs/etc/node-red/dashboard_sync.js
 assert.match(config,/version: 1\.0\.0-dev74\.3/);
 assert.equal(flows.length,445,'Unexpected Node-RED node count');
 assert.equal(flows.filter(n=>n.type==='function').length,104,'Unexpected Node-RED function count');
-const get=id=>{const n=flows.find(x=>x.id===id);assert(n&&n.type==='function',id+' missing');new vm.Script(n.func,{filename:n.name});return n.func};
+const get=id=>{const n=flows.find(x=>x.id===id);assert(n&&n.type==='function',id+' missing');new vm.Script('(function(msg){'+n.func+'})',{filename:n.name});return n.func};
 const premium=get('13b6b22d1a8e5d02');
 const scada=get('34cada0000000002');
 const glow=get('74a0000000000002');
