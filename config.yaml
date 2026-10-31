@@ -1,6 +1,6 @@
 ---
 name: "SmartPhoton JK-BMS Multi-Pack DEV74 GLOW TEST"
-version: 1.0.0-dev74
+version: 1.0.0-dev74.1
 slug: "smartphoton_jkbms_multipack"
 description: DEV74 candidate - packaged Premium Glow + SCADA dashboards, includes DEV73 BMS0 fix
 url: https://domosimple.eu/forum/thread-917.html
