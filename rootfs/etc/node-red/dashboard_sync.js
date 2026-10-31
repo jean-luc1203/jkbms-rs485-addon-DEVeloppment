@@ -40,7 +40,9 @@ const knownDashboardPaths = {
     "smart_jkbms.json": "smart-jkbms",
     "smart_jkbms_2.json": "smart-jkbms-2",
     "smart_energy_premium.json": "smart-energy-premium",
-    "smart_jkbms_multipack.json": "smart-jkbms-multipack"
+    "smart_jkbms_multipack.json": "smart-jkbms-multipack",
+    "smart_jkbms_scada.json": "smart-jkbms-scada",
+    "smart_jkbms_glow.json": "smart-jkbms-glow"
 };
 const expectedPath = knownDashboardPaths[require("path").basename(filePath)];
 const declaredPath = dashboardMeta.url_path;
