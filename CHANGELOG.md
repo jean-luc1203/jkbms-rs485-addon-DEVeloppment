@@ -1,3 +1,12 @@
+## 1.0.0-dev74.3 — 2026-10-31 — Concise JK-BMS sidebar and Diagnostics landing (draft)
+
+- HA sidebar names: `JK-BMS MultiPack` (Glow), `JK-BMS SCADA`, and `JK-BMS Diagnostics`, keeping existing URL paths and Premium registration.
+- Diagnostics becomes the first tab in the previous Multi-Pack Premium Lovelace dashboard, with Agrégation second; obsolete top-level Packs overview removed. Pack/BMS detailed subviews and their links remain available.
+- Restore real Step 13G threshold attributes (50 mV cell delta, 50 °C) in both HA compact diagnostic publishers; display unavailable values as —, not 0 mV.
+- Forward a bounded, concise `active_issues` list so the Diagnostics tab can describe active alarms consistently with the reported issue count.
+- Regression coverage: `tests/dev74-3-diagnostics-menu.test.cjs`. Candidate stays isolated from DEV74.2; do not deploy before physical alarm/write tests and owner approval.
+- **Scope:** UI navigation/metadata and diagnostic HA summary attributes only; no changes to alarm rule thresholds, BMS command engine, physical transports, or licensing logic.
+
 ## 1.0.0-dev74.2 — 2026-10-31 — SCADA Responsive & BMS readability (TEST)
 
 - SCADA `v0.39` adapts its operator screens to desktop, Home Assistant iframe, laptop and narrow mobile viewports.
