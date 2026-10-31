@@ -146,23 +146,26 @@ async function createDashboardIfNeeded() {
   }
 }
 
-async function updateDashboardInfoIfPossible() {
-  try {
-    await call("lovelace/dashboards/update", {
-      url_path: urlPath,
-      title,
-      icon,
-      show_in_sidebar: showInSidebar,
-      require_admin: requireAdmin,
-      mode: "storage"
-    });
-
-    return true;
-  } catch (err) {
-    // Some HA versions may reject update or mode here.
-    // Saving the dashboard config is still sufficient.
-    return false;
+async function updateDashboardInfo() {
+  // HA storage dashboard update requires dashboard_id, not url_path.
+  // The previous attempt passed url_path and mode, then swallowed the error.
+  // Consequently the Lovelace config was updated, but existing sidebar titles
+  // were never changed. Resolve the current registration without recreating it.
+  const dashboards = await listDashboards();
+  const dashboard = dashboards.find((item) =>
+    String(item?.url_path || "") === String(urlPath)
+  );
+  if (!dashboard || !dashboard.id) {
+    throw new Error(`Dashboard registration not found for metadata update: ${urlPath}`);
   }
+  await call("lovelace/dashboards/update", {
+    dashboard_id: dashboard.id,
+    title,
+    icon,
+    show_in_sidebar: showInSidebar,
+    require_admin: requireAdmin
+  });
+  return { updated: true, dashboard_id: dashboard.id };
 }
 
 async function saveDashboardConfig() {
@@ -176,12 +179,13 @@ async function saveDashboardConfig() {
 
 async function createOrUpdateDashboard() {
   const createdDashboard = await createDashboardIfNeeded();
-  const updatedDashboard = await updateDashboardInfoIfPossible();
+  const updatedDashboard = await updateDashboardInfo();
   const saved = await saveDashboardConfig();
 
   return {
     created_dashboard: createdDashboard,
-    updated_dashboard: updatedDashboard,
+    updated_dashboard: updatedDashboard.updated,
+    dashboard_id: updatedDashboard.dashboard_id,
     saved
   };
 }
