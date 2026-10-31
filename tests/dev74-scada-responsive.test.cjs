@@ -108,6 +108,19 @@ assert.match(headerFix,/\.detail-panel>\.detail-head\s*\{\s*background:#091e29/)
 assert.match(headerFix,/background:#091e29;min-height:70px/);
 assert(!headerFix.includes('backdrop-filter:blur'), 'Sticky header must remain opaque');
 
+// Desktop Home Assistant 1537px screenshot: the rail must set the row
+// height so the last status panel never overlaps the Trend panel.
+const desktopFix=style.slice(style.indexOf('DEV74.2 desktop HA iframe fix'));
+assert(desktopFix.length>500, 'Missing desktop rail height fix');
+for(const expected of [
+  '@media(min-width:1501px)',
+  'grid-template-rows:max-content max-content max-content minmax(218px,max-content) max-content',
+  '.main>.rail .kpi{flex:0 0 auto;min-height:104px}',
+  '.main>.rail .alarmbox{flex:0 0 auto;min-height:92px}',
+  '.main>.bottom{grid-row:4;min-height:218px}',
+  '.main>.demo{grid-row:5}'
+]) assert(desktopFix.includes(expected),'Missing desktop rail layout rule: '+expected);
+
 // Check CSS block balance, ignoring comments and quoted content.
 let depth=0,quote='',comment=false;
 for(let i=0;i<style.length;i++){
