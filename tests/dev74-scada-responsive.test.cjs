@@ -87,6 +87,27 @@ for (const expected of [
   '.detail-body .detail-grid{grid-template-columns:minmax(0,1fr)}',
 ]) assert(footerFix.includes(expected), 'Missing footer/mobile rule: ' + expected);
 
+// Narrow 360px/480px screenshots: changing from Pack to BMS to Conduite
+// reused an old scroll offset and made content show through a translucent title.
+const modalBlock=html.slice(html.indexOf('function showScadaDetail('),html.indexOf('function openPack('));
+assert.match(modalBlock,/function showScadaDetail\(preserveScroll=false\)/);
+assert.match(modalBlock,/panel\.scrollTop=preserveScroll\?previous:0/);
+const controlsBlock=html.slice(html.indexOf('function openBmsControls('),html.indexOf('const BMS_PARAMETER_SECTIONS='));
+assert.match(controlsBlock,/showScadaDetail\(preserveScroll\)/);
+assert.match(controlsBlock,/openBmsControls\(packId,bms,true\)/);
+assert.match(controlsBlock,/panel\.scrollTop=at/);
+const parameterBlock=html.slice(html.indexOf('function openBmsTechnicalParameters('),html.indexOf('function findParameterDef('));
+assert.match(parameterBlock,/showScadaDetail\(preserveScroll\)/);
+assert.match(parameterBlock,/openBmsTechnicalParameters\(packId,bms,true\)/);
+const screenBlock=html.slice(html.indexOf('function openBms(packId,bms){'),html.indexOf('function openBmsOverview(){'));
+assert.match(screenBlock,/showScadaDetail\(\)/);
+const packBlock=html.slice(html.indexOf('function openPack(id){'),html.indexOf('function boolState('));
+assert.match(packBlock,/showScadaDetail\(\)/);
+const headerFix=style.slice(style.indexOf('DEV74.2: mobile operator sheet header'));
+assert.match(headerFix,/\.detail-panel>\.detail-head\s*\{\s*background:#091e29/);
+assert.match(headerFix,/background:#091e29;min-height:70px/);
+assert(!headerFix.includes('backdrop-filter:blur'), 'Sticky header must remain opaque');
+
 // Check CSS block balance, ignoring comments and quoted content.
 let depth=0,quote='',comment=false;
 for(let i=0;i<style.length;i++){
