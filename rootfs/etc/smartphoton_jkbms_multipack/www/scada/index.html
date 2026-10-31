@@ -895,6 +895,147 @@ body.single-pack .opstrip{grid-template-columns:repeat(4,minmax(120px,1fr)) 1.65
 .dry-config-foot{line-height:1.6}
 @media(max-width:850px){.dry-config-grid{grid-template-columns:1fr}.dry-editor{flex-wrap:wrap}.dry-editor select{flex-basis:100%}}
 
+
+/* =========================================================
+   DEV74.2 — SCADA responsive / readable BMS operator workspace
+   Presentation only: telemetry, commands, alarm logic unchanged.
+   The viewport here is the Home Assistant iframe viewport.
+   ========================================================= */
+html,body{min-width:0}
+.app{width:100%;min-width:0;height:100vh;height:100dvh;grid-template-rows:84px minmax(0,1fr)}
+.header,.main,.process,.rail,.bottom,.trend,.events,.centerbus,.packrow{min-width:0}
+.main{min-height:0;overscroll-behavior:contain}
+.headtitle{min-width:0}
+.scada-overlay{padding:clamp(8px,1.5vw,24px)}
+.detail-panel{width:min(1640px,100%);max-width:100%;max-height:calc(100vh - 20px);max-height:calc(100dvh - 20px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+.detail-body{min-width:0;grid-template-columns:minmax(280px,350px) minmax(0,1fr)}
+.detail-body>*{min-width:0}
+.detail-title{min-width:0;overflow-wrap:anywhere}
+.detail-head .close{flex:0 0 auto;white-space:nowrap}
+
+/* A BMS sheet is an operator workspace, not a thumbnail inventory. */
+.detail-body:has(.bms-operator-block){grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:20px}
+.bms-operator-hero>.online{font-size:13px;line-height:1.4}
+.bms-operator-hero .detail-mode{font-size:15px;line-height:1.4;white-space:normal}
+.bms-operator-hero .detail-metric span{font-size:13px;line-height:1.35;white-space:normal}
+.bms-operator-hero .detail-metric b{font-size:20px}
+.bms-operator-block .bms-title{flex-wrap:wrap;align-items:center;gap:12px}
+.bms-operator-block .bms-title span{font-size:15px;line-height:1.35;letter-spacing:1px}
+.bms-operator-block .bms-title b{font-size:18px}
+.bms-operator-block .inline-actions{min-width:0;max-width:100%;justify-content:flex-start;flex-wrap:wrap;gap:9px}
+.bms-operator-block .inline-action{font-size:13px;line-height:1.35;min-height:42px;padding:10px 13px;white-space:normal}
+.bms-operator-block .bms-live-grid,
+.bms-operator-block .state-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,185px),1fr));gap:12px}
+.bms-operator-block .bms-live-tile,
+.bms-operator-block .state-tile{min-width:0;min-height:98px;padding:16px}
+.bms-operator-block .bms-live-tile span,
+.bms-operator-block .state-tile span{font-size:14px;letter-spacing:.35px;line-height:1.35}
+.bms-operator-block .bms-live-tile b{font-size:clamp(21px,1.4vw,25px);line-height:1.25;white-space:normal;overflow-wrap:anywhere}
+.bms-operator-block .state-tile b{font-size:clamp(17px,1.15vw,21px);line-height:1.3;overflow-wrap:anywhere}
+.bms-operator-block .bms-title:not(:first-child){margin-top:22px}
+
+/* FHD / laptop: reflow the synoptic and keep both side summaries visible. */
+@media(max-width:1500px){
+  .main{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto auto auto;align-content:start}
+  .sectionbar,.opstrip,.bottom{grid-column:1}
+  .process{grid-column:1;min-height:0;overflow:visible}
+  .synoptic{position:relative;left:auto;right:auto;top:auto;bottom:auto;margin-top:20px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"source load" "bus bus";gap:14px;align-items:stretch}
+  .source{grid-area:source}.load{grid-area:load}.centerbus{grid-area:bus}
+  .source,.load{display:block;height:auto;min-height:145px}
+  .centerbus{min-height:0}
+  .packrow{grid-template-columns:repeat(auto-fit,minmax(min(100%,235px),1fr));gap:12px}
+  .pack{height:auto;min-height:260px}
+  .rail{grid-column:1;grid-row:auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .rail-title,.alarmbox{grid-column:1/-1}
+  .bottom{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .header{gap:14px;padding:0 18px}
+  .headtitle{min-width:0}
+  .headchips{display:flex;flex-wrap:wrap}
+  .detail-body:has(.bms-operator-block){grid-template-columns:minmax(280px,330px) minmax(0,1fr)}
+}
+@media(max-width:1050px){
+  .app{grid-template-rows:auto minmax(0,1fr)}
+  .header{min-height:70px;padding:10px 16px;gap:12px}
+  .headchips{display:none}
+  .opstrip{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .op-hint{display:none}
+  .rail{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .bottom{grid-template-columns:1fr}
+  .detail-body,.detail-body:has(.bms-operator-block){grid-template-columns:1fr}
+  .bms-operator-hero{display:grid;grid-template-columns:minmax(155px,220px) minmax(0,1fr);gap:8px 18px;text-align:left;align-items:center}
+  .bms-operator-hero .detail-soc{grid-row:1/5;grid-column:1;margin:0 auto}
+  .bms-operator-hero>.online,
+  .bms-operator-hero .detail-power,
+  .bms-operator-hero .detail-mode,
+  .bms-operator-hero .detail-grid{grid-column:2}
+  .param-workspace,.control-workspace{grid-template-columns:1fr}
+  .param-summary{position:static}
+  .param-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}
+  .dry-config-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))}
+}
+@media(max-width:800px){
+  .app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr)}
+  .header{grid-column:1;grid-row:1}
+  .sidebar{grid-column:1;grid-row:2;min-width:0;padding:6px 10px;flex-direction:row;align-items:center;border-right:0;border-bottom:1px solid #153344}
+  .brandmark,.navspacer,.version{display:none}
+  .nav{width:100%;flex-direction:row;gap:5px;overflow-x:auto;overscroll-behavior-x:contain}
+  .navitem{flex:0 0 82px;height:57px;font-size:10px;letter-spacing:.3px;gap:2px}
+  .navitem .ico{font-size:19px}
+  .main{grid-column:1;grid-row:3;padding:12px;gap:12px}
+  .synoptic{gap:10px}
+  .packrow{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
+  .detail-panel{width:100%;max-height:calc(100dvh - 16px)}
+  .detail-head{height:auto;min-height:68px;padding:10px 15px;gap:12px}
+  .detail-body{padding:14px;gap:14px}
+  .bms-operator-block .bms-live-grid,
+  .bms-operator-block .state-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .control-confirm-layer{padding:12px}
+  .control-confirm-card{max-height:calc(100dvh - 24px);overflow-y:auto}
+}
+@media(max-width:600px){
+  .header{min-height:58px;padding:8px 12px}
+  .headtitle b{font-size:17px}
+  .headtitle span,.divider,.clock small{display:none}
+  .headright{gap:7px}.clock b{font-size:13px}
+  .sectionbar{flex-wrap:wrap;gap:8px}
+  .sectionline{display:none}
+  .mode{width:100%}
+  .synoptic{grid-template-columns:1fr;grid-template-areas:"source" "bus" "load"}
+  .source,.load{min-height:120px}
+  .packrow{grid-template-columns:1fr}
+  .rail{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .rail .kpi{min-width:0}
+  .opstrip{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .opstrip>div{min-width:0;padding:10px}
+  .scada-overlay{padding:0}
+  .detail-panel{width:100vw;max-height:100vh;max-height:100dvh;border-radius:0}
+  .detail-head{padding:10px 12px}
+  .detail-title small{font-size:10px;letter-spacing:.8px}
+  .detail-title b{font-size:20px}
+  .detail-head .close{font-size:12px;padding:9px 10px}
+  .detail-body{padding:12px;gap:12px}
+  .detail-hero,.detail-block{padding:12px}
+  .bms-operator-hero{display:block;text-align:center}
+  .bms-operator-hero .detail-soc{margin:10px auto}
+  .bms-operator-block .bms-live-tile,
+  .bms-operator-block .state-tile{min-height:88px;padding:12px}
+  .bms-operator-block .bms-live-tile span,
+  .bms-operator-block .state-tile span{font-size:12.5px}
+  .bms-operator-block .bms-live-tile b{font-size:19px}
+  .bms-operator-block .state-tile b{font-size:16px}
+  .bms-operator-block .inline-action{flex:1 1 140px}
+  .param-grid,.control-grid,.dry-config-grid{grid-template-columns:1fr}
+  .alarm-history-row,.audit-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .alarm-history-row .msg,.audit-target,.audit-detail{grid-column:1/-1;min-width:0}
+  .control-confirm-target{grid-template-columns:1fr}
+  .control-confirm-actions{flex-wrap:wrap}
+}
+@media(max-width:390px){
+  .bms-operator-block .bms-live-grid,
+  .bms-operator-block .state-grid{grid-template-columns:1fr}
+  .rail{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body>
@@ -1756,7 +1897,7 @@ function openBms(packId,bms){
  const mode=b.power>25?'CHARGE':b.power<-25?'DÉCHARGE':'REPOS';const sign=b.power>0?'+':'';const fc=freshnessClass(b.ageSec??999);
  document.getElementById('detailEyebrow').textContent=`${p.name} · Supervision BMS`;
  document.getElementById('detailTitle').textContent=`BMS ${bms}`;
- document.getElementById('detailBody').innerHTML=`<div class="detail-hero"><div class="online">${b.alarm?'ALARME ACTIVE':'ONLINE · COMMUNICATION OK'}</div><div class="detail-soc" style="--soc:${Math.max(0,Math.min(100,b.soc||0))}"><div><b>${(b.soc||0).toFixed(0)}%</b><small>STATE OF CHARGE</small></div></div><div class="detail-power">${sign}${(b.power/1000).toFixed(2)} kW</div><div class="detail-mode">${mode} · ${(b.a||0).toFixed(1)} A</div><div class="detail-grid"><div class="detail-metric"><span>Tension</span><b>${(b.v||0).toFixed(2)} V</b></div><div class="detail-metric"><span>Delta</span><b>${(b.d||0).toFixed(0)} mV</b></div><div class="detail-metric"><span>Temp max</span><b>${(b.t||0).toFixed(0)} °C</b></div><div class="detail-metric"><span>Télémétrie</span><b class="${fc}">${freshnessLabel(b.ageSec)}</b></div></div></div><div class="detail-block"><div class="bms-title"><span>Mesures instantanées</span><div class="inline-actions"><button class="inline-action cells" onclick="openCellDiagnostics('${packId}','${bms}')">▦ Diagnostic cellules</button><button class="inline-action control" onclick="openBmsControls('${packId}','${bms}')">⚙ Conduite</button><button class="inline-action parameters" onclick="openBmsTechnicalParameters('${packId}','${bms}')">⚙ Paramètres techniques</button><button class="inline-action" onclick="openPack('${packId}')">← Retour au pack</button></div></div><div class="bms-live-grid"><div class="bms-live-tile primary"><span>Puissance</span><b>${sign}${(b.power/1000).toFixed(2)} kW</b></div><div class="bms-live-tile"><span>Courant</span><b>${(b.a||0).toFixed(2)} A</b></div><div class="bms-live-tile"><span>SOC</span><b>${(b.soc||0).toFixed(0)} %</b></div><div class="bms-live-tile ${b.d>=30?'warn':''}"><span>Delta cellules</span><b>${(b.d||0).toFixed(0)} mV</b></div><div class="bms-live-tile"><span>MOS</span><b>${b.mos==null?'—':b.mos.toFixed(1)+' °C'}</b></div><div class="bms-live-tile"><span>Batterie 1</span><b>${b.t1==null?'—':b.t1.toFixed(1)+' °C'}</b></div><div class="bms-live-tile"><span>Batterie 2</span><b>${b.t2==null?'—':b.t2.toFixed(1)+' °C'}</b></div><div class="bms-live-tile"><span>Équilibrage</span><b>${Math.abs(b.balance||0).toFixed(3)} A</b></div></div><div class="bms-title"><span>État BMS</span><b>${b.alarm?'ALARME':'NORMAL'}</b></div><div class="state-grid">${boolState('MOS charge',b.charge)}${boolState('MOS décharge',b.discharge)}${boolState('Équilibrage',b.balancing)}<div class="state-tile ${b.alarm?'state-bad':'state-ok'}"><span>Alarmes</span><b>${b.alarm?'ACTIVE':'AUCUNE'}</b></div></div><div class="bms-title" style="margin-top:18px"><span>Capacité / santé</span><b>${b.soh==null?'LIVE':(b.soh.toFixed(0)+' % SOH')}</b></div><div class="bms-live-grid"><div class="bms-live-tile"><span>Capacité restante</span><b>${b.remaining==null?'—':b.remaining.toFixed(1)+' Ah'}</b></div><div class="bms-live-tile"><span>Capacité nominale</span><b>${b.nominal==null?'—':b.nominal.toFixed(1)+' Ah'}</b></div><div class="bms-live-tile"><span>État process</span><b>${mode}</b></div><div class="bms-live-tile"><span>Adresse JK</span><b>${bms}</b></div></div></div>`;
+ document.getElementById('detailBody').innerHTML=`<div class="detail-hero bms-operator-hero"><div class="online">${b.alarm?'ALARME ACTIVE':'ONLINE · COMMUNICATION OK'}</div><div class="detail-soc" style="--soc:${Math.max(0,Math.min(100,b.soc||0))}"><div><b>${(b.soc||0).toFixed(0)}%</b><small>STATE OF CHARGE</small></div></div><div class="detail-power">${sign}${(b.power/1000).toFixed(2)} kW</div><div class="detail-mode">${mode} · ${(b.a||0).toFixed(1)} A</div><div class="detail-grid"><div class="detail-metric"><span>Tension</span><b>${(b.v||0).toFixed(2)} V</b></div><div class="detail-metric"><span>Delta</span><b>${(b.d||0).toFixed(0)} mV</b></div><div class="detail-metric"><span>Temp max</span><b>${(b.t||0).toFixed(0)} °C</b></div><div class="detail-metric"><span>Télémétrie</span><b class="${fc}">${freshnessLabel(b.ageSec)}</b></div></div></div><div class="detail-block bms-operator-block"><div class="bms-title"><span>Mesures instantanées</span><div class="inline-actions"><button class="inline-action cells" onclick="openCellDiagnostics('${packId}','${bms}')">▦ Diagnostic cellules</button><button class="inline-action control" onclick="openBmsControls('${packId}','${bms}')">⚙ Conduite</button><button class="inline-action parameters" onclick="openBmsTechnicalParameters('${packId}','${bms}')">⚙ Paramètres techniques</button><button class="inline-action" onclick="openPack('${packId}')">← Retour au pack</button></div></div><div class="bms-live-grid"><div class="bms-live-tile primary"><span>Puissance</span><b>${sign}${(b.power/1000).toFixed(2)} kW</b></div><div class="bms-live-tile"><span>Courant</span><b>${(b.a||0).toFixed(2)} A</b></div><div class="bms-live-tile"><span>SOC</span><b>${(b.soc||0).toFixed(0)} %</b></div><div class="bms-live-tile ${b.d>=30?'warn':''}"><span>Delta cellules</span><b>${(b.d||0).toFixed(0)} mV</b></div><div class="bms-live-tile"><span>MOS</span><b>${b.mos==null?'—':b.mos.toFixed(1)+' °C'}</b></div><div class="bms-live-tile"><span>Batterie 1</span><b>${b.t1==null?'—':b.t1.toFixed(1)+' °C'}</b></div><div class="bms-live-tile"><span>Batterie 2</span><b>${b.t2==null?'—':b.t2.toFixed(1)+' °C'}</b></div><div class="bms-live-tile"><span>Équilibrage</span><b>${Math.abs(b.balance||0).toFixed(3)} A</b></div></div><div class="bms-title"><span>État BMS</span><b>${b.alarm?'ALARME':'NORMAL'}</b></div><div class="state-grid">${boolState('MOS charge',b.charge)}${boolState('MOS décharge',b.discharge)}${boolState('Équilibrage',b.balancing)}<div class="state-tile ${b.alarm?'state-bad':'state-ok'}"><span>Alarmes</span><b>${b.alarm?'ACTIVE':'AUCUNE'}</b></div></div><div class="bms-title" style="margin-top:18px"><span>Capacité / santé</span><b>${b.soh==null?'LIVE':(b.soh.toFixed(0)+' % SOH')}</b></div><div class="bms-live-grid"><div class="bms-live-tile"><span>Capacité restante</span><b>${b.remaining==null?'—':b.remaining.toFixed(1)+' Ah'}</b></div><div class="bms-live-tile"><span>Capacité nominale</span><b>${b.nominal==null?'—':b.nominal.toFixed(1)+' Ah'}</b></div><div class="bms-live-tile"><span>État process</span><b>${mode}</b></div><div class="bms-live-tile"><span>Adresse JK</span><b>${bms}</b></div></div></div>`;
  document.getElementById('scadaOverlay').classList.add('open');
 }
 
