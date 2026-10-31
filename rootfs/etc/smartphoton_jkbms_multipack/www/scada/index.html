@@ -1193,6 +1193,22 @@ html,body{min-width:0}
   .main>.demo{grid-row:5}
 }
 
+/* DEV74.2 desktop density follow-up: the rail now determines the process row's
+   height (no clipping). Keep that rail compact so the industrial synoptic
+   doesn't become a tall empty canvas on conventional desktop monitors. */
+@media(min-width:1501px){
+  .main>.rail{padding:12px;gap:8px}
+  .main>.rail .rail-title{min-height:16px}
+  .main>.rail .kpi{min-height:0;flex:0 0 auto;padding:9px 11px}
+  .main>.rail .kpi span{font-size:9px;line-height:1.2}
+  .main>.rail .kpi .value{margin-top:4px}
+  .main>.rail .kpi .value b{font-size:22px;line-height:1.2}
+  .main>.rail .kpi .bar{margin-top:6px}
+  .main>.rail .alarmbox{min-height:0;flex:0 0 auto;padding:10px}
+  .main>.rail .alarmrow{padding:6px 0}
+  .main>.process .synoptic{top:78px;bottom:15px}
+}
+
 </style>
 </head>
 <body>
