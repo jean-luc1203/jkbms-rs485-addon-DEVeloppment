@@ -1397,7 +1397,8 @@ function render(){
   const app=document.getElementById('app'); app.classList.toggle('wall', route==='/wall');
   for(const k in CHARTS) delete CHARTS[k];
   let html;
-  if(!PACKS.length && S.mode!=='demo') html=header('SmartPhoton','En attente des données JK-BMS')+`<div class="alert info"><span class="ic">🔌</span><div><b>${esc(S.haStatus)}</b><small>Ouvrez Glow depuis le tableau de bord Home Assistant. Si la session ne peut pas être réutilisée, configurez une connexion dans les réglages. Aucune donnée fictive n’est affichée.</small></div></div><p><a class="btn primary" href="#/settings">Connexion Home Assistant</a></p>`;
+  if(route==='/settings') html=pageSettings();
+  else if(!PACKS.length && S.mode!=='demo') html=header('SmartPhoton','En attente des données JK-BMS')+`<div class="alert info"><span class="ic">🔌</span><div><b>${esc(S.haStatus)}</b><small>Ouvrez Glow depuis le tableau de bord Home Assistant. Si la session ne peut pas être réutilisée, configurez une connexion dans les réglages. Aucune donnée fictive n’est affichée.</small></div></div><p><a class="btn primary" href="#/settings">Connexion Home Assistant</a></p>`;
   else if(route==='/wall') html=pageWall();
   else if(m){ const p=PACKS.find(x=>x.id==m[1]); const b=m[3]&&p?.bms.find(x=>x.id==m[3]);
     html = b ? pageBms(p,b,m[4]||'live') : p ? pagePack(p,m[2]) : pageOverview(); }
