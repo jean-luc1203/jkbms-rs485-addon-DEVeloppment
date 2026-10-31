@@ -56,6 +56,18 @@ for (const expected of [
   '.control-card .control-desc{font-size:12px',
 ]) assert(screenshotFix.includes(expected), 'Missing screenshot fix: '+expected);
 
+// Regression for 1100px and 600px screenshots: five auto rows shrink
+// inside the fixed-height app and paint the process over later panels.
+const trackFix = responsive.slice(responsive.indexOf('DEV74.2 narrow viewport track sizing fix'));
+assert(trackFix.length > 600, 'Missing narrow viewport track sizing fix');
+for (const expected of [
+  'grid-template-rows:repeat(5,max-content)',
+  'grid-auto-rows:max-content',
+  'overflow-y:auto',
+  '.main>.process{height:max-content;overflow:visible}',
+  '.main>.rail{height:max-content;overflow:visible}',
+]) assert(trackFix.includes(expected), 'Missing non-overlapping narrow viewport track rule: '+expected);
+
 // Check CSS block balance, ignoring comments and quoted content.
 let depth=0,quote='',comment=false;
 for(let i=0;i<style.length;i++){
