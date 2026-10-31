@@ -86,7 +86,8 @@ assert.equal(sanitized.active_issues[0].value_mv,57);
 const mirrorFn=extractFunction(audit,'compactDiagnostic');
 const mirrored=vm.runInNewContext('(function(){'+mirrorFn+';return compactDiagnostic(input,snap)})()',{
  input:diagInput,snap:{alarm_history_count:0,alarm_active_count:0,command_count:0,generated_at:'test'},
- shortText:(x,max)=>x==null?null:String(x).slice(0,max)
+ shortText:(x,max)=>x==null?null:String(x).slice(0,max),
+ COMMAND_MAX:240, DETAIL_TOPIC:'jkbms/scada/audit/snapshot'
 });
 assert.deepEqual(JSON.parse(JSON.stringify(mirrored.thresholds)),diagInput.thresholds);
 assert.equal(mirrored.active_issues[0].code,'CELL_DELTA_HIGH');
