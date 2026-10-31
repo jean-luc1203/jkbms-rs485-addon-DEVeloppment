@@ -68,6 +68,25 @@ for (const expected of [
   '.main>.rail{height:max-content;overflow:visible}',
 ]) assert(trackFix.includes(expected), 'Missing non-overlapping narrow viewport track rule: '+expected);
 
+// DEV74.2 follow-up: the status/demo footer must scroll with the dashboard,
+// not obscure the last row of packs or operator journal.
+const footer = '<div class="demo"><span id="dataMode">';
+const footerIndex = html.indexOf(footer);
+assert(footerIndex > 0, 'SCADA footer missing');
+assert(footerIndex < html.indexOf('</main>'), 'Footer must be inside scrolling main');
+assert.equal(html.indexOf(footer, footerIndex + 1), -1, 'Footer duplicated');
+const footerFix = responsive.slice(responsive.indexOf('DEV74.2 operator follow-up'));
+assert(footerFix.length > 800, 'Missing footer and mobile operator follow-up');
+for (const expected of [
+  '.main>.demo{',
+  'position:relative;inset:auto;grid-column:1/-1;grid-row:auto',
+  '.main>.demo{grid-column:1;grid-row:6',
+  '.detail-body .detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}',
+  '.detail-body .bms-cards{grid-template-columns:minmax(0,1fr)}',
+  '.control-action-btn{min-height:40px}',
+  '.detail-body .detail-grid{grid-template-columns:minmax(0,1fr)}',
+]) assert(footerFix.includes(expected), 'Missing footer/mobile rule: ' + expected);
+
 // Check CSS block balance, ignoring comments and quoted content.
 let depth=0,quote='',comment=false;
 for(let i=0;i<style.length;i++){
