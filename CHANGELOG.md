@@ -1,3 +1,11 @@
+## 1.0.0-dev74.3.1 — 2026-10-31 — HA existing dashboard titles sync hotfix
+
+- Fix `dashboard_sync.js` existing-dashboard metadata update: resolve stored `dashboard_id` using `lovelace/dashboards/list`, then update title/icon/sidebar flags through `lovelace/dashboards/update` without unsupported `url_path` or `mode` fields.
+- Previous implementation silently ignored the WebSocket metadata update error: dashboard content saved, but sidebar retained old titles. DEV74.3.1 fails and logs when metadata update fails.
+- Keep `smart-jkbms-glow`, `smart-jkbms-scada`, and `smart-jkbms-multipack` URLs unchanged. Restore intended titles `JK-BMS MultiPack`, `JK-BMS SCADA`, and `JK-BMS Diagnostics`.
+- Add regression mock covering the three existing registrations, first-create case, unknown registration, and explicit HA metadata-update rejection.
+- No changes to BMS serial/CAN, MQTT, license, Node-RED flows, Active Polling, alarm thresholds or commands.
+
 ## 1.0.0-dev74.3 — 2026-10-31 — Concise JK-BMS sidebar and Diagnostics landing (draft)
 
 - HA sidebar names: `JK-BMS MultiPack` (Glow), `JK-BMS SCADA`, and `JK-BMS Diagnostics`, keeping existing URL paths and Premium registration.
