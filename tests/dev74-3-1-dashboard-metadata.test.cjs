@@ -6,6 +6,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const sync = fs.readFileSync(path.join(__dirname,'..','rootfs/etc/node-red/dashboard_sync.js'),'utf8');
+const flows=JSON.parse(fs.readFileSync(path.join(__dirname,'..','rootfs/etc/node-red/flows.json'),'utf8'));
+assert.equal(flows.length,445,'Node-RED node count changed unexpectedly');
+const syncLog=flows.find(n=>n.name==='Dashboard sync : résultat journalisé');
+assert(syncLog && syncLog.func.includes('"smart-jkbms-glow"'),'Glow dashboard must not be logged as unspecified');
+
 const dashboards=[
   ['smart_jkbms_glow.json','smart-jkbms-glow','JK-BMS MultiPack'],
   ['smart_jkbms_scada.json','smart-jkbms-scada','JK-BMS SCADA'],
