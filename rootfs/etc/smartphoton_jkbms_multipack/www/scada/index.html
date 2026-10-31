@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>SmartPhoton Industrial SCADA — v0.35 · Technical parameters readability</title>
+<title>SmartPhoton Industrial SCADA — v0.39 · Responsive operator screens</title>
 <style>
 :root{
   --bg:#061018;--bg2:#081722;--panel:#0a1c28;--panel2:#0d2432;--line:#17384a;
@@ -1051,7 +1051,7 @@ html,body{min-width:0}
       <div class="navitem" data-view="trends"><div class="ico">⌁</div><div>Trends</div></div>
       <div class="navitem" data-view="service"><div class="ico">⚙</div><div>Service</div></div>
     </div>
-    <div class="navspacer"></div><div class="version">SCADA<br>v0.38</div>
+    <div class="navspacer"></div><div class="version">SCADA<br>v0.39</div>
   </aside>
   <header class="header">
     <div class="headtitle"><b>SmartPhoton JK‑BMS</b><span>Industrial SCADA</span></div>
@@ -1087,7 +1087,7 @@ html,body{min-width:0}
 <div class="scada-overlay" id="scadaOverlay"><section class="detail-panel"><div class="detail-head"><div class="detail-title"><small id="detailEyebrow">Fiche opérateur</small><b id="detailTitle">Pack</b></div><button class="close" id="detailClose">✕&nbsp;&nbsp;FERMER</button></div><div class="detail-body" id="detailBody"></div></section></div>
 
 <div class="control-confirm-layer" id="controlConfirmLayer"><div class="control-confirm-card" id="controlConfirmCard"><div class="ey">Confirmation opérateur · commande BMS</div><h3 id="controlConfirmTitle">Confirmer la commande</h3><p id="controlConfirmText"></p><div class="control-confirm-safety" id="controlConfirmSafety"></div><div class="control-confirm-target"><div><span>État actuel</span><b id="controlConfirmCurrent">—</b></div><div><span>État demandé</span><b id="controlConfirmRequested">—</b></div></div><div class="control-confirm-entity" id="controlConfirmEntity">—</div><p>Le SCADA n'anticipe jamais le résultat : après l'envoi, l'état ne sera déclaré confirmé qu'après lecture du retour réel publié par le BMS.</p><div class="control-confirm-actions"><button onclick="cancelControlCommandConfirm()">ANNULER</button><button class="go" id="controlConfirmGo" onclick="confirmControlCommand()">CONFIRMER</button></div></div></div>
-<div class="demo"><span id="dataMode">SMARTPHOTON SCADA · v0.35 · DEMO DATA</span><span id="demoToggle" style="margin-left:10px;cursor:pointer;color:#5f8fa4">[ BASCULER 1 PACK / MULTI ]</span></div>
+<div class="demo"><span id="dataMode">SMARTPHOTON SCADA · v0.39 · DEMO DATA</span><span id="demoToggle" style="margin-left:10px;cursor:pointer;color:#5f8fa4">[ BASCULER 1 PACK / MULTI ]</span></div>
 <script>
 const demoPacks=[
  {id:'pack_1',name:'Pack 1 · Real',soc:84,power:+1420,v:53.25,a:26.7,d:11,t:27,bms:2,members:['1','3'],ageSec:0.8},
@@ -1096,8 +1096,8 @@ const demoPacks=[
  {id:'pack_4',name:'Pack 4 · Lab',soc:81,power:+930,v:53.24,a:17.5,d:16,t:30,bms:4,members:['1','2','3','4'],ageSec:1.4}
 ];
 const EP='smartphoton_jk_bms_multi_pack';
-const SCADA_BUILD='1.0.0-dev70';
-const SCADA_UI='v0.38';
+const SCADA_BUILD='1.0.0-dev74.2';
+const SCADA_UI='v0.39';
 const SCADA_QUERY=new URLSearchParams(window.location.search);
 const COMM_MODE=(SCADA_QUERY.get('comm')||'').toLowerCase();
 function commModeLabel(){
@@ -2252,7 +2252,7 @@ function render(){
  document.getElementById('opMode').textContent=pkw>0.03?'CHARGE':pkw<-0.03?'DÉCHARGE':'REPOS';
  document.getElementById('opFresh').textContent=freshnessLabel(maxAge); document.getElementById('opFresh').style.color=maxAge<20?'var(--green)':maxAge<45?'var(--amber)':'var(--red)';
  document.getElementById('liveBadge').textContent=live?'● HA CONNECTÉ · UI 1 s':'● DEMO · LIVE READY';
- document.getElementById('dataMode').textContent=live?`SMARTPHOTON SCADA · HOME ASSISTANT LIVE · ${singlePack?'SINGLE PACK':'MULTI‑PACK'}`:`SMARTPHOTON SCADA · v0.35 · DEMO ${singlePack?'1 PACK':'MULTI'}`;
+ document.getElementById('dataMode').textContent=live?`SMARTPHOTON SCADA · HOME ASSISTANT LIVE · ${singlePack?'SINGLE PACK':'MULTI‑PACK'}`:`SMARTPHOTON SCADA · v0.39 · DEMO ${singlePack?'1 PACK':'MULTI'}`;
  const demoToggle=document.getElementById('demoToggle'); if(demoToggle) demoToggle.style.display=live?'none':'inline';
 }
 
@@ -2276,7 +2276,7 @@ document.querySelectorAll('.navitem').forEach(n=>n.addEventListener('click',()=>
    document.getElementById('scadaOverlay').classList.add('open');
  } else if(v!=='process'){
    document.getElementById('detailEyebrow').textContent='SmartPhoton SCADA';document.getElementById('detailTitle').textContent=v.toUpperCase();
-   document.getElementById('detailBody').innerHTML=`<div class="detail-block" style="grid-column:1/3"><div class="bms-title"><span>Écran en préparation</span><b>v0.35</b></div><div style="color:#7899a7;font-size:12px;line-height:1.8">Cette zone est réservée à une prochaine étape SCADA. Process, Packs, BMS, Alarmes, Audit, Trends et Service sont opérationnels.</div></div>`;
+   document.getElementById('detailBody').innerHTML=`<div class="detail-block" style="grid-column:1/3"><div class="bms-title"><span>Écran en préparation</span><b>v0.39</b></div><div style="color:#7899a7;font-size:12px;line-height:1.8">Cette zone est réservée à une prochaine étape SCADA. Process, Packs, BMS, Alarmes, Audit, Trends et Service sont opérationnels.</div></div>`;
    document.getElementById('scadaOverlay').classList.add('open');
  }
 }));
