@@ -1,3 +1,16 @@
+## 1.0.0-dev74.2 — 2026-10-31 — SCADA Responsive & BMS readability (TEST)
+
+- SCADA `v0.39` adapts its operator screens to desktop, Home Assistant iframe, laptop and narrow mobile viewports.
+- Increased BMS telemetry/status typography, hit targets and wrapping in Pack, BMS, Conduite and technical parameter views.
+- Industrial process view reflows source, diagnostic and pack cards rather than hiding them at narrow widths.
+- Fixed grid row shrink/overlap at narrow widths and Installation KPI overflow above Recorder trends at desktop widths.
+- Compact desktop Installation rail without obscuring process information; moved SCADA status/demo footer into the normal scrolling document.
+- Reset modal scroll at Pack → BMS → Conduite navigation while preserving scroll position on asynchronous BMS command readback updates; opaque mobile sticky header.
+- Added `tests/dev74-scada-responsive.test.cjs` and `docs/DEV74_SCADA_RESPONSIVE.md`.
+- **Scope:** SCADA presentation + add-on version / checks only. Retains DEV74 Glow/SCADA Premium registration and DEV73 physical address 0 discovery fix; no intended RS485, MQTT, command, alarm or licensing logic changes.
+- **Validation:** Firefox screenshots on local demo at 360px–desktop; SCADA in HAOS Test `.184` on live data (physical BMS 0/2 + three simulated TCP packs), 4 packs, 11 BMS, 30/30 numeric parameters per BMS shown. BMS write commands not exercised in this layout phase.
+- **Deployment caution:** Update the **existing** DEV74 repository/slug to retain its installed Premium identity. Never run two Multi-Pack test add-ons concurrently; HAOS Production `.217` unchanged.
+
 ## 1.0.0-dev73 CANDIDATE — 2026-10-18 — Physical BMS 0 SETUP Discovery (branch only)
 - Fix the remaining Active Polling address-0 MQTT/HA Discovery mismatch: the `Active Polling SETUP discovery` Node-RED function previously remapped physical JK address `0` to the Broadcasting-only name `master`, while SETUP rediscovery keys used `BMS_0`.
 - Preserve `BMS_0` consistently for Active Polling MQTT control/state topics, Home Assistant numeric SETUP entities, device identifiers, state tracking, migration cleanup and reconnect-triggered rediscovery.
