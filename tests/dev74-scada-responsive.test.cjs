@@ -41,6 +41,20 @@ for (const width of [1500,1050,800,600,390]) {
 }
 assert(!responsive.includes('display:none}.source,.load'), 'Responsive must not hide source/load');
 assert(!responsive.includes('transform:scale('), 'Do not shrink the entire SCADA to fit');
+const screenshotFix = responsive.slice(responsive.indexOf('DEV74.2 screenshot follow-up'));
+assert(screenshotFix.length > 2500, 'Missing screenshot-based fixes');
+for (const expected of [
+  '.main>.process{grid-column:1;grid-row:3',
+  '.main>.rail{grid-column:1;grid-row:4',
+  '.main>.bottom{grid-column:1;grid-row:5',
+  '.process>.synoptic{',
+  '.process>.synoptic>.source{grid-area:source;display:block',
+  '.process>.synoptic>.load{grid-area:load;display:block',
+  '.process>.synoptic>.centerbus{grid-area:bus',
+  '.packname{max-width:100%;white-space:normal',
+  '.rail .kpi{min-height:104px;overflow:visible}',
+  '.control-card .control-desc{font-size:12px',
+]) assert(screenshotFix.includes(expected), 'Missing screenshot fix: '+expected);
 
 // Check CSS block balance, ignoring comments and quoted content.
 let depth=0,quote='',comment=false;
