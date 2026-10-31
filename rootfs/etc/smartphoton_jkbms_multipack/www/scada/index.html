@@ -1098,6 +1098,30 @@ html,body{min-width:0}
 }
 @media(max-width:390px){.rail{grid-template-columns:minmax(0,1fr)}}
 
+/* DEV74.2 narrow viewport track sizing fix.
+   With a fixed-height app and overflow:auto on .main, five `auto` grid
+   tracks are shrinkable. At 1100/600px they shrink the process row while
+   its overflow:visible contents paint over the rail, trend and journal.
+   Intrinsic max-content tracks force the main scrolling surface to grow
+   vertically instead of stacking panels on top of each other. */
+@media(max-width:1500px){
+  .main{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:repeat(5,max-content);
+    grid-auto-rows:max-content;
+    align-content:start;
+    overflow-y:auto;
+    overflow-x:hidden;
+  }
+  .main>.sectionbar,.main>.opstrip,.main>.process,
+  .main>.rail,.main>.bottom{min-width:0;min-height:0}
+  .main>.process{height:max-content;overflow:visible}
+  .main>.process>.synoptic{height:auto;min-height:0}
+  .main>.process>.synoptic>.centerbus{height:auto}
+  .main>.rail{height:max-content;overflow:visible}
+  .main>.bottom{height:auto;min-height:220px}
+}
+
 </style>
 </head>
 <body>
