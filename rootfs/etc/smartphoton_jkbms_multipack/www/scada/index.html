@@ -1036,6 +1036,68 @@ html,body{min-width:0}
   .rail{grid-template-columns:1fr}
 }
 
+
+/* DEV74.2 screenshot follow-up: fix legacy explicit grid rows and clipping.
+   These overrides deliberately follow all historical SCADA media rules. */
+.pack-top{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:5px;min-width:0}
+.packname{max-width:100%;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;line-height:1.3}
+.pack-top .online{position:static;font-size:10px;line-height:1.35}
+.pack{overflow:visible;min-width:0;height:auto;min-height:278px}
+.pack .metrics{min-width:0}
+.pack .m{min-width:0}
+.pack .m b{overflow-wrap:anywhere}
+.rail .kpi{min-height:104px;overflow:visible}
+.rail .kpi .value{flex-wrap:wrap;overflow-wrap:anywhere}
+.rail .kpi .value b{line-height:1.25}
+.rail .alarmbox{min-height:0}
+.control-workspace{min-width:0}
+.control-workspace>*{min-width:0}
+.control-card{min-width:0;min-height:120px;padding:14px}
+.control-card .control-label{font-size:15px;line-height:1.3}
+.control-card .control-value{font-size:13px;white-space:normal;text-align:right}
+.control-card .control-desc{font-size:12px;line-height:1.4}
+.control-card .control-source{font-size:11px;flex-wrap:wrap}
+.control-card .control-source strong{font-size:10px;white-space:normal}
+.control-action-btn{font-size:12px;min-height:36px;padding:8px 11px}
+.control-command-line{font-size:11px;line-height:1.45}
+.control-lock{font-size:10px}
+.control-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+@media(max-width:1500px){
+  /* DEV37 assigned explicit rows and columns: reset them together. */
+  .main{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(5,auto);align-content:start}
+  .main>.sectionbar{grid-column:1;grid-row:1}
+  .main>.opstrip{grid-column:1;grid-row:2}
+  .main>.process{grid-column:1;grid-row:3;min-height:0;overflow:visible}
+  .main>.rail{grid-column:1;grid-row:4;min-height:0}
+  .main>.bottom{grid-column:1;grid-row:5}
+  /* No absolute positioning, implicit columns or hidden diagnostic panels. */
+  .process>.synoptic{
+    position:relative;inset:auto;margin-top:18px;
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+    grid-template-areas:"source load" "bus bus";
+    gap:14px;align-items:stretch;min-width:0;
+  }
+  .process>.synoptic>.source{grid-area:source;display:block;min-width:0;height:auto;min-height:155px}
+  .process>.synoptic>.load{grid-area:load;display:block;min-width:0;height:auto;min-height:155px}
+  .process>.synoptic>.centerbus{grid-area:bus;min-width:0;min-height:0;height:auto;display:block}
+  .centerbus>.busline,.centerbus>.flowdots{display:none}
+  .centerbus>.packrow{width:100%;grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr));gap:12px}
+  .rail{grid-template-columns:repeat(4,minmax(0,1fr));align-content:start}
+  .rail>.rail-title,.rail>.alarmbox{grid-column:1/-1}
+  .bottom{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:1050px){
+  .rail{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .bottom{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:600px){
+  .process>.synoptic{grid-template-columns:minmax(0,1fr);grid-template-areas:"source" "bus" "load"}
+  .centerbus>.packrow{grid-template-columns:minmax(0,1fr)}
+  .rail{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .control-grid{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:390px){.rail{grid-template-columns:minmax(0,1fr)}}
+
 </style>
 </head>
 <body>
