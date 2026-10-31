@@ -42,6 +42,16 @@ Test via `/smart-jkbms-scada/process` (Premium/HA embedded view) with real Pack 
 
 **Safety:** This branch is a distinct HAOS Supervisor candidate with the same internal slug and shared `/config/smartphoton_jkbms_multipack/` and port 1891. Never run DEV74.1 and DEV74.2 simultaneously. Back up HAOS Test and stop the existing candidate (disable autostart/watchdog) before starting DEV74.2. Keep HAOS Production .217 untouched. Use the existing Proxmox rollback snapshot or a newer one.
 
+## Responsive screenshots — 31 October 2026 (manual Firefox local demo)
+
+- Wide, ~820px and ~600px synoptic screenshots: no panel overlap after intrinsic grid row sizing.
+- Footer previously overlaid the end of the dashboard: moved inside the main scrolling grid; 950px and 360px screenshots show it scrolls to the end.
+- At Firefox 360×480, opening Pack → BMS → Conduite retained the previous modal scroll position, leaving the old content under a translucent sticky title. Added `showScadaDetail()`: navigation resets the modal scroll to zero and the title is fully opaque.
+- **Safety regression:** asynchronous control and technical parameter refreshes explicitly preserve the current scroll position during command read-back, so command state updates do not forcibly jump to the top.
+- Static tests check modal navigation helper, opaque header, preserved refresh scroll, JS syntax, and earlier CSS checks. Browser rendering remains to be confirmed after this commit. Do not test actual write commands in the local demo.
+
+**Next browser test:** in Firefox responsive mode 360×480, click Pack 1, scroll down into BMS cards, open BMS 1, then Conduite. Each newly opened view must begin with its title and first section (not the middle of a previous page). Scroll each view to the bottom and use Retour/Fermer. Verify neither title text nor controls are visible through the opaque title bar.
+
 ## Acceptance criteria
 
 - No critical content hidden at target widths; vertical scrolling is allowed.
