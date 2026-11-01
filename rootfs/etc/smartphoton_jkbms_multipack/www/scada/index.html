@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>SmartPhoton Industrial SCADA — v0.35 · Technical parameters readability</title>
+<title>SmartPhoton Industrial SCADA — v0.39 · Responsive operator screens</title>
 <style>
 :root{
   --bg:#061018;--bg2:#081722;--panel:#0a1c28;--panel2:#0d2432;--line:#17384a;
@@ -895,6 +895,320 @@ body.single-pack .opstrip{grid-template-columns:repeat(4,minmax(120px,1fr)) 1.65
 .dry-config-foot{line-height:1.6}
 @media(max-width:850px){.dry-config-grid{grid-template-columns:1fr}.dry-editor{flex-wrap:wrap}.dry-editor select{flex-basis:100%}}
 
+
+/* =========================================================
+   DEV74.2 — SCADA responsive / readable BMS operator workspace
+   Presentation only: telemetry, commands, alarm logic unchanged.
+   The viewport here is the Home Assistant iframe viewport.
+   ========================================================= */
+html,body{min-width:0}
+.app{width:100%;min-width:0;height:100vh;height:100dvh;grid-template-rows:84px minmax(0,1fr)}
+.header,.main,.process,.rail,.bottom,.trend,.events,.centerbus,.packrow{min-width:0}
+.main{min-height:0;overscroll-behavior:contain}
+.headtitle{min-width:0}
+.scada-overlay{padding:clamp(8px,1.5vw,24px)}
+.detail-panel{width:min(1640px,100%);max-width:100%;max-height:calc(100vh - 20px);max-height:calc(100dvh - 20px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+.detail-body{min-width:0;grid-template-columns:minmax(280px,350px) minmax(0,1fr)}
+.detail-body>*{min-width:0}
+.detail-title{min-width:0;overflow-wrap:anywhere}
+.detail-head .close{flex:0 0 auto;white-space:nowrap}
+
+/* A BMS sheet is an operator workspace, not a thumbnail inventory. */
+.detail-body:has(.bms-operator-block){grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:20px}
+.bms-operator-hero>.online{font-size:13px;line-height:1.4}
+.bms-operator-hero .detail-mode{font-size:15px;line-height:1.4;white-space:normal}
+.bms-operator-hero .detail-metric span{font-size:13px;line-height:1.35;white-space:normal}
+.bms-operator-hero .detail-metric b{font-size:20px}
+.bms-operator-block .bms-title{flex-wrap:wrap;align-items:center;gap:12px}
+.bms-operator-block .bms-title span{font-size:15px;line-height:1.35;letter-spacing:1px}
+.bms-operator-block .bms-title b{font-size:18px}
+.bms-operator-block .inline-actions{min-width:0;max-width:100%;justify-content:flex-start;flex-wrap:wrap;gap:9px}
+.bms-operator-block .inline-action{font-size:13px;line-height:1.35;min-height:42px;padding:10px 13px;white-space:normal}
+.bms-operator-block .bms-live-grid,
+.bms-operator-block .state-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,185px),1fr));gap:12px}
+.bms-operator-block .bms-live-tile,
+.bms-operator-block .state-tile{min-width:0;min-height:98px;padding:16px}
+.bms-operator-block .bms-live-tile span,
+.bms-operator-block .state-tile span{font-size:14px;letter-spacing:.35px;line-height:1.35}
+.bms-operator-block .bms-live-tile b{font-size:clamp(21px,1.4vw,25px);line-height:1.25;white-space:normal;overflow-wrap:anywhere}
+.bms-operator-block .state-tile b{font-size:clamp(17px,1.15vw,21px);line-height:1.3;overflow-wrap:anywhere}
+.bms-operator-block .bms-title:not(:first-child){margin-top:22px}
+
+/* FHD / laptop: reflow the synoptic and keep both side summaries visible. */
+@media(max-width:1500px){
+  .main{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto auto auto;align-content:start}
+  .sectionbar,.opstrip,.bottom{grid-column:1}
+  .process{grid-column:1;min-height:0;overflow:visible}
+  .synoptic{position:relative;left:auto;right:auto;top:auto;bottom:auto;margin-top:20px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"source load" "bus bus";gap:14px;align-items:stretch}
+  .source{grid-area:source}.load{grid-area:load}.centerbus{grid-area:bus}
+  .source,.load{display:block;height:auto;min-height:145px}
+  .centerbus{min-height:0}
+  .packrow{grid-template-columns:repeat(auto-fit,minmax(min(100%,235px),1fr));gap:12px}
+  .pack{height:auto;min-height:260px}
+  .rail{grid-column:1;grid-row:auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .rail-title,.alarmbox{grid-column:1/-1}
+  .bottom{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .header{gap:14px;padding:0 18px}
+  .headtitle{min-width:0}
+  .headchips{display:flex;flex-wrap:wrap}
+  .detail-body:has(.bms-operator-block){grid-template-columns:minmax(280px,330px) minmax(0,1fr)}
+}
+@media(max-width:1050px){
+  .app{grid-template-rows:auto minmax(0,1fr)}
+  .header{min-height:70px;padding:10px 16px;gap:12px}
+  .headchips{display:none}
+  .opstrip{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .op-hint{display:none}
+  .rail{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .bottom{grid-template-columns:1fr}
+  .detail-body,.detail-body:has(.bms-operator-block){grid-template-columns:1fr}
+  .bms-operator-hero{display:grid;grid-template-columns:minmax(155px,220px) minmax(0,1fr);gap:8px 18px;text-align:left;align-items:center}
+  .bms-operator-hero .detail-soc{grid-row:1/5;grid-column:1;margin:0 auto}
+  .bms-operator-hero>.online,
+  .bms-operator-hero .detail-power,
+  .bms-operator-hero .detail-mode,
+  .bms-operator-hero .detail-grid{grid-column:2}
+  .param-workspace,.control-workspace{grid-template-columns:1fr}
+  .param-summary{position:static}
+  .param-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}
+  .dry-config-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))}
+}
+@media(max-width:800px){
+  .app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr)}
+  .header{grid-column:1;grid-row:1}
+  .sidebar{grid-column:1;grid-row:2;min-width:0;padding:6px 10px;flex-direction:row;align-items:center;border-right:0;border-bottom:1px solid #153344}
+  .brandmark,.navspacer,.version{display:none}
+  .nav{width:100%;flex-direction:row;gap:5px;overflow-x:auto;overscroll-behavior-x:contain}
+  .navitem{flex:0 0 82px;height:57px;font-size:10px;letter-spacing:.3px;gap:2px}
+  .navitem .ico{font-size:19px}
+  .main{grid-column:1;grid-row:3;padding:12px;gap:12px}
+  .synoptic{gap:10px}
+  .packrow{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
+  .detail-panel{width:100%;max-height:calc(100dvh - 16px)}
+  .detail-head{height:auto;min-height:68px;padding:10px 15px;gap:12px}
+  .detail-body{padding:14px;gap:14px}
+  .bms-operator-block .bms-live-grid,
+  .bms-operator-block .state-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .control-confirm-layer{padding:12px}
+  .control-confirm-card{max-height:calc(100dvh - 24px);overflow-y:auto}
+}
+@media(max-width:600px){
+  .header{min-height:58px;padding:8px 12px}
+  .headtitle b{font-size:17px}
+  .headtitle span,.divider,.clock small{display:none}
+  .headright{gap:7px}.clock b{font-size:13px}
+  .sectionbar{flex-wrap:wrap;gap:8px}
+  .sectionline{display:none}
+  .mode{width:100%}
+  .synoptic{grid-template-columns:1fr;grid-template-areas:"source" "bus" "load"}
+  .source,.load{min-height:120px}
+  .packrow{grid-template-columns:1fr}
+  .rail{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .rail .kpi{min-width:0}
+  .opstrip{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .opstrip>div{min-width:0;padding:10px}
+  .scada-overlay{padding:0}
+  .detail-panel{width:100vw;max-height:100vh;max-height:100dvh;border-radius:0}
+  .detail-head{padding:10px 12px}
+  .detail-title small{font-size:10px;letter-spacing:.8px}
+  .detail-title b{font-size:20px}
+  .detail-head .close{font-size:12px;padding:9px 10px}
+  .detail-body{padding:12px;gap:12px}
+  .detail-hero,.detail-block{padding:12px}
+  .bms-operator-hero{display:block;text-align:center}
+  .bms-operator-hero .detail-soc{margin:10px auto}
+  .bms-operator-block .bms-live-tile,
+  .bms-operator-block .state-tile{min-height:88px;padding:12px}
+  .bms-operator-block .bms-live-tile span,
+  .bms-operator-block .state-tile span{font-size:12.5px}
+  .bms-operator-block .bms-live-tile b{font-size:19px}
+  .bms-operator-block .state-tile b{font-size:16px}
+  .bms-operator-block .inline-action{flex:1 1 140px}
+  .param-grid,.control-grid,.dry-config-grid{grid-template-columns:1fr}
+  .alarm-history-row,.audit-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .alarm-history-row .msg,.audit-target,.audit-detail{grid-column:1/-1;min-width:0}
+  .control-confirm-target{grid-template-columns:1fr}
+  .control-confirm-actions{flex-wrap:wrap}
+}
+@media(max-width:390px){
+  .bms-operator-block .bms-live-grid,
+  .bms-operator-block .state-grid{grid-template-columns:1fr}
+  .rail{grid-template-columns:1fr}
+}
+
+
+/* DEV74.2 screenshot follow-up: fix legacy explicit grid rows and clipping.
+   These overrides deliberately follow all historical SCADA media rules. */
+.pack-top{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:5px;min-width:0}
+.packname{max-width:100%;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;line-height:1.3}
+.pack-top .online{position:static;font-size:10px;line-height:1.35}
+.pack{overflow:visible;min-width:0;height:auto;min-height:278px}
+.pack .metrics{min-width:0}
+.pack .m{min-width:0}
+.pack .m b{overflow-wrap:anywhere}
+.rail .kpi{min-height:104px;overflow:visible}
+.rail .kpi .value{flex-wrap:wrap;overflow-wrap:anywhere}
+.rail .kpi .value b{line-height:1.25}
+.rail .alarmbox{min-height:0}
+.control-workspace{min-width:0}
+.control-workspace>*{min-width:0}
+.control-card{min-width:0;min-height:120px;padding:14px}
+.control-card .control-label{font-size:15px;line-height:1.3}
+.control-card .control-value{font-size:13px;white-space:normal;text-align:right}
+.control-card .control-desc{font-size:12px;line-height:1.4}
+.control-card .control-source{font-size:11px;flex-wrap:wrap}
+.control-card .control-source strong{font-size:10px;white-space:normal}
+.control-action-btn{font-size:12px;min-height:36px;padding:8px 11px}
+.control-command-line{font-size:11px;line-height:1.45}
+.control-lock{font-size:10px}
+.control-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+@media(max-width:1500px){
+  /* DEV37 assigned explicit rows and columns: reset them together. */
+  .main{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(5,auto);align-content:start}
+  .main>.sectionbar{grid-column:1;grid-row:1}
+  .main>.opstrip{grid-column:1;grid-row:2}
+  .main>.process{grid-column:1;grid-row:3;min-height:0;overflow:visible}
+  .main>.rail{grid-column:1;grid-row:4;min-height:0}
+  .main>.bottom{grid-column:1;grid-row:5}
+  /* No absolute positioning, implicit columns or hidden diagnostic panels. */
+  .process>.synoptic{
+    position:relative;inset:auto;margin-top:18px;
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+    grid-template-areas:"source load" "bus bus";
+    gap:14px;align-items:stretch;min-width:0;
+  }
+  .process>.synoptic>.source{grid-area:source;display:block;min-width:0;height:auto;min-height:155px}
+  .process>.synoptic>.load{grid-area:load;display:block;min-width:0;height:auto;min-height:155px}
+  .process>.synoptic>.centerbus{grid-area:bus;min-width:0;min-height:0;height:auto;display:block}
+  .centerbus>.busline,.centerbus>.flowdots{display:none}
+  .centerbus>.packrow{width:100%;grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr));gap:12px}
+  .rail{grid-template-columns:repeat(4,minmax(0,1fr));align-content:start}
+  .rail>.rail-title,.rail>.alarmbox{grid-column:1/-1}
+  .bottom{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:1050px){
+  .rail{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .bottom{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:600px){
+  .process>.synoptic{grid-template-columns:minmax(0,1fr);grid-template-areas:"source" "bus" "load"}
+  .centerbus>.packrow{grid-template-columns:minmax(0,1fr)}
+  .rail{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .control-grid{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:390px){.rail{grid-template-columns:minmax(0,1fr)}}
+
+/* DEV74.2 narrow viewport track sizing fix.
+   With a fixed-height app and overflow:auto on .main, five `auto` grid
+   tracks are shrinkable. At 1100/600px they shrink the process row while
+   its overflow:visible contents paint over the rail, trend and journal.
+   Intrinsic max-content tracks force the main scrolling surface to grow
+   vertically instead of stacking panels on top of each other. */
+@media(max-width:1500px){
+  .main{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:repeat(5,max-content);
+    grid-auto-rows:max-content;
+    align-content:start;
+    overflow-y:auto;
+    overflow-x:hidden;
+  }
+  .main>.sectionbar,.main>.opstrip,.main>.process,
+  .main>.rail,.main>.bottom{min-width:0;min-height:0}
+  .main>.process{height:max-content;overflow:visible}
+  .main>.process>.synoptic{height:auto;min-height:0}
+  .main>.process>.synoptic>.centerbus{height:auto}
+  .main>.rail{height:max-content;overflow:visible}
+  .main>.bottom{height:auto;min-height:220px}
+}
+
+/* DEV74.2 operator follow-up: footer belongs to the scrolling main document.
+   Keep the demo switch usable without overlaying alarms, trends or packs. */
+.main>.demo{
+  position:relative;inset:auto;grid-column:1/-1;grid-row:auto;
+  display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;
+  gap:8px;min-width:0;min-height:26px;padding:3px 2px;
+  font-size:10px;line-height:1.45;text-align:right;
+  color:#7295a5;letter-spacing:.45px;z-index:0;
+}
+.main>.demo #demoToggle{display:inline-block;min-height:24px;padding:4px 0;color:#93b9ca!important}
+@media(max-width:1500px){
+  .main>.demo{grid-column:1;grid-row:6;justify-content:flex-start;text-align:left}
+}
+@media(max-width:800px){
+  .detail-body .detail-hero,.detail-body .detail-block,.detail-body .bms-cards,
+  .control-workspace,.control-workspace>*{min-width:0;max-width:100%}
+  .detail-body .detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .detail-body .bms-cards{grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}
+  .detail-head{align-items:center}
+  .detail-head .detail-title{flex:1 1 auto;min-width:0}
+  .control-card .control-label,.control-card .control-desc{overflow-wrap:anywhere}
+  .control-action-btn{min-height:40px}
+}
+@media(max-width:600px){
+  .detail-body .bms-cards{grid-template-columns:minmax(0,1fr)}
+  .detail-body .detail-grid{gap:8px}
+  .detail-body .detail-metric{min-width:0;padding:10px}
+  .detail-body .detail-metric b{overflow-wrap:anywhere}
+  .detail-head .close{min-height:40px}
+  .main>.demo{padding:8px 2px;justify-content:flex-start}
+}
+@media(max-width:390px){
+  .detail-body .detail-grid{grid-template-columns:minmax(0,1fr)}
+  .detail-head{gap:8px}
+  .detail-title b{font-size:18px}
+}
+
+/* DEV74.2: mobile operator sheet header must remain fully opaque while
+   content scrolls underneath; previous translucent header leaked text. */
+.detail-panel>.detail-head{
+  background:#091e29;
+  box-shadow:0 3px 14px rgba(1,10,16,.65);
+  isolation:isolate;
+}
+.detail-title{min-width:0;max-width:100%;overflow-wrap:anywhere}
+@media(max-width:600px){
+  .detail-panel>.detail-head{
+    background:#091e29;min-height:70px;gap:10px;
+    padding:10px 12px;align-items:center;
+  }
+  .detail-panel>.detail-head .detail-title{flex:1 1 auto}
+  .detail-panel>.detail-head .close{flex:0 0 auto}
+  .detail-panel .detail-body{padding-top:14px}
+}
+
+/* DEV74.2 desktop HA iframe fix (screenshots 1537px):
+   the original minmax(420px,1fr) rail/process row was compressed to fit the
+   viewport, letting the fifth Installation KPI paint over Trend. Keep the
+   industrial two-column diagram but size this row to its natural content. */
+@media(min-width:1501px){
+  .main{
+    grid-template-rows:max-content max-content max-content minmax(218px,max-content) max-content;
+    align-content:start;overflow-y:auto;overflow-x:hidden;
+  }
+  .main>.process,.main>.rail{height:auto;min-height:0}
+  .main>.rail .kpi{flex:0 0 auto;min-height:104px}
+  .main>.rail .alarmbox{flex:0 0 auto;min-height:92px}
+  .main>.bottom{grid-row:4;min-height:218px}
+  .main>.demo{grid-row:5}
+}
+
+/* DEV74.2 desktop density follow-up: the rail now determines the process row's
+   height (no clipping). Keep that rail compact so the industrial synoptic
+   doesn't become a tall empty canvas on conventional desktop monitors. */
+@media(min-width:1501px){
+  .main>.rail{padding:12px;gap:8px}
+  .main>.rail .rail-title{min-height:16px}
+  .main>.rail .kpi{min-height:0;flex:0 0 auto;padding:9px 11px}
+  .main>.rail .kpi span{font-size:9px;line-height:1.2}
+  .main>.rail .kpi .value{margin-top:4px}
+  .main>.rail .kpi .value b{font-size:22px;line-height:1.2}
+  .main>.rail .kpi .bar{margin-top:6px}
+  .main>.rail .alarmbox{min-height:0;flex:0 0 auto;padding:10px}
+  .main>.rail .alarmrow{padding:6px 0}
+  .main>.process .synoptic{top:78px;bottom:15px}
+}
+
 </style>
 </head>
 <body>
@@ -910,7 +1224,7 @@ body.single-pack .opstrip{grid-template-columns:repeat(4,minmax(120px,1fr)) 1.65
       <div class="navitem" data-view="trends"><div class="ico">⌁</div><div>Trends</div></div>
       <div class="navitem" data-view="service"><div class="ico">⚙</div><div>Service</div></div>
     </div>
-    <div class="navspacer"></div><div class="version">SCADA<br>v0.38</div>
+    <div class="navspacer"></div><div class="version">SCADA<br>v0.39</div>
   </aside>
   <header class="header">
     <div class="headtitle"><b>SmartPhoton JK‑BMS</b><span>Industrial SCADA</span></div>
@@ -941,12 +1255,12 @@ body.single-pack .opstrip{grid-template-columns:repeat(4,minmax(120px,1fr)) 1.65
       <section class="trend" id="processTrendPanel" title="Cliquer pour ouvrir les tendances détaillées"><div class="panelhead"><b>Trend processus · 24 h <span class="trend-status" id="trendStatus">CHARGEMENT</span></b><div class="legend"><span><i style="--c:var(--green)"></i>Puissance</span><span><i style="--c:var(--cyan)"></i>Courant</span></div></div><div class="chart"><svg id="processTrendSvg" viewBox="0 0 900 145" preserveAspectRatio="none"></svg></div></section>
       <section class="events"><div class="panelhead"><b>Journal opérateur</b><div class="legend" id="eventLegend">Session courante</div></div><div class="event-list" id="eventList"><div class="event empty">Initialisation du journal SCADA…</div></div></section>
     </div>
+    <div class="demo"><span id="dataMode">SMARTPHOTON SCADA · v0.39 · DEMO DATA</span><span id="demoToggle" style="margin-left:10px;cursor:pointer;color:#5f8fa4">[ BASCULER 1 PACK / MULTI ]</span></div>
   </main>
 </div>
 <div class="scada-overlay" id="scadaOverlay"><section class="detail-panel"><div class="detail-head"><div class="detail-title"><small id="detailEyebrow">Fiche opérateur</small><b id="detailTitle">Pack</b></div><button class="close" id="detailClose">✕&nbsp;&nbsp;FERMER</button></div><div class="detail-body" id="detailBody"></div></section></div>
 
 <div class="control-confirm-layer" id="controlConfirmLayer"><div class="control-confirm-card" id="controlConfirmCard"><div class="ey">Confirmation opérateur · commande BMS</div><h3 id="controlConfirmTitle">Confirmer la commande</h3><p id="controlConfirmText"></p><div class="control-confirm-safety" id="controlConfirmSafety"></div><div class="control-confirm-target"><div><span>État actuel</span><b id="controlConfirmCurrent">—</b></div><div><span>État demandé</span><b id="controlConfirmRequested">—</b></div></div><div class="control-confirm-entity" id="controlConfirmEntity">—</div><p>Le SCADA n'anticipe jamais le résultat : après l'envoi, l'état ne sera déclaré confirmé qu'après lecture du retour réel publié par le BMS.</p><div class="control-confirm-actions"><button onclick="cancelControlCommandConfirm()">ANNULER</button><button class="go" id="controlConfirmGo" onclick="confirmControlCommand()">CONFIRMER</button></div></div></div>
-<div class="demo"><span id="dataMode">SMARTPHOTON SCADA · v0.35 · DEMO DATA</span><span id="demoToggle" style="margin-left:10px;cursor:pointer;color:#5f8fa4">[ BASCULER 1 PACK / MULTI ]</span></div>
 <script>
 const demoPacks=[
  {id:'pack_1',name:'Pack 1 · Real',soc:84,power:+1420,v:53.25,a:26.7,d:11,t:27,bms:2,members:['1','3'],ageSec:0.8},
@@ -955,8 +1269,8 @@ const demoPacks=[
  {id:'pack_4',name:'Pack 4 · Lab',soc:81,power:+930,v:53.24,a:17.5,d:16,t:30,bms:4,members:['1','2','3','4'],ageSec:1.4}
 ];
 const EP='smartphoton_jk_bms_multi_pack';
-const SCADA_BUILD='1.0.0-dev70';
-const SCADA_UI='v0.38';
+const SCADA_BUILD='1.0.0-dev74.2';
+const SCADA_UI='v0.39';
 const SCADA_QUERY=new URLSearchParams(window.location.search);
 const COMM_MODE=(SCADA_QUERY.get('comm')||'').toLowerCase();
 function commModeLabel(){
@@ -1159,7 +1473,7 @@ function openCellDiagnostics(packId,bms){
  const resistanceProfile=resistanceProfileHTML(cells);
  const grid=cells.length?cells.map(c=>{const cls=cellVisualClass(c,st);const role=cellRole(c,st);const dev=(c.v-st.avg)*1000;const r=c.r==null?'—':`${(c.r*1000).toFixed(0)} mΩ`;return `<div class="cell-tile ${cls}"><div class="cell-no"><b>Cellule ${c.index}</b><em>${role}</em></div><div class="cell-v">${c.v.toFixed(4)} V</div><div class="cell-dev">${dev>=0?'+':''}${dev.toFixed(2)} mV vs moyenne</div><div class="cell-r">Résistance interne · <b>${r}</b></div></div>`}).join(''):`<div class="cell-empty">Aucune tension cellule individuelle disponible dans Home Assistant pour ce BMS.</div>`;
  document.getElementById('detailBody').innerHTML=`<div class="cell-shell">${summary}${profile}<div class="cell-grid-wrap"><div class="cell-grid-head"><div><span>Vue équilibrage</span><b>Tensions individuelles · BMS ${bms}</b></div><div class="cell-legend"><span><i class="lg-normal"></i>Normal</span><span><i class="lg-min"></i>Minimum</span><span><i class="lg-warn"></i>Attention</span><span><i class="lg-bad"></i>Écart fort</span></div></div><div class="cell-grid">${grid}</div></div>${resistanceProfile}<div class="cell-note"><span>Source : entités JK-BMS Home Assistant en temps réel. L’écart affiché est calculé par rapport à la moyenne des cellules disponibles.</span><div class="cell-actions"><button class="inline-action" onclick="openBms('${packId}','${bms}')">← Retour BMS</button><button class="inline-action" onclick="openPack('${packId}')">Retour pack</button></div></div></div>`;
- document.getElementById('scadaOverlay').classList.add('open');
+ showScadaDetail();
 }
 
 function packHTML(p){
@@ -1310,7 +1624,7 @@ function openAlarmDetail(key){
  document.getElementById('detailEyebrow').textContent='Centre alarmes · Détail opérateur';
  document.getElementById('detailTitle').textContent=`${issue.packName} · ${issue.category}`;
  document.getElementById('detailBody').innerHTML=`<div class="alarm-detail-shell"><div class="alarm-detail-hero"><div class="alarm-severity ${issue.severity==='ALARME'?'crit':'warn'}">${issue.severity}</div><div class="alarm-code">${issue.code.replaceAll('_',' ')}</div><div class="alarm-status-card"><span>État opérateur</span><b class="${ack?'ack':'pending'}">${ack?'QUITTANCÉE':'NON QUITTANCÉE'}</b></div><div class="alarm-status-card"><span>Condition</span><b>ACTIVE</b></div></div><div class="alarm-detail-block"><div class="alarm-detail-grid"><div class="alarm-detail-kpi"><span>Pack</span><b>${issue.packName}</b></div><div class="alarm-detail-kpi"><span>Origine</span><b>${issue.bms?'BMS '+issue.bms:issue.category}</b></div><div class="alarm-detail-kpi"><span>Valeur actuelle</span><b>${issue.value}</b></div><div class="alarm-detail-kpi"><span>Seuil / attendu</span><b>${issue.threshold}</b></div><div class="alarm-detail-kpi"><span>Détectée à</span><b>${alarmDateTime(rt.firstSeen)}</b></div><div class="alarm-detail-kpi"><span>Durée active</span><b>${alarmDuration(Date.now()-(rt.firstSeen||Date.now()))}</b></div><div class="alarm-detail-kpi"><span>Quittance</span><b>${ack?alarmDateTime(ack.at)+' · '+ackSource:'En attente opérateur'}</b></div></div><div class="alarm-recommendation"><b>${issue.message}</b><br>${issue.recommendation}</div><div class="alarm-actions">${ack?`<button class="alarm-action ack done">✓ QUITTANCÉE</button>`:`<button class="alarm-action ack" onclick="acknowledgeAlarm('${issue.key}')">✓ QUITTANCER</button>`}<button class="alarm-action" onclick="openPack('${issue.packId}')">Ouvrir le pack</button>${issue.bms?`<button class="alarm-action" onclick="openBms('${issue.packId}','${issue.bms}')">Ouvrir BMS ${issue.bms}</button>`:''}${issue.code==='CELL_DELTA_HIGH'&&issue.bms?`<button class="alarm-action ack" onclick="openCellDiagnostics('${issue.packId}','${issue.bms}')">Diagnostic cellules</button>`:''}<button class="alarm-action" onclick="openAlarmOverview()">← Retour alarmes</button></div><div class="ack-note">La quittance confirme uniquement la prise en compte par l’opérateur. Pour les diagnostics centraux, elle est publiée via Home Assistant/MQTT et devient visible sur les autres postes. Elle ne réinitialise pas le BMS et ne masque jamais la condition active.</div></div></div>`;
- document.getElementById('scadaOverlay').classList.add('open');
+ showScadaDetail();
 }
 function openAlarmHistoryDetail(id){
  const rec=alarmHistoryRecord(id);if(!rec){openAlarmOverview();return}
@@ -1318,8 +1632,18 @@ function openAlarmHistoryDetail(id){
  document.getElementById('detailTitle').textContent=`${rec.packName} · ${rec.category}`;
  const ackText=rec.ackAt?`QUITTANCÉE · ${alarmDateTime(rec.ackAt)}`:'NON QUITTANCÉE';
  document.getElementById('detailBody').innerHTML=`<div class="alarm-detail-shell"><div class="alarm-detail-hero"><div class="alarm-severity resolved">RÉSOLUE</div><div class="alarm-code">${rec.code.replaceAll('_',' ')}</div><div class="alarm-status-card"><span>Sévérité d’origine</span><b class="${rec.severity==='ALARME'?'pending':''}">${rec.severity}</b></div><div class="alarm-status-card"><span>Condition</span><b class="resolved">RETOUR NORMAL</b></div></div><div class="alarm-detail-block"><div class="alarm-detail-grid"><div class="alarm-detail-kpi"><span>Pack</span><b>${rec.packName}</b></div><div class="alarm-detail-kpi"><span>Origine</span><b>${rec.bms?'BMS '+rec.bms:rec.category}</b></div><div class="alarm-detail-kpi"><span>Dernière valeur active</span><b>${rec.value}</b></div><div class="alarm-detail-kpi"><span>Seuil / attendu</span><b>${rec.threshold}</b></div><div class="alarm-detail-kpi"><span>Apparition</span><b>${alarmDateTime(rec.firstSeen)}</b></div><div class="alarm-detail-kpi"><span>Retour normal</span><b>${alarmDateTime(rec.clearedAt)}</b></div><div class="alarm-detail-kpi"><span>Durée observée</span><b>${alarmDuration((rec.clearedAt||rec.lastSeen)-rec.firstSeen)}</b></div><div class="alarm-detail-kpi"><span>Quittance opérateur</span><b>${ackText}</b></div></div><div class="alarm-recommendation"><b>${rec.message}</b><br>Événement revenu à la normale. ${rec.recommendation}</div><div class="alarm-actions"><button class="alarm-action" onclick="openPack('${rec.packId}')">Ouvrir le pack</button>${rec.bms?`<button class="alarm-action" onclick="openBms('${rec.packId}','${rec.bms}')">Ouvrir BMS ${rec.bms}</button>`:''}${rec.code==='CELL_DELTA_HIGH'&&rec.bms?`<button class="alarm-action ack" onclick="openCellDiagnostics('${rec.packId}','${rec.bms}')">Diagnostic cellules</button>`:''}<button class="alarm-action" onclick="openAlarmOverview()">← Retour alarmes</button></div><div class="ack-note">Journal SCADA : lorsque la source est centrale, l’apparition et le retour à la normale sont horodatés côté Node-RED indépendamment de l’ouverture de cette interface. Les événements locaux de secours conservent leur sémantique d’observation navigateur.</div></div></div>`;
- document.getElementById('scadaOverlay').classList.add('open');
+ showScadaDetail();
 }
+// New operator sheets start at the top.  A live command read-back redraw must
+// preserve the operator's current scroll position instead.
+function showScadaDetail(preserveScroll=false){
+ const overlay=document.getElementById('scadaOverlay');
+ const panel=overlay.querySelector('.detail-panel');
+ const previous=panel.scrollTop;
+ overlay.classList.add('open');
+ panel.scrollTop=preserveScroll?previous:0;
+}
+
 function openPack(id){
  const p=currentPacks.find(x=>x.id===id);if(!p)return;
  const members=(p.members&&p.members.length?p.members:Array.from({length:p.bms},(_,i)=>String(i+1)));
@@ -1327,7 +1651,7 @@ function openPack(id){
  document.getElementById('detailEyebrow').textContent='Fiche opérateur · Process batterie';
  document.getElementById('detailTitle').textContent=p.name;
  document.getElementById('detailBody').innerHTML=`<div class="detail-hero pack-operator-hero"><div class="online">${p.online===false?'OFFLINE':'ONLINE · COMMUNICATION OK'}</div><div class="detail-soc" style="--soc:${Math.max(0,Math.min(100,p.soc||0))}"><div><b>${(p.soc||0).toFixed(0)}%</b><small>STATE OF CHARGE</small></div></div><div class="detail-power">${sign}${(p.power/1000).toFixed(2)} kW</div><div class="detail-mode">${mode} · ${(p.a||0).toFixed(1)} A</div><div class="detail-grid"><div class="detail-metric"><span>Tension</span><b>${(p.v||0).toFixed(2)} V</b></div><div class="detail-metric"><span>Delta max</span><b>${(p.d||0).toFixed(0)} mV</b></div><div class="detail-metric"><span>Temp max</span><b>${(p.t||0).toFixed(0)} °C</b></div><div class="detail-metric"><span>Télémétrie</span><b>${freshnessLabel(p.ageSec)}</b></div></div></div><div class="detail-block pack-operator-block"><div class="bms-title"><span>Modules BMS du pack</span><b>${members.length} BMS détectés</b></div><div class="bms-cards">${members.map(m=>{const b=readBms(p.id,m);const fc=freshnessClass(b?.ageSec??999);return `<div class="bms-card clickable" onclick="openBms('${p.id}','${m}')"><div class="addr">BMS ${m}</div><div class="bstate">● ONLINE</div><div class="serial">Adresse JK ${m}</div><div class="bline"></div><div class="mini"><span>Process</span><b>${b?.status||mode}</b></div><div class="mini" style="margin-top:6px"><span>Puissance</span><b>${((b?.power||0)/1000).toFixed(2)} kW</b></div><div class="fresh ${fc}">LIVE ${freshnessLabel(b?.ageSec)}</div></div>`}).join('')}</div><div class="bms-title" style="margin-top:18px"><span>Diagnostic pack</span><b>${packIssues(p).length?'ATTENTION REQUISE':'NORMAL'}</b></div><div class="alarm-list">${packIssues(p).length?packIssues(p).map(a=>{const ack=alarmAck(a);return `<div class="alarm-item clickable ${issueSeverityClass(a)} ${ack?'acked':''}" onclick="openAlarmDetail('${a.key}')"><time>LIVE</time><div class="sev">${a.severity}</div><div class="msg">${a.category} · ${a.value}</div><div class="state ${ack?'ack':'pending'}">${ack?'QUITTANCÉE':'À QUITTANCER'}</div></div>`}).join(''):`<div class="alarm-item sev-ok"><time>LIVE</time><div class="sev">NORMAL</div><div class="msg">Aucun seuil pack dépassé</div><div class="state">OK</div></div>`}</div></div>`;
- document.getElementById('scadaOverlay').classList.add('open');
+ showScadaDetail();
 }
 function boolState(label,on){return `<div class="state-tile ${on?'state-ok':'state-warn'}"><span>${label}</span><b>${on?'ACTIF':'INACTIF'}</b></div>`}
 
@@ -1558,7 +1882,7 @@ function renderControlConsole(packId,bms,b){
  }).join('');
  return `<div class="control-console"><div class="control-console-head"><div><span>Conduite / paramètres BMS</span><b>Console d’états et commandes sûres</b></div><div class="control-console-status"><i></i>${exposed}/${rows.length} ÉTATS LUS</div></div><div class="control-console-note"><b>DEV70 · 9 COMMANDES ACCESSIBLES · AUDIT CENTRAL.</b> Les neuf commandes booléennes SETUP actuellement cartographiées utilisent le même moteur validé : confirmation opérateur, service Home Assistant, écriture Active Polling SETUP, retour réel BMS et audit central. Les MOS conservent leur confirmation renforcée. Les utilisateurs pourront valider les fonctions spécifiques à leur firmware.</div><div class="control-grid">${cards}</div><div class="control-section-title"><div><span>Entrées / sorties physiques</span><b>Contacts secs · lecture seule</b></div><strong>${dryExposed}/${dryRows.length} ÉTATS LUS</strong></div><div class="control-grid dry-grid">${dryCards}</div><div class="control-console-foot"><span><b>Chaîne de commande :</b> service Home Assistant → switch MQTT existant → Active Polling SETUP → lecture de contrôle BMS.</span><span class="ok">Dry1 / Dry2 : état réel décodé depuis l’octet LIVE 281 (0x02 / 0x04), sans écriture.</span></div></div>`;
 }
-function openBmsControls(packId,bms){
+function openBmsControls(packId,bms,preserveScroll=false){
  const p=currentPacks.find(x=>x.id===packId);const b=readBms(packId,bms);if(!p||!b)return;
  currentParameterContext=null;currentControlContext={packId:String(packId),bms:String(bms)};
  const rows=BMS_CONTROL_DEFS.map(def=>({def,state:readControlState(packId,bms,def,b)}));
@@ -1566,12 +1890,15 @@ function openBmsControls(packId,bms){
  document.getElementById('detailEyebrow').textContent=`${p.name} · BMS ${bms} · Conduite`;
  document.getElementById('detailTitle').textContent='Conduite / paramètres BMS';
  document.getElementById('detailBody').innerHTML=`<div class="control-workspace" style="grid-column:1/3"><div class="control-summary"><div class="who">Poste de conduite BMS</div><h3>${p.name} · BMS ${bms}</h3><div class="sub">Adresse JK ${bms} · ${commModeLabel()}</div><div class="control-state-count"><span>États de commande lus</span><b>${exposed}/${rows.length}</b></div><div class="control-pilot"><span>Commandes sûres DEV70</span><b>9/9 COMMANDES BOOLÉENNES ACCESSIBLES</b><small>Confirmation explicite · retour réel BMS obligatoire · audit central. MOS charge/décharge conservent l’avertissement renforcé.</small></div><div class="control-console-note" style="margin-top:14px;margin-bottom:0"><b>MODE SÛR.</b><br>Floating, Smart Sleep, enregistrement temporisé et désactivation PCL utilisent désormais le même moteur de commande que les fonctions déjà validées. Dry1 / Dry2 restent volontairement en lecture seule : ce sont des états physiques, pas des bits de commande.</div><div class="param-nav" style="margin-top:14px"><button onclick="openBmsTechnicalParameters('${packId}','${bms}')">⚙ Paramètres techniques</button><button onclick="openCellDiagnostics('${packId}','${bms}')">▦ Cellules</button><button class="full" onclick="openBms('${packId}','${bms}')">← Retour supervision BMS</button></div></div>${renderControlConsole(packId,bms,b)}</div>`;
- document.getElementById('scadaOverlay').classList.add('open');
+ showScadaDetail(preserveScroll);
 }
 function refreshControlWorkspace(packId,bms){
  if(!currentControlContext||currentControlContext.packId!==String(packId)||currentControlContext.bms!==String(bms))return;
  if(!document.getElementById('scadaOverlay').classList.contains('open'))return;
- openBmsControls(packId,bms);
+ const panel=document.querySelector('#scadaOverlay .detail-panel');
+ const at=panel.scrollTop;
+ openBmsControls(packId,bms,true);
+ panel.scrollTop=at;
 }
 
 const BMS_PARAMETER_SECTIONS=[
@@ -1656,7 +1983,7 @@ function renderParameterCard(packId,bms,def){
  return `<div class="param-card ${cls}"><div class="param-card-top"><h4>${def.label}</h4><div class="param-current">${current}</div></div><div class="param-desc">${def.desc}</div>${input}<div class="param-meta"><span class="param-source" title="${source}">HA</span><span class="param-range">${meta}</span></div>${parameterStatusHtml(cmd)}</div>`;
 }
 function renderReadonlyParameterCard(packId,bms,def){const st=readParameterState(packId,bms,def,false),source=st.entity||'NON EXPOSÉ';return `<div class="param-card readonly ${st.available?'':'unavailable'}"><div class="param-card-top"><h4>${def.label}</h4><div class="param-current">${formatReadonlyParameterValue(def,st)}</div></div><div class="param-desc">${def.desc}</div><div class="param-meta"><span class="param-source" title="${source}">HA</span><span class="param-range">LECTURE SEULE${st.unit?` · ${st.unit}`:''}</span></div></div>`}
-function openBmsTechnicalParameters(packId,bms){
+function openBmsTechnicalParameters(packId,bms,preserveScroll=false){
  const p=currentPacks.find(x=>x.id===packId),b=readBms(packId,bms);if(!p||!b)return;currentParameterContext={packId:String(packId),bms:String(bms)};currentControlContext=null;
  const all=BMS_PARAMETER_SECTIONS.flatMap(s=>s.items),available=all.filter(d=>readParameterState(packId,bms,d,true).available).length;
  const sections=BMS_PARAMETER_SECTIONS.map(sec=>{const n=sec.items.filter(d=>readParameterState(packId,bms,d,true).available).length;return `<section class="param-section" id="param-sec-${sec.id}"><div class="param-section-head"><div><span>${sec.eyebrow}</span><b>${sec.label}</b></div><strong>${n}/${sec.items.length} EXPOSÉS</strong></div><div class="param-grid">${sec.items.map(d=>renderParameterCard(packId,bms,d)).join('')}</div></section>`}).join('');
@@ -1667,9 +1994,9 @@ function openBmsTechnicalParameters(packId,bms){
  document.getElementById('detailEyebrow').textContent=`${p.name} · BMS ${bms} · Paramètres`;
  document.getElementById('detailTitle').textContent='Paramètres techniques BMS';
  document.getElementById('detailBody').innerHTML=`<div class="param-workspace" style="grid-column:1/3"><aside class="param-summary"><div class="who">Configuration technique BMS</div><h3>${p.name} · BMS ${bms}</h3><div class="sub">Adresse JK ${bms} · ${commModeLabel()}</div><div class="param-count"><span>Paramètres numériques accessibles</span><b>${available}/${all.length}</b><small>Écriture unitaire · confirmation opérateur · retour SETUP réel · audit central</small></div><div class="param-warning"><b>MODE EXPERT.</b><br>Ces valeurs modifient directement les consignes et protections du BMS. Chaque paramètre est écrit séparément et n’est déclaré confirmé qu’après relecture de la valeur réelle.</div><div class="param-nav"><button onclick="openBmsControls('${packId}','${bms}')">⚙ Conduite</button><button onclick="openCellDiagnostics('${packId}','${bms}')">▦ Cellules</button><button class="full" onclick="openBms('${packId}','${bms}')">← Retour supervision BMS</button></div></aside><div class="param-content"><div class="control-console-note"><b>DEV70 · CONFIGURATION DRY1 / DRY2.</b> Choix du déclencheur et seuils modifiables séparément, avec confirmation opérateur, relecture du BMS et audit. L’état du contact reste affiché à part. Pour changer de type de déclencheur : désactiver, préparer les seuils, puis activer la source voulue.</div><div class="param-jumpbar"><span>Accès rapide</span>${jump}</div>${sections}<section class="param-section" id="param-sec-dry"><div class="param-section-head"><div><span>Contacts secs · configuration JK</span><b>DRY1 / DRY2</b></div><strong>${dryCfgCount}/6 CONFIG LUES</strong></div><div class="dry-config-grid">${dryCfg}</div><div class="dry-config-foot" style="margin:12px 2px 0">Les seuils sans échelle confirmée restent <strong>bruts</strong>. Les limites des champs correspondent au format signé 32 bits, pas aux plages admissibles du BMS. Une seule commande DRY à la fois par BMS. Une réponse MQTT existante ne vaut pas confirmation d’écriture.</div></section><section class="param-section" id="param-sec-setup"><div class="param-section-head"><div><span>Informations SETUP</span><b>Lecture seule / calibration</b></div><strong>DIAGNOSTIC</strong></div><div class="param-grid">${ro}</div></section></div></div>`;
- document.getElementById('scadaOverlay').classList.add('open');
+ showScadaDetail(preserveScroll);
 }
-function refreshParameterWorkspace(packId,bms){if(!currentParameterContext||currentParameterContext.packId!==String(packId)||currentParameterContext.bms!==String(bms))return;if(!document.getElementById('scadaOverlay').classList.contains('open'))return;openBmsTechnicalParameters(packId,bms)}
+function refreshParameterWorkspace(packId,bms){if(!currentParameterContext||currentParameterContext.packId!==String(packId)||currentParameterContext.bms!==String(bms))return;if(!document.getElementById('scadaOverlay').classList.contains('open'))return;const panel=document.querySelector('#scadaOverlay .detail-panel');const at=panel.scrollTop;openBmsTechnicalParameters(packId,bms,true);panel.scrollTop=at}
 function findParameterDef(key){for(const s of BMS_PARAMETER_SECTIONS){const d=s.items.find(x=>x.key===key);if(d)return d}return null}
 function requestParameterCommand(packId,bms,key){
  const def=findParameterDef(key),p=currentPacks.find(x=>x.id===packId);if(!def||!p)return;const st=readParameterState(packId,bms,def,true);const el=document.getElementById(`param-input-${key}`);const target=parameterNumber(el?.value);
@@ -1756,15 +2083,15 @@ function openBms(packId,bms){
  const mode=b.power>25?'CHARGE':b.power<-25?'DÉCHARGE':'REPOS';const sign=b.power>0?'+':'';const fc=freshnessClass(b.ageSec??999);
  document.getElementById('detailEyebrow').textContent=`${p.name} · Supervision BMS`;
  document.getElementById('detailTitle').textContent=`BMS ${bms}`;
- document.getElementById('detailBody').innerHTML=`<div class="detail-hero"><div class="online">${b.alarm?'ALARME ACTIVE':'ONLINE · COMMUNICATION OK'}</div><div class="detail-soc" style="--soc:${Math.max(0,Math.min(100,b.soc||0))}"><div><b>${(b.soc||0).toFixed(0)}%</b><small>STATE OF CHARGE</small></div></div><div class="detail-power">${sign}${(b.power/1000).toFixed(2)} kW</div><div class="detail-mode">${mode} · ${(b.a||0).toFixed(1)} A</div><div class="detail-grid"><div class="detail-metric"><span>Tension</span><b>${(b.v||0).toFixed(2)} V</b></div><div class="detail-metric"><span>Delta</span><b>${(b.d||0).toFixed(0)} mV</b></div><div class="detail-metric"><span>Temp max</span><b>${(b.t||0).toFixed(0)} °C</b></div><div class="detail-metric"><span>Télémétrie</span><b class="${fc}">${freshnessLabel(b.ageSec)}</b></div></div></div><div class="detail-block"><div class="bms-title"><span>Mesures instantanées</span><div class="inline-actions"><button class="inline-action cells" onclick="openCellDiagnostics('${packId}','${bms}')">▦ Diagnostic cellules</button><button class="inline-action control" onclick="openBmsControls('${packId}','${bms}')">⚙ Conduite</button><button class="inline-action parameters" onclick="openBmsTechnicalParameters('${packId}','${bms}')">⚙ Paramètres techniques</button><button class="inline-action" onclick="openPack('${packId}')">← Retour au pack</button></div></div><div class="bms-live-grid"><div class="bms-live-tile primary"><span>Puissance</span><b>${sign}${(b.power/1000).toFixed(2)} kW</b></div><div class="bms-live-tile"><span>Courant</span><b>${(b.a||0).toFixed(2)} A</b></div><div class="bms-live-tile"><span>SOC</span><b>${(b.soc||0).toFixed(0)} %</b></div><div class="bms-live-tile ${b.d>=30?'warn':''}"><span>Delta cellules</span><b>${(b.d||0).toFixed(0)} mV</b></div><div class="bms-live-tile"><span>MOS</span><b>${b.mos==null?'—':b.mos.toFixed(1)+' °C'}</b></div><div class="bms-live-tile"><span>Batterie 1</span><b>${b.t1==null?'—':b.t1.toFixed(1)+' °C'}</b></div><div class="bms-live-tile"><span>Batterie 2</span><b>${b.t2==null?'—':b.t2.toFixed(1)+' °C'}</b></div><div class="bms-live-tile"><span>Équilibrage</span><b>${Math.abs(b.balance||0).toFixed(3)} A</b></div></div><div class="bms-title"><span>État BMS</span><b>${b.alarm?'ALARME':'NORMAL'}</b></div><div class="state-grid">${boolState('MOS charge',b.charge)}${boolState('MOS décharge',b.discharge)}${boolState('Équilibrage',b.balancing)}<div class="state-tile ${b.alarm?'state-bad':'state-ok'}"><span>Alarmes</span><b>${b.alarm?'ACTIVE':'AUCUNE'}</b></div></div><div class="bms-title" style="margin-top:18px"><span>Capacité / santé</span><b>${b.soh==null?'LIVE':(b.soh.toFixed(0)+' % SOH')}</b></div><div class="bms-live-grid"><div class="bms-live-tile"><span>Capacité restante</span><b>${b.remaining==null?'—':b.remaining.toFixed(1)+' Ah'}</b></div><div class="bms-live-tile"><span>Capacité nominale</span><b>${b.nominal==null?'—':b.nominal.toFixed(1)+' Ah'}</b></div><div class="bms-live-tile"><span>État process</span><b>${mode}</b></div><div class="bms-live-tile"><span>Adresse JK</span><b>${bms}</b></div></div></div>`;
- document.getElementById('scadaOverlay').classList.add('open');
+ document.getElementById('detailBody').innerHTML=`<div class="detail-hero bms-operator-hero"><div class="online">${b.alarm?'ALARME ACTIVE':'ONLINE · COMMUNICATION OK'}</div><div class="detail-soc" style="--soc:${Math.max(0,Math.min(100,b.soc||0))}"><div><b>${(b.soc||0).toFixed(0)}%</b><small>STATE OF CHARGE</small></div></div><div class="detail-power">${sign}${(b.power/1000).toFixed(2)} kW</div><div class="detail-mode">${mode} · ${(b.a||0).toFixed(1)} A</div><div class="detail-grid"><div class="detail-metric"><span>Tension</span><b>${(b.v||0).toFixed(2)} V</b></div><div class="detail-metric"><span>Delta</span><b>${(b.d||0).toFixed(0)} mV</b></div><div class="detail-metric"><span>Temp max</span><b>${(b.t||0).toFixed(0)} °C</b></div><div class="detail-metric"><span>Télémétrie</span><b class="${fc}">${freshnessLabel(b.ageSec)}</b></div></div></div><div class="detail-block bms-operator-block"><div class="bms-title"><span>Mesures instantanées</span><div class="inline-actions"><button class="inline-action cells" onclick="openCellDiagnostics('${packId}','${bms}')">▦ Diagnostic cellules</button><button class="inline-action control" onclick="openBmsControls('${packId}','${bms}')">⚙ Conduite</button><button class="inline-action parameters" onclick="openBmsTechnicalParameters('${packId}','${bms}')">⚙ Paramètres techniques</button><button class="inline-action" onclick="openPack('${packId}')">← Retour au pack</button></div></div><div class="bms-live-grid"><div class="bms-live-tile primary"><span>Puissance</span><b>${sign}${(b.power/1000).toFixed(2)} kW</b></div><div class="bms-live-tile"><span>Courant</span><b>${(b.a||0).toFixed(2)} A</b></div><div class="bms-live-tile"><span>SOC</span><b>${(b.soc||0).toFixed(0)} %</b></div><div class="bms-live-tile ${b.d>=30?'warn':''}"><span>Delta cellules</span><b>${(b.d||0).toFixed(0)} mV</b></div><div class="bms-live-tile"><span>MOS</span><b>${b.mos==null?'—':b.mos.toFixed(1)+' °C'}</b></div><div class="bms-live-tile"><span>Batterie 1</span><b>${b.t1==null?'—':b.t1.toFixed(1)+' °C'}</b></div><div class="bms-live-tile"><span>Batterie 2</span><b>${b.t2==null?'—':b.t2.toFixed(1)+' °C'}</b></div><div class="bms-live-tile"><span>Équilibrage</span><b>${Math.abs(b.balance||0).toFixed(3)} A</b></div></div><div class="bms-title"><span>État BMS</span><b>${b.alarm?'ALARME':'NORMAL'}</b></div><div class="state-grid">${boolState('MOS charge',b.charge)}${boolState('MOS décharge',b.discharge)}${boolState('Équilibrage',b.balancing)}<div class="state-tile ${b.alarm?'state-bad':'state-ok'}"><span>Alarmes</span><b>${b.alarm?'ACTIVE':'AUCUNE'}</b></div></div><div class="bms-title" style="margin-top:18px"><span>Capacité / santé</span><b>${b.soh==null?'LIVE':(b.soh.toFixed(0)+' % SOH')}</b></div><div class="bms-live-grid"><div class="bms-live-tile"><span>Capacité restante</span><b>${b.remaining==null?'—':b.remaining.toFixed(1)+' Ah'}</b></div><div class="bms-live-tile"><span>Capacité nominale</span><b>${b.nominal==null?'—':b.nominal.toFixed(1)+' Ah'}</b></div><div class="bms-live-tile"><span>État process</span><b>${mode}</b></div><div class="bms-live-tile"><span>Adresse JK</span><b>${bms}</b></div></div></div>`;
+ showScadaDetail();
 }
 
 function openBmsOverview(){
  document.getElementById('detailEyebrow').textContent='SmartPhoton SCADA · Supervision BMS';
  document.getElementById('detailTitle').textContent='BMS supervisés';
  document.getElementById('detailBody').innerHTML=`<div class="detail-block bms-overview-shell" style="grid-column:1/3">${currentPacks.map(p=>{const members=(p.members&&p.members.length?p.members:Array.from({length:p.bms},(_,i)=>String(i+1)));return `<div class="bms-overview-pack"><h3>${p.name} · ${members.length} BMS</h3><div class="bms-cards">${members.map(m=>{const b=readBms(p.id,m);const fc=freshnessClass(b?.ageSec??999);return `<div class="bms-card clickable" onclick="openBms('${p.id}','${m}')"><div class="addr">BMS ${m}</div><div class="bstate">● ONLINE</div><div class="serial">${(b?.soc||0).toFixed(0)} % SOC · ${((b?.power||0)/1000).toFixed(2)} kW</div><div class="bline"></div><div class="mini"><span>Delta</span><b>${(b?.d||0).toFixed(0)} mV</b></div><div class="fresh ${fc}">LIVE ${freshnessLabel(b?.ageSec)}</div></div>`}).join('')}</div></div>`}).join('')}</div>`;
- document.getElementById('scadaOverlay').classList.add('open');
+ showScadaDetail();
 }
 function openAlarmOverview(){
  document.getElementById('detailEyebrow').textContent='Centre alarmes · Cycle de vie';document.getElementById('detailTitle').textContent='Alarmes & historique opérateur';
@@ -1773,7 +2100,7 @@ function openAlarmOverview(){
  const activeHtml=rows.length?rows.map(a=>{const ack=alarmAck(a),rt=alarmRuntime[a.key]||{};return `<div class="alarm-item active-row clickable ${issueSeverityClass(a)} ${ack?'acked':''}" onclick="openAlarmDetail('${a.key}')"><time>${alarmTime(rt.firstSeen)}</time><div class="sev">${a.severity}</div><div class="msg"><b>${a.packName}</b> · ${a.category} · ${a.value}</div><div class="duration">${alarmDuration(Date.now()-(rt.firstSeen||Date.now()))}</div><div class="state ${ack?'ack':'pending'}">${ack?'QUITTANCÉE':'À QUITTANCER'}</div></div>`}).join(''):`<div class="alarm-item sev-ok"><time>LIVE</time><div class="sev">NORMAL</div><div class="msg">Aucune alarme active sur les packs supervisés</div><div class="state">OK</div></div>`;
  const histHtml=history.length?history.map(r=>`<div class="alarm-history-row" onclick="openAlarmHistoryDetail('${r.id}')"><time>${alarmDateTime(r.firstSeen)}</time><div class="sev ${r.severity==='ALARME'?'crit':'warn'}">${r.severity}</div><div class="msg"><b>${r.packName}</b> · ${r.category}<small>${r.code.replaceAll('_',' ')} · dernière valeur ${r.value}</small></div><div class="ack ${r.ackAt?'':'none'}">${r.ackAt?`QUITTANCÉE<small>${alarmDateTime(r.ackAt)}</small>`:'NON QUITT.'}</div><div class="duration">${alarmDuration((r.clearedAt||r.lastSeen)-r.firstSeen)}</div><div class="resolved">RETOUR NORMAL<small>${alarmDateTime(r.clearedAt)}</small></div></div>`).join(''):`<div class="alarm-history-empty">Aucun événement revenu à la normale n’a encore été observé par ce SCADA.</div>`;
  document.getElementById('detailBody').innerHTML=`<div class="alarm-center-shell"><div class="alarm-center-summary"><div class="alarm-center-kpi" style="--kpi-accent:${rows.length?'var(--amber)':'var(--green)'}"><span>Actives</span><b>${rows.length}</b><small>${rows.length?'Conditions physiques en cours':'Installation sans alarme SCADA'}</small></div><div class="alarm-center-kpi" style="--kpi-accent:var(--amber)"><span>À quittancer</span><b>${pending}</b><small>Prise en compte opérateur requise</small></div><div class="alarm-center-kpi" style="--kpi-accent:var(--cyan)"><span>Quittancées actives</span><b>${acked}</b><small>Conditions toujours présentes</small></div><div class="alarm-center-kpi" style="--kpi-accent:var(--green)"><span>Historique</span><b>${historyTotal}</b><small>${central?'Journal central Node-RED':'Historique local de secours'}</small></div></div><div class="alarm-center-section"><div class="alarm-center-head"><div><span>Événements actifs</span><b>Temps réel · cliquer pour le détail / quittance</b></div><small>${rows.length} actif(s)</small></div><div class="alarm-list">${activeHtml}</div></div><div class="alarm-center-section"><div class="alarm-center-head"><div><span>Historique observé</span><b>Apparition · quittance · retour normal · durée</b></div><small>${history.length}${historyTotal>history.length?' / '+historyTotal:''} affiché(s)</small></div><div class="alarm-history-list">${histHtml}</div></div><div class="alarm-history-note"><b>${central?'Journal centralisé Node-RED/MQTT.':'Mode local de secours.'}</b> ${central?'Les apparitions, retours à la normale et quittances des diagnostics centraux sont persistés côté add-on et partagés entre les postes SCADA.':'Le navigateur conserve temporairement les événements lorsque le journal central n’est pas disponible.'}</div></div>`;
- document.getElementById('scadaOverlay').classList.add('open')
+ showScadaDetail()
 }
 
 
@@ -1842,7 +2169,7 @@ function renderAuditOverviewBody(){
  document.getElementById('detailBody').innerHTML=`<div class="audit-shell"><div class="audit-summary"><div class="audit-kpi" style="--audit-accent:var(--cyan)"><span>Événements affichés</span><b>${rows.length}</b><small>${all.length} événement(s) disponibles</small></div><div class="audit-kpi" style="--audit-accent:var(--cyan)"><span>Commandes</span><b>${commandSource?commands.length:'—'}</b><small>${commandSource?'Journal central Node-RED':'Source commandes indisponible'}</small></div><div class="audit-kpi" style="--audit-accent:var(--amber)"><span>Cycle alarmes</span><b>${alarms.length}</b><small>Apparition · quittance · retour</small></div><div class="audit-kpi" style="--audit-accent:${fail?'var(--red)':'var(--green)'}"><span>Commandes en échec</span><b>${fail}</b><small>${fail?'À analyser':'Aucun échec journalisé'}</small></div></div><div class="audit-controls"><div class="audit-control"><label>Type</label><select onchange="setAuditFilter('type',this.value)"><option value="all" ${auditFilter.type==='all'?'selected':''}>Tous</option><option value="command" ${auditFilter.type==='command'?'selected':''}>Commandes</option><option value="alarm" ${auditFilter.type==='alarm'?'selected':''}>Alarmes</option></select></div><div class="audit-control"><label>Période</label><select onchange="setAuditFilter('period',this.value)"><option value="1h" ${auditFilter.period==='1h'?'selected':''}>1 heure</option><option value="24h" ${auditFilter.period==='24h'?'selected':''}>24 heures</option><option value="7d" ${auditFilter.period==='7d'?'selected':''}>7 jours</option><option value="all" ${auditFilter.period==='all'?'selected':''}>Tout</option></select></div><div class="audit-control"><label>Pack</label><select onchange="setAuditFilter('pack',this.value)">${packOptions}</select></div><div class="audit-control"><label>BMS</label><select onchange="setAuditFilter('bms',this.value)">${bmsOptions}</select></div><div class="audit-control"><label>Statut</label><select onchange="setAuditFilter('status',this.value)"><option value="all" ${auditFilter.status==='all'?'selected':''}>Tous</option><option value="success" ${auditFilter.status==='success'?'selected':''}>Confirmé / résolu</option><option value="active" ${auditFilter.status==='active'?'selected':''}>Actif / en cours</option><option value="error" ${auditFilter.status==='error'?'selected':''}>Échec / alarme</option></select></div></div><div class="audit-section"><div class="audit-head"><div><span>Journal chronologique</span><b>Commandes opérateur + cycle de vie alarmes</b></div><small>${rows.length} ligne(s)</small></div><div class="audit-list">${rowHtml}</div></div><div class="audit-note"><b class="audit-source-central">Source centrale :</b> Node-RED conserve les commandes SCADA à partir de dev59 et le cycle des alarmes centrales. Les commandes antérieures à dev59 ne peuvent pas être reconstruites. L’identité Home Assistant est enregistrée uniquement lorsqu’elle est fournie au panneau SCADA ; sinon l’action reste attribuée au « poste SCADA ».</div></div>`;
 }
 function openAuditOverview(){
- document.getElementById('detailEyebrow').textContent='SmartPhoton SCADA · Journal central';document.getElementById('detailTitle').textContent='Audit commandes & alarmes';renderAuditOverviewBody();document.getElementById('scadaOverlay').classList.add('open');
+ document.getElementById('detailEyebrow').textContent='SmartPhoton SCADA · Journal central';document.getElementById('detailTitle').textContent='Audit commandes & alarmes';renderAuditOverviewBody();showScadaDetail();
 }
 
 function openServiceOverview(){
@@ -1861,7 +2188,7 @@ function openServiceOverview(){
  document.getElementById('detailEyebrow').textContent='SmartPhoton SCADA · Maintenance / diagnostic';
  document.getElementById('detailTitle').textContent='Service';
  document.getElementById('detailBody').innerHTML=`<div class="service-shell"><div class="service-summary"><div class="service-kpi info"><span>Build add-on</span><b>${SCADA_BUILD}</b><small>Interface SCADA ${SCADA_UI}</small></div><div class="service-kpi ${live?'ok':'warn'}"><span>Home Assistant</span><b>${live?'CONNECTÉ':'HORS LIGNE'}</b><small>Core ${haVersion} · ${tz}</small></div><div class="service-kpi info"><span>Mode communication</span><b>${mode}</b><small>${currentPacks.length} pack(s) · ${totalBms} BMS</small></div><div class="service-kpi ${recorderClass}"><span>Recorder / historique</span><b>${recorderText}</b><small>API HA ${recorderReady?'disponible':'non disponible'}</small></div></div><div class="service-section"><div class="service-section-head"><span>État des packs</span><b>Télémétrie max ${freshnessLabel(maxAge)}</b></div><div class="service-pack-grid">${packsHtml||'<div class="service-note">Aucun pack détecté.</div>'}</div></div><div class="service-diag-grid"><div class="service-section"><div class="service-section-head"><span>Diagnostic Premium</span><b class="${diagClass}">${di.status}</b></div><div class="service-rows"><div class="service-row"><span>Issues actives</span><b>${di.issues}</b></div><div class="service-row"><span>Pack le plus affecté</span><b>${worst}</b></div><div class="service-row"><span>Seuil delta cellules</span><b>${cellThr===null?'—':(cellThr*1000).toFixed(0)+' mV'}</b></div><div class="service-row"><span>Seuil température</span><b>${tempThr===null?'—':tempThr.toFixed(0)+' °C'}</b></div></div><div class="service-note">${action}</div></div><div class="service-section"><div class="service-section-head"><span>Session SCADA</span><b>${live?'LIVE':'DEMO'}</b></div><div class="service-rows"><div class="service-row"><span>Résumé global HA</span><b>${globalAge===null?'—':freshnessLabel(globalAge)}</b></div><div class="service-row"><span>Rafraîchissement UI</span><b>1 s</b></div><div class="service-row"><span>Premium SCADA</span><b class="good">${live?'ACTIF':'DEMO'}</b></div><div class="service-row"><span>Journal opérateur</span><b>${operatorEvents.length} événement(s)</b></div></div><div class="service-actions" style="margin-top:14px"><button class="service-action" onclick="loadMainTrend(true);openServiceOverview()">↻ Actualiser Recorder</button><button class="service-action" onclick="document.getElementById('scadaOverlay').classList.remove('open')">← Retour Process</button></div></div></div></div>`;
- document.getElementById('scadaOverlay').classList.add('open');
+ showScadaDetail();
 }
 
 
@@ -1974,7 +2301,7 @@ function openTrendsOverview(){
  const opts=trendScopeOptions();trendState.scope=(currentPacks.length===1?`pack:${currentPacks[0].id}`:'global');if(!opts.some(o=>o.v===trendState.scope))trendState.scope=opts[0]?.v||'global';ensureTrendMetric();
  document.getElementById('detailEyebrow').textContent='SmartPhoton SCADA · Historique Recorder';document.getElementById('detailTitle').textContent='Trends';
  document.getElementById('detailBody').innerHTML=`<div class="trend-shell"><div class="detail-block"><div class="trend-controls"><div class="trend-control"><label>Périmètre</label><select id="trendScope"></select></div><div><label style="display:block;font-size:10px;color:#668695;letter-spacing:1.3px;text-transform:uppercase;margin:0 0 7px">Période</label><div class="trend-range"><button class="range-btn" data-hours="1">1 h</button><button class="range-btn" data-hours="6">6 h</button><button class="range-btn active" data-hours="24">24 h</button></div></div><div></div></div><div class="trend-metrics" id="trendMetricButtons" style="margin-top:14px"></div></div><div class="trend-stat-row"><div class="trend-stat"><span>Actuel</span><b id="trendLatest">—</b></div><div class="trend-stat"><span>Minimum</span><b id="trendMin">—</b></div><div class="trend-stat"><span>Maximum</span><b id="trendMax">—</b></div><div class="trend-stat"><span>Moyenne</span><b id="trendAvg">—</b></div></div><div class="trend-bigchart"><svg id="trendDetailSvg" viewBox="0 0 1000 360" preserveAspectRatio="none"></svg><div class="trend-message" id="trendMessage">Chargement…</div></div><div class="trend-source"><span id="trendSourceText">Source : Home Assistant Recorder</span><span>Données historiques réelles</span></div></div>`;
- document.getElementById('scadaOverlay').classList.add('open');renderTrendControls();
+ showScadaDetail();renderTrendControls();
  document.getElementById('trendScope').onchange=e=>{trendState.scope=e.target.value;ensureTrendMetric();renderTrendControls();loadTrendDetail()};
  document.querySelectorAll('.range-btn').forEach(b=>b.onclick=()=>{trendState.hours=Number(b.dataset.hours);renderTrendControls();loadTrendDetail()});loadTrendDetail();
 }
@@ -2111,7 +2438,7 @@ function render(){
  document.getElementById('opMode').textContent=pkw>0.03?'CHARGE':pkw<-0.03?'DÉCHARGE':'REPOS';
  document.getElementById('opFresh').textContent=freshnessLabel(maxAge); document.getElementById('opFresh').style.color=maxAge<20?'var(--green)':maxAge<45?'var(--amber)':'var(--red)';
  document.getElementById('liveBadge').textContent=live?'● HA CONNECTÉ · UI 1 s':'● DEMO · LIVE READY';
- document.getElementById('dataMode').textContent=live?`SMARTPHOTON SCADA · HOME ASSISTANT LIVE · ${singlePack?'SINGLE PACK':'MULTI‑PACK'}`:`SMARTPHOTON SCADA · v0.35 · DEMO ${singlePack?'1 PACK':'MULTI'}`;
+ document.getElementById('dataMode').textContent=live?`SMARTPHOTON SCADA · HOME ASSISTANT LIVE · ${singlePack?'SINGLE PACK':'MULTI‑PACK'}`:`SMARTPHOTON SCADA · v0.39 · DEMO ${singlePack?'1 PACK':'MULTI'}`;
  const demoToggle=document.getElementById('demoToggle'); if(demoToggle) demoToggle.style.display=live?'none':'inline';
 }
 
@@ -2132,11 +2459,11 @@ document.querySelectorAll('.navitem').forEach(n=>n.addEventListener('click',()=>
  else if(v==='packs'){
    document.getElementById('detailEyebrow').textContent='Vue flotte';document.getElementById('detailTitle').textContent='Packs supervisés';
    document.getElementById('detailBody').innerHTML=`<div class="detail-block pack-overview-shell" style="grid-column:1/3"><div class="bms-title"><span>Parc batteries</span><b>${currentPacks.length} packs</b></div><div class="bms-cards">${currentPacks.map(p=>`<div class="bms-card clickable" onclick="openPack('${p.id}')"><div class="addr">${p.name}</div><div class="bstate">${p.online===false?'OFFLINE':'● ONLINE'}</div><div class="serial">${p.bms} BMS · ${(p.soc||0).toFixed(0)} % SOC</div><div class="bline"></div><div class="mini"><span>Puissance</span><b>${(p.power/1000).toFixed(2)} kW</b></div><div class="mini" style="margin-top:6px"><span>Delta</span><b>${(p.d||0).toFixed(0)} mV</b></div><div class="fresh ${freshnessClass(p.ageSec)}">LIVE ${freshnessLabel(p.ageSec)}</div></div>`).join('')}</div></div>`;
-   document.getElementById('scadaOverlay').classList.add('open');
+   showScadaDetail();
  } else if(v!=='process'){
    document.getElementById('detailEyebrow').textContent='SmartPhoton SCADA';document.getElementById('detailTitle').textContent=v.toUpperCase();
-   document.getElementById('detailBody').innerHTML=`<div class="detail-block" style="grid-column:1/3"><div class="bms-title"><span>Écran en préparation</span><b>v0.35</b></div><div style="color:#7899a7;font-size:12px;line-height:1.8">Cette zone est réservée à une prochaine étape SCADA. Process, Packs, BMS, Alarmes, Audit, Trends et Service sont opérationnels.</div></div>`;
-   document.getElementById('scadaOverlay').classList.add('open');
+   document.getElementById('detailBody').innerHTML=`<div class="detail-block" style="grid-column:1/3"><div class="bms-title"><span>Écran en préparation</span><b>v0.39</b></div><div style="color:#7899a7;font-size:12px;line-height:1.8">Cette zone est réservée à une prochaine étape SCADA. Process, Packs, BMS, Alarmes, Audit, Trends et Service sont opérationnels.</div></div>`;
+   showScadaDetail();
  }
 }));
 

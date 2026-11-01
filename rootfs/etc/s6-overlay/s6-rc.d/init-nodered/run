@@ -44,6 +44,27 @@ else
     bashio::log.warning "SCADA assets are incomplete in this add-on image; /local SCADA may return 404."
 fi
 
+# Install Glow independently from SCADA so a missing optional interface cannot
+# block the other. Keep the user's old /config/www/jkbms-dashboard-glow.html
+# untouched; this is a versioned, Multi-Pack-specific web asset.
+GLOW_SOURCE="/etc/smartphoton_jkbms_multipack/www/glow/index.html"
+GLOW_TARGET="/config/www/smartphoton_jkbms_multipack/glow/index.html"
+if [[ -f "${GLOW_SOURCE}" ]]; then
+    mkdir -p "/config/www/smartphoton_jkbms_multipack/glow" \
+        || bashio::exit.nok "Failed to create Glow /config/www directory"
+    if ! cmp -s "${GLOW_SOURCE}" "${GLOW_TARGET}"; then
+        cp -f "${GLOW_SOURCE}" "${GLOW_TARGET}.tmp" \
+            || bashio::exit.nok "Failed to stage Glow HTML"
+        chmod 0644 "${GLOW_TARGET}.tmp" \
+            || bashio::exit.nok "Failed to chmod Glow HTML"
+        mv -f "${GLOW_TARGET}.tmp" "${GLOW_TARGET}" \
+            || bashio::exit.nok "Failed to install Glow HTML"
+    fi
+    bashio::log.info "SmartPhoton Glow available under /local/smartphoton_jkbms_multipack/glow/"
+else
+    bashio::log.warning "Glow packaged asset missing; Glow /local page may return 404."
+fi
+
 # Assure que la configuration existe
 if ! bashio::fs.directory_exists '/config/smartphoton_jkbms_multipack/'; then
     mkdir -p /config/smartphoton_jkbms_multipack/nodes \
