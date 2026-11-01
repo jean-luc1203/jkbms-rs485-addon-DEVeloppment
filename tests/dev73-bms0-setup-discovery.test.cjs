@@ -36,7 +36,7 @@ function harness(opts = {}) {
         warn: s => logs.push(String(s)),
         debug: s => logs.push(String(s))
     };
-    function run(address, pack = 'pack_1') {
+    function run(address, pack = 'pack_1', payloadOverrides = {}, messageOverrides = {}) {
         const msg = {
             bms_numero: address,
             pack_id: pack,
@@ -46,8 +46,10 @@ function harness(opts = {}) {
                 max_charge_current_A: 80,
                 total_battery_capacity_Ah: 280,
                 Device_address_N: address,
-                display_always_on_switch: true
-            }
+                display_always_on_switch: true,
+                ...payloadOverrides
+            },
+            ...messageOverrides
         };
         const execute = script.runInNewContext({ msg, global, flow, node }, { timeout: 2000 });
         const result = execute();
@@ -118,6 +120,57 @@ function testLegacyAndBroadcastMasterIdentity() {
     assert.equal(legacyConfig.state_topic, 'BMS_master/control/max_charge_current/state');
 }
 
+
+function testChangedSetupDoesNotDuplicateDiscovery() {
+    const h = harness();
+    h.run(0);
+    assert.equal(h.run(0).length, 0, 'Unchanged SETUP must stay silent');
+    const changed = h.run(0, 'pack_1', { max_charge_current_A: 79 });
+    assert.ok(changed.some(m =>
+        m.topic === 'jkbms/pack_1/BMS_0/control/max_charge_current/state' && m.payload === 79
+    ), 'Changed numeric setting must publish its new state');
+    assert.ok(!changed.some(m => m.topic.startsWith('homeassistant/')),
+        'A changed value must not create duplicate HA discovery entities');
+    assert.equal(h.run(0, 'pack_1', { max_charge_current_A: 79 }).length, 0);
+}
+
+function testDelayedCleanupWaitsForMqtt() {
+    const h = harness({ jkbms_mqtt_connected: false });
+    const initial = h.run(0);
+    assert.ok(!initial.some(m => m.payload === '' && m.retain),
+        'No retained cleanup may be issued before MQTT is connected');
+    assert.notEqual(h.flowState.get('apMigrationCleanup_v4_2_89_pack_1_BMS_0'), true);
+    h.settings.set('jkbms_mqtt_connected', true);
+    const cleanup = h.run(0);
+    assert.ok(cleanup.some(m => m.payload === '' && m.retain),
+        'A connected MQTT broker must receive delayed retained cleanup');
+    discovery(cleanup, 'number', 'pack_1_BMS_0_device', 'pack_1_bms_0_bms_max_charge_current');
+    assert.equal(h.flowState.get('apMigrationCleanup_v4_2_89_pack_1_BMS_0'), true);
+    assert.equal(h.run(0).length, 0, 'Cleanup must run only once');
+}
+
+function testPerBmsForcedDiscoveryIsIsolated() {
+    const h = harness();
+    h.run(0);
+    h.run(2);
+    h.flowState.set('forceSetupRepublish_pack_1_BMS_0', true);
+    const forced = h.run(0);
+    discovery(forced, 'number', 'pack_1_BMS_0_device', 'pack_1_bms_0_bms_max_charge_current');
+    assert.equal(h.run(2).length, 0, 'Forcing BMS 0 must not republish BMS 2');
+    assert.equal(h.flowState.get('forceSetupRepublish_pack_1_BMS_0'), false);
+}
+
+function testHighAddressAndInvalidPayload() {
+    const h = harness();
+    const high = h.run(15, 'pack_4');
+    discovery(high, 'number', 'pack_4_BMS_15_device', 'pack_4_bms_15_bms_max_charge_current');
+    assert.equal(h.flowState.get('apSetupSent_pack_4_BMS_15'), true);
+    const invalid = h.run(0, 'pack_1', {}, { payload: null });
+    assert.equal(invalid.length, 0, 'Null payload must be ignored');
+    assert.equal(h.flowState.has('apSetupSent_pack_1_BMS_0'), false,
+        'Invalid payload must not modify discovery flags');
+}
+
 function main() {
     assert.equal(flows.length, 441, 'Node-RED node count must remain unchanged');
     assert.equal(flows.filter(n => n.type === 'function').length, 103);
@@ -125,6 +178,10 @@ function main() {
     testReconnectRepublishesZero();
     testOtherAddressesAndPackIsolation();
     testLegacyAndBroadcastMasterIdentity();
-    console.log('PASS: DEV73 Active Polling BMS 0 SETUP discovery, reconnect, pack isolation and legacy master naming');
+    testChangedSetupDoesNotDuplicateDiscovery();
+    testDelayedCleanupWaitsForMqtt();
+    testPerBmsForcedDiscoveryIsIsolated();
+    testHighAddressAndInvalidPayload();
+    console.log('PASS: DEV73 BMS0/BMS2 SETUP, reconnect, MQTT cleanup, change tracking, pack isolation, invalid payload and master naming');
 }
 main();
