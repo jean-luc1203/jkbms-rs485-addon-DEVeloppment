@@ -1,6 +1,6 @@
 # ⚠️ DEVELOPMENT / TESTING VERSION
 
-> **DEV72.2 SCADA packaging — 18 October 2026.** Includes the known-good SmartPhoton SCADA HTML and WebP assets and automatically installs them under Home Assistant `/config/www/smartphoton_jkbms_multipack/` on add-on startup. This resolves the 404 verified on a fresh HAOS test VM, without changing the RS485 engine, MQTT, Recorder or Premium licensing. Physical RS485-1 Active Polling address 0+2 on test HAOS and independent RS485-2 Broadcasting on production HAOS have been demonstrated. **Numeric SETUP Home Assistant entities for BMS 0 remain missing and are NOT fixed by this candidate.** See [SCADA packaging test plan](docs/SCADA_ASSETS_PACKAGING.md).
+> **DEV73 BMS 0 SETUP discovery candidate — 18 October 2026, branch only.** Corrects the missing numeric SETUP entities for physical JK BMS address `0` in Multi-Pack Active Polling. Keeps physical `BMS_0` separate from historical Broadcasting/Legacy `BMS_master`. The DEV72.2 SCADA assets and all existing RS485/Recorder code remain unchanged. The Node-RED function passed address 0/2 and MQTT reconnect regression tests, **but physical HAOS testing is still required**. See [DEV73 checkpoint](docs/CHECKPOINT_DEV73_2026-10-18.md).
 
 > **This repository contains the development version of SmartPhoton JK-BMS.**
 >
