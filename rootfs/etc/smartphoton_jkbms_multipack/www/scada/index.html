@@ -1281,6 +1281,9 @@ function spSetLanguage(value){
  spLanguage=spNormalizeLanguage(value);
  try{localStorage.setItem(SP_LANG_KEY,spLanguage)}catch(_){}
  document.documentElement.lang=spLanguage;
+ if(typeof render==='function')render();
+ const title=document.getElementById('detailTitle');
+ if(title&&document.getElementById('scadaOverlay')?.classList.contains('open')&&/Alarmes & historique opérateur|Alarms & operator history|Alarme & Bedienerprotokoll/.test(title.textContent))openAlarmOverview();
  spApplyLanguage();
 }
 function spApplyLanguage(){
