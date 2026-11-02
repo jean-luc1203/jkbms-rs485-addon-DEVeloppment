@@ -1133,8 +1133,14 @@ function pageBms(p,b,tab){
 
   if(tab==='alarms'){
     const on=b.alarms.length>0;
-    h+=`<div class="alert ${on?'crit':'ok'}" style="margin-top:16px"><span class="ic">${on?'🚨':'✅'}</span><div><b>${on?'Alarme active':'Aucune alarme active'}</b><small>${on?b.alarms.join(' · '):'Le BMS ne remonte aucune alarme.'}</small></div></div>
-    <div class="grid g2"><div><h2>Statut</h2><div class="card"><table class="tbl"><tr><td>Alarme active</td><td class="num">${on?'Oui':'Non'}</td></tr><tr><td>Statut visuel</td><td class="num">${stTxt[st]}</td></tr><tr><td>Liste des alarmes</td><td class="num">${on?b.alarms.join(', '):'—'}</td></tr></table></div></div>
+    const diagnostics=[];
+    if(d>=TH.deltaWarn)diagnostics.push(`Écart cellules ${f(d,0)} mV (alerte ${TH.deltaWarn} / critique ${TH.deltaCrit} mV)`);
+    if(t>=TH.tempWarn)diagnostics.push(`Température ${f(t,1)} °C (alerte ${TH.tempWarn} / critique ${TH.tempCrit} °C)`);
+    const diagCrit=d>=TH.deltaCrit||t>=TH.tempCrit;
+    h+=`<h2>Alarmes matérielles JK-BMS</h2><div class="alert ${on?'crit':'ok'}" style="margin-top:16px"><span class="ic">${on?'🚨':'✅'}</span><div><b>${on?'Alarme matérielle active':'Aucune alarme matérielle signalée'}</b><small>${on?esc(b.alarms.join(' · ')):'Les indicateurs d’alarme transmis par le BMS ne signalent aucun défaut. Les alertes calculées sont présentées séparément ci-dessous.'}</small></div></div>
+    <h2>Alertes de supervision Glow</h2>
+    <div class="alert ${diagnostics.length?(diagCrit?'crit':'warn'):'ok'}" style="margin-top:10px"><span class="ic">${diagnostics.length?'⚠️':'✅'}</span><div><b>${diagnostics.length?'Écart ou température à surveiller':'Aucun dépassement des seuils Glow'}</b><small>${diagnostics.length?esc(diagnostics.join(' · ')):'Les seuils de surveillance des cellules et de température ne sont pas dépassés.'} — Calcul indépendant des indicateurs d’alarme du JK-BMS.</small></div></div>
+    <div class="grid g2"><div><h2>Statut</h2><div class="card"><table class="tbl"><tr><td>Alarme matérielle BMS</td><td class="num">${on?'Oui':'Non'}</td></tr><tr><td>État général (inclut diagnostics)</td><td class="num">${stTxt[st]}</td></tr><tr><td>Liste des alarmes matérielles</td><td class="num">${on?esc(b.alarms.join(', ')):'—'}</td></tr></table></div></div>
     <div><h2>Contexte</h2><div class="card"><table class="tbl"><tr><td>Écart cellules</td><td class="num">${f(d,0)} mV</td></tr><tr><td>Température MOS</td><td class="num">${f(b.mos,1)} °C</td></tr><tr><td>MOS charge</td><td class="num">${b.chargeMos?'ON':'OFF'}</td></tr><tr><td>MOS décharge</td><td class="num">${b.dischargeMos?'ON':'OFF'}</td></tr></table></div></div></div>
     <h2>Événements de ce BMS (48 h)</h2>${eventsList(EVENTS.filter(e=>e.pack===p.id&&(e.bms===b.id||e.bms==null)),60)}`;
   }
