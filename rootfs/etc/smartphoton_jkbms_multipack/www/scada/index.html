@@ -1262,6 +1262,80 @@ html,body{min-width:0}
 
 <div class="control-confirm-layer" id="controlConfirmLayer"><div class="control-confirm-card" id="controlConfirmCard"><div class="ey">Confirmation opérateur · commande BMS</div><h3 id="controlConfirmTitle">Confirmer la commande</h3><p id="controlConfirmText"></p><div class="control-confirm-safety" id="controlConfirmSafety"></div><div class="control-confirm-target"><div><span>État actuel</span><b id="controlConfirmCurrent">—</b></div><div><span>État demandé</span><b id="controlConfirmRequested">—</b></div></div><div class="control-confirm-entity" id="controlConfirmEntity">—</div><p>Le SCADA n'anticipe jamais le résultat : après l'envoi, l'état ne sera déclaré confirmé qu'après lecture du retour réel publié par le BMS.</p><div class="control-confirm-actions"><button onclick="cancelControlCommandConfirm()">ANNULER</button><button class="go" id="controlConfirmGo" onclick="confirmControlCommand()">CONFIRMER</button></div></div></div>
 <script>
+
+// DEV75 - shared translation keys (FR fallback); no credentials, no external assets.
+const SP_I18N={"fr":{"language":"Langue","hardware":"Alarmes matérielles JK-BMS","supervision":"Alertes de supervision","noHardware":"Aucune alarme matérielle signalée","hardwareActive":"Alarme matérielle active","noSupervision":"Aucun seuil de supervision dépassé","supervisionActive":"Écart ou température à surveiller","hardwareExplanation":"Les indicateurs d’alarme transmis par le BMS ne signalent aucun défaut. Les alertes calculées sont présentées séparément ci-dessous.","supervisionExplanation":"Les seuils de surveillance des cellules et de température ne sont pas dépassés.","supervisionIndependent":"Calcul indépendant des indicateurs d’alarme du JK-BMS.","centralHistory":"Alarmes & historique opérateur","alarmCenter":"Centre alarmes · Cycle de vie","active":"Actives","toAck":"À quittancer","ackActive":"Quittancées actives","history":"Historique","normal":"Normal","close":"Fermer","alarmEvents":"Événements actifs","observedHistory":"Historique observé"},"en":{"language":"Language","hardware":"JK-BMS hardware alarms","supervision":"Supervision alerts","noHardware":"No hardware alarm reported","hardwareActive":"Hardware alarm active","noSupervision":"No supervision threshold exceeded","supervisionActive":"Cell imbalance or temperature requires attention","hardwareExplanation":"The BMS alarm indicators report no fault. Calculated alerts are shown separately below.","supervisionExplanation":"No cell-voltage imbalance or temperature monitoring threshold has been exceeded.","supervisionIndependent":"Calculated independently of JK-BMS hardware alarm indicators.","centralHistory":"Alarms & operator history","alarmCenter":"Alarm center · Lifecycle","active":"Active","toAck":"Awaiting acknowledgement","ackActive":"Acknowledged and active","history":"History","normal":"Normal","close":"Close","alarmEvents":"Active events","observedHistory":"Observed history"},"de":{"language":"Sprache","hardware":"JK-BMS-Hardwarealarme","supervision":"Überwachungswarnungen","noHardware":"Kein Hardwarealarm gemeldet","hardwareActive":"Hardwarealarm aktiv","noSupervision":"Kein Überwachungsgrenzwert überschritten","supervisionActive":"Zellabweichung oder Temperatur prüfen","hardwareExplanation":"Die Alarmmeldungen des BMS zeigen keinen Fehler an. Berechnete Warnungen werden unten separat angezeigt.","supervisionExplanation":"Die Grenzwerte für Zellabweichung und Temperatur sind nicht überschritten.","supervisionIndependent":"Unabhängig von den Hardware-Alarmmeldungen des JK-BMS berechnet.","centralHistory":"Alarme & Bedienerprotokoll","alarmCenter":"Alarmzentrale · Lebenszyklus","active":"Aktiv","toAck":"Zu quittieren","ackActive":"Quittiert und aktiv","history":"Verlauf","normal":"Normal","close":"Schließen","alarmEvents":"Aktive Ereignisse","observedHistory":"Ereignisverlauf"}};
+const SP_LANG_KEY='smartphoton_multipack_language_v1';
+function spNormalizeLanguage(value){const v=String(value||'').toLowerCase().split(/[-_]/)[0];return Object.hasOwn(SP_I18N,v)?v:'fr'}
+function spHaLanguage(){
+ try{
+  const ha=window.parent?.document?.querySelector('home-assistant')?.hass;
+  return ha?.locale?.language||ha?.language||null;
+ }catch(_){return null}
+}
+let spManualLanguage=null;
+try{spManualLanguage=localStorage.getItem(SP_LANG_KEY)}catch(_){}
+let spLanguage=spNormalizeLanguage(spManualLanguage||spHaLanguage()||navigator.language);
+function spText(key){return SP_I18N[spLanguage]?.[key]||SP_I18N.fr[key]||key}
+function spSetLanguage(value){
+ spLanguage=spNormalizeLanguage(value);
+ try{localStorage.setItem(SP_LANG_KEY,spLanguage)}catch(_){}
+ try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:'smartphoton-multipack-language',language:spLanguage},window.location.origin)}catch(_){}
+ document.documentElement.lang=spLanguage;
+ if(typeof render==='function')render();
+ const title=document.getElementById('detailTitle');
+ if(title&&document.getElementById('scadaOverlay')?.classList.contains('open')&&/Alarmes & historique opérateur|Alarms & operator history|Alarme & Bedienerprotokoll/.test(title.textContent))openAlarmOverview();
+ spApplyLanguage();
+}
+
+// DEV75.2: visual-only SCADA translations. Never rewrite service data, entity IDs or audit records.
+const SP_SCADA_LABELS={"QUITTANCÉE":{"en":"ACKNOWLEDGED","de":"QUITTIERT"},"À QUITTANCER":{"en":"TO ACKNOWLEDGE","de":"ZU QUITTIEREN"},"Aucune alarme active sur les packs supervisés":{"en":"No active alarms on monitored packs","de":"Keine aktiven Alarme der überwachten Packs"},"Supervision batterie":{"en":"Battery monitoring","de":"Batterieüberwachung"},"Supervision énergétique":{"en":"Energy monitoring","de":"Energieüberwachung"},"Synoptique batterie":{"en":"Battery overview","de":"Batterieübersicht"},"Alarmes & historique opérateur":{"en":"Alarms & operator history","de":"Alarme & Bedienerprotokoll"},"Journal opérateur":{"en":"Operator log","de":"Bedienerprotokoll"},"Session courante":{"en":"Current session","de":"Aktuelle Sitzung"},"Processus":{"en":"Process","de":"Prozess"},"Packs":{"en":"Packs","de":"Packs"},"Alarmes":{"en":"Alarms","de":"Alarme"},"Audit":{"en":"Audit","de":"Audit"},"Tendances":{"en":"Trends","de":"Trends"},"Service":{"en":"Service","de":"Service"},"Puissance":{"en":"Power","de":"Leistung"},"Courant":{"en":"Current","de":"Strom"},"Tension moyenne":{"en":"Average voltage","de":"Mittlere Spannung"},"Delta cellule max":{"en":"Maximum cell delta","de":"Max. Zellabweichung"},"État processus":{"en":"Process status","de":"Prozessstatus"},"Fiche opérateur":{"en":"Operator detail","de":"Bedieneransicht"},"FERMER":{"en":"CLOSE","de":"SCHLIESSEN"},"ANNULER":{"en":"CANCEL","de":"ABBRECHEN"},"CONFIRMER":{"en":"CONFIRM","de":"BESTÄTIGEN"},"Confirmer la commande":{"en":"Confirm command","de":"Befehl bestätigen"},"Confirmation opérateur · commande BMS":{"en":"Operator confirmation · BMS command","de":"Bedienerbestätigung · BMS-Befehl"},"État actuel":{"en":"Current state","de":"Aktueller Zustand"},"État demandé":{"en":"Requested state","de":"Gewünschter Zustand"},"Le SCADA n'anticipe jamais le résultat : après l'envoi, l'état ne sera déclaré confirmé qu'après lecture du retour réel publié par le BMS.":{"en":"SCADA never assumes a command succeeded. Confirmation requires actual BMS feedback.","de":"SCADA nimmt keinen Befehlserfolg vorweg. Die Bestätigung erfolgt erst nach tatsächlicher BMS-Rückmeldung."},"Aucun seuil diagnostic dépassé":{"en":"No diagnostic threshold exceeded","de":"Kein Diagnosegrenzwert überschritten"},"Initialisation du journal SCADA…":{"en":"Initializing SCADA log…","de":"SCADA-Protokoll wird initialisiert…"},"Écran en préparation":{"en":"Screen under development","de":"Ansicht in Vorbereitung"},"Puissance active":{"en":"Active power","de":"Wirkleistung"},"BMS actifs":{"en":"Active BMS","de":"Aktive BMS"}};
+const spScadaOriginalText=new WeakMap();
+function spScadaLocale(){return {fr:'fr-FR',en:'en-GB',de:'de-DE'}[spLanguage]||'fr-FR'}
+const SP_SCADA_MESSAGES={"fr":{"demo":"Mode démonstration SCADA","connected":"Connexion Home Assistant établie","topology":"{packs} pack(s) · {bms} BMS détectés","commRestored":"Communication rétablie","commLost":"Communication perdue","cellDeltaNormal":"Delta cellules revenu normal","cellDelta":"Delta cellules {delta} mV","mode":"Mode {from} → {to}","noEvents":"Aucun événement depuis l’ouverture du SCADA","ack":"QUITTANCÉE","ackPending":"À QUITTANCER","notAcked":"NON QUITT."},"en":{"demo":"SCADA demonstration mode","connected":"Home Assistant connection established","topology":"{packs} pack(s) · {bms} BMS detected","commRestored":"Communication restored","commLost":"Communication lost","cellDeltaNormal":"Cell delta back to normal","cellDelta":"Cell delta {delta} mV","mode":"Mode {from} → {to}","noEvents":"No events since SCADA was opened","ack":"ACKNOWLEDGED","ackPending":"TO ACKNOWLEDGE","notAcked":"NOT ACK."},"de":{"demo":"SCADA-Demomodus","connected":"Home-Assistant-Verbindung hergestellt","topology":"{packs} Pack(s) · {bms} BMS erkannt","commRestored":"Kommunikation wiederhergestellt","commLost":"Kommunikation unterbrochen","cellDeltaNormal":"Zellabweichung wieder normal","cellDelta":"Zellabweichung {delta} mV","mode":"Modus {from} → {to}","noEvents":"Keine Ereignisse seit dem Öffnen von SCADA","ack":"QUITTIERT","ackPending":"ZU QUITTIEREN","notAcked":"NICHT QUITT."}};
+function spScadaMessage(key,args={}){const template=SP_SCADA_MESSAGES[spLanguage]?.[key]||SP_SCADA_MESSAGES.fr[key]||key;return template.replace(/\{(\w+)\}/g,(_,name)=>String(args[name]??''))}
+function spScadaText(fr){return SP_SCADA_LABELS[fr]?.[spLanguage]||fr}
+function spTranslateScada(root=document.body){
+ if(!root||!document.createTreeWalker||typeof NodeFilter==='undefined')return;
+ const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;
+ while((node=walker.nextNode())){
+  const parent=node.parentElement;
+  if(!parent||/SCRIPT|STYLE|INPUT|TEXTAREA|OPTION|CODE/.test(parent.tagName))continue;
+  const original=spScadaOriginalText.get(node)??node.nodeValue;
+  if(!spScadaOriginalText.has(node))spScadaOriginalText.set(node,original);
+  const match=original.match(/^(\s*)(.*?)(\s*)$/s);
+  if(!match)continue;
+  const translated=SP_SCADA_LABELS[match[2]];
+  if(translated)node.nodeValue=match[1]+(translated[spLanguage]||match[2])+match[3];
+ }
+}
+
+// Synchronize language between dashboards on the same Home Assistant origin.
+function spSyncLanguage(){
+ try{const saved=localStorage.getItem(SP_LANG_KEY);if(saved&&saved!==spLanguage){spLanguage=spNormalizeLanguage(saved);if(typeof render==='function')render();spApplyLanguage()}}catch(_){}
+}
+if(typeof window.addEventListener==='function'){
+ window.addEventListener('storage',event=>{if(event.key===SP_LANG_KEY)spSyncLanguage()});
+ window.addEventListener('focus',spSyncLanguage);
+}
+function spApplyLanguage(){
+ document.documentElement.lang=spLanguage;
+ let control=document.getElementById('sp-language-switch');
+ if(!control){
+   control=document.createElement('label');control.id='sp-language-switch';
+   control.style.cssText='position:fixed;right:12px;bottom:12px;z-index:100000;background:#091b29;color:#ecf6fb;border:1px solid #32718b;border-radius:9px;padding:5px 8px;font:12px system-ui;display:flex;align-items:center;gap:6px;box-shadow:0 6px 20px #0009';
+   const label=document.createElement('span');label.id='sp-language-label';control.append(label);
+   const select=document.createElement('select');select.id='sp-language-select';select.style.cssText='color:#ecf6fb;background:#102b3b;border:1px solid #32718b;border-radius:5px;padding:4px';
+   for(const [value,name] of [['fr','FR'],['en','EN'],['de','DE']]){const option=document.createElement('option');option.value=value;option.textContent=name;select.append(option)}
+   select.addEventListener('change',e=>spSetLanguage(e.target.value));
+   control.append(select);document.body.append(control);
+ }
+ control.querySelector('#sp-language-label').textContent=spText('language');
+ control.querySelector('#sp-language-select').value=spLanguage;
+ spTranslateScada();
+}
+document.documentElement.lang=spLanguage;
+
 const demoPacks=[
  {id:'pack_1',name:'Pack 1 · Real',soc:84,power:+1420,v:53.25,a:26.7,d:11,t:27,bms:2,members:['1','3'],ageSec:0.8},
  {id:'pack_2',name:'Pack 2 · Lab',soc:78,power:+1160,v:53.18,a:21.8,d:18,t:29,bms:3,members:['1','2','3'],ageSec:1.1},
@@ -1634,8 +1708,8 @@ function syncAlarmState(){
  }
  if(changed)saveAlarmAcks();return issues;
 }
-function alarmTime(ts){if(!ts)return '—';return new Date(ts).toLocaleTimeString('fr-FR',{hour12:false})}
-function alarmDateTime(ts){if(!ts)return '—';return new Date(ts).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})}
+function alarmTime(ts){if(!ts)return '—';return new Date(ts).toLocaleTimeString(spScadaLocale(),{hour12:false})}
+function alarmDateTime(ts){if(!ts)return '—';return new Date(ts).toLocaleString(spScadaLocale(),{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})}
 function alarmDuration(ms){let sec=Math.max(0,Math.floor((ms||0)/1000));if(sec<60)return `${sec} s`;const min=Math.floor(sec/60);sec%=60;if(min<60)return `${min} min ${sec.toString().padStart(2,'0')} s`;const h=Math.floor(min/60),m=min%60;if(h<24)return `${h} h ${m.toString().padStart(2,'0')} min`;const d=Math.floor(h/24);return `${d} j ${(h%24).toString().padStart(2,'0')} h`}
 function commandLatencyText(ms){const n=Math.max(0,Number(ms)||0);if(n<1000)return `${Math.round(n)} ms`;if(n<60000)return `${(n/1000).toFixed(n<10000?1:0)} s`;return alarmDuration(n)}
 function alarmHistoryRecord(id){return alarmHistory.find(r=>r.id===id)||null}
@@ -1687,7 +1761,7 @@ function openPack(id){
  const mode=p.power>25?'CHARGE':p.power<-25?'DÉCHARGE':'REPOS';const sign=p.power>0?'+':'';
  document.getElementById('detailEyebrow').textContent='Fiche opérateur · Process batterie';
  document.getElementById('detailTitle').textContent=p.name;
- document.getElementById('detailBody').innerHTML=`<div class="detail-hero pack-operator-hero"><div class="online">${p.online===false?'OFFLINE':'ONLINE · COMMUNICATION OK'}</div><div class="detail-soc" style="--soc:${Math.max(0,Math.min(100,p.soc||0))}"><div><b>${(p.soc||0).toFixed(0)}%</b><small>STATE OF CHARGE</small></div></div><div class="detail-power">${sign}${(p.power/1000).toFixed(2)} kW</div><div class="detail-mode">${mode} · ${(p.a||0).toFixed(1)} A</div><div class="detail-grid"><div class="detail-metric"><span>Tension</span><b>${(p.v||0).toFixed(2)} V</b></div><div class="detail-metric"><span>Delta max</span><b>${(p.d||0).toFixed(0)} mV</b></div><div class="detail-metric"><span>Temp max</span><b>${(p.t||0).toFixed(0)} °C</b></div><div class="detail-metric"><span>Télémétrie</span><b>${freshnessLabel(p.ageSec)}</b></div></div></div><div class="detail-block pack-operator-block"><div class="bms-title"><span>Modules BMS du pack</span><b>${members.length} BMS détectés</b></div><div class="bms-cards">${members.map(m=>{const b=readBms(p.id,m);const fc=freshnessClass(b?.ageSec??999);return `<div class="bms-card clickable" onclick="openBms('${p.id}','${m}')"><div class="addr">BMS ${m}</div><div class="bstate">● ONLINE</div><div class="serial">Adresse JK ${m}</div><div class="bline"></div><div class="mini"><span>Process</span><b>${b?.status||mode}</b></div><div class="mini" style="margin-top:6px"><span>Puissance</span><b>${((b?.power||0)/1000).toFixed(2)} kW</b></div><div class="fresh ${fc}">LIVE ${freshnessLabel(b?.ageSec)}</div></div>`}).join('')}</div><div class="bms-title" style="margin-top:18px"><span>Diagnostic pack</span><b>${packIssues(p).length?'ATTENTION REQUISE':'NORMAL'}</b></div><div class="alarm-list">${packIssues(p).length?packIssues(p).map(a=>{const ack=alarmAck(a);return `<div class="alarm-item clickable ${issueSeverityClass(a)} ${ack?'acked':''}" onclick="openAlarmDetail('${a.key}')"><time>LIVE</time><div class="sev">${a.severity}</div><div class="msg">${a.category} · ${a.value}</div><div class="state ${ack?'ack':'pending'}">${ack?'QUITTANCÉE':'À QUITTANCER'}</div></div>`}).join(''):`<div class="alarm-item sev-ok"><time>LIVE</time><div class="sev">NORMAL</div><div class="msg">Aucun seuil pack dépassé</div><div class="state">OK</div></div>`}</div></div>`;
+ document.getElementById('detailBody').innerHTML=`<div class="detail-hero pack-operator-hero"><div class="online">${p.online===false?'OFFLINE':'ONLINE · COMMUNICATION OK'}</div><div class="detail-soc" style="--soc:${Math.max(0,Math.min(100,p.soc||0))}"><div><b>${(p.soc||0).toFixed(0)}%</b><small>STATE OF CHARGE</small></div></div><div class="detail-power">${sign}${(p.power/1000).toFixed(2)} kW</div><div class="detail-mode">${mode} · ${(p.a||0).toFixed(1)} A</div><div class="detail-grid"><div class="detail-metric"><span>Tension</span><b>${(p.v||0).toFixed(2)} V</b></div><div class="detail-metric"><span>Delta max</span><b>${(p.d||0).toFixed(0)} mV</b></div><div class="detail-metric"><span>Temp max</span><b>${(p.t||0).toFixed(0)} °C</b></div><div class="detail-metric"><span>Télémétrie</span><b>${freshnessLabel(p.ageSec)}</b></div></div></div><div class="detail-block pack-operator-block"><div class="bms-title"><span>Modules BMS du pack</span><b>${members.length} BMS détectés</b></div><div class="bms-cards">${members.map(m=>{const b=readBms(p.id,m);const fc=freshnessClass(b?.ageSec??999);return `<div class="bms-card clickable" onclick="openBms('${p.id}','${m}')"><div class="addr">BMS ${m}</div><div class="bstate">● ONLINE</div><div class="serial">Adresse JK ${m}</div><div class="bline"></div><div class="mini"><span>Process</span><b>${b?.status||mode}</b></div><div class="mini" style="margin-top:6px"><span>Puissance</span><b>${((b?.power||0)/1000).toFixed(2)} kW</b></div><div class="fresh ${fc}">LIVE ${freshnessLabel(b?.ageSec)}</div></div>`}).join('')}</div><div class="bms-title" style="margin-top:18px"><span>Diagnostic pack</span><b>${packIssues(p).length?'ATTENTION REQUISE':'NORMAL'}</b></div><div class="alarm-list">${packIssues(p).length?packIssues(p).map(a=>{const ack=alarmAck(a);return `<div class="alarm-item clickable ${issueSeverityClass(a)} ${ack?'acked':''}" onclick="openAlarmDetail('${a.key}')"><time>LIVE</time><div class="sev">${a.severity}</div><div class="msg">${a.category} · ${a.value}</div><div class="state ${ack?'ack':'pending'}">${ack?spScadaText('QUITTANCÉE'):spScadaText('À QUITTANCER')}</div></div>`}).join(''):`<div class="alarm-item sev-ok"><time>LIVE</time><div class="sev">NORMAL</div><div class="msg">Aucun seuil pack dépassé</div><div class="state">OK</div></div>`}</div></div>`;
  showScadaDetail();
 }
 function boolState(label,on){return `<div class="state-tile ${on?'state-ok':'state-warn'}"><span>${label}</span><b>${on?'ACTIF':'INACTIF'}</b></div>`}
@@ -1882,7 +1956,7 @@ const controlCommandState={};
 let controlConfirmContext=null;
 let currentControlContext=null;
 function controlCommandId(packId,bms,key){return `${packId}:${bms}:${key}`}
-function commandClock(ts){return new Date(ts||Date.now()).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+function commandClock(ts){return new Date(ts||Date.now()).toLocaleTimeString(spScadaLocale(),{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
 function getControlCommand(packId,bms,key){return controlCommandState[controlCommandId(packId,bms,key)]||null}
 function setControlCommand(packId,bms,key,data){controlCommandState[controlCommandId(packId,bms,key)]={...(getControlCommand(packId,bms,key)||{}),...data}}
 function commandableControl(packId,bms,def,state){
@@ -2131,10 +2205,10 @@ function openBmsOverview(){
  showScadaDetail();
 }
 function openAlarmOverview(){
- document.getElementById('detailEyebrow').textContent='Centre alarmes · Cycle de vie';document.getElementById('detailTitle').textContent='Alarmes & historique opérateur';
+ document.getElementById('detailEyebrow').textContent=spText('alarmCenter');document.getElementById('detailTitle').textContent=spText('centralHistory');
  const rows=syncAlarmState(),pending=rows.filter(r=>!alarmAck(r)).length,acked=rows.length-pending;
  const history=alarmHistory.slice(0,50),historyTotal=alarmHistoryTotal(),central=!!centralAlarmLifecycle();
- const activeHtml=rows.length?rows.map(a=>{const ack=alarmAck(a),rt=alarmRuntime[a.key]||{};return `<div class="alarm-item active-row clickable ${issueSeverityClass(a)} ${ack?'acked':''}" onclick="openAlarmDetail('${a.key}')"><time>${alarmTime(rt.firstSeen)}</time><div class="sev">${a.severity}</div><div class="msg"><b>${a.packName}</b> · ${a.category} · ${a.value}</div><div class="duration">${alarmDuration(Date.now()-(rt.firstSeen||Date.now()))}</div><div class="state ${ack?'ack':'pending'}">${ack?'QUITTANCÉE':'À QUITTANCER'}</div></div>`}).join(''):`<div class="alarm-item sev-ok"><time>LIVE</time><div class="sev">NORMAL</div><div class="msg">Aucune alarme active sur les packs supervisés</div><div class="state">OK</div></div>`;
+ const activeHtml=rows.length?rows.map(a=>{const ack=alarmAck(a),rt=alarmRuntime[a.key]||{};return `<div class="alarm-item active-row clickable ${issueSeverityClass(a)} ${ack?'acked':''}" onclick="openAlarmDetail('${a.key}')"><time>${alarmTime(rt.firstSeen)}</time><div class="sev">${a.severity}</div><div class="msg"><b>${a.packName}</b> · ${a.category} · ${a.value}</div><div class="duration">${alarmDuration(Date.now()-(rt.firstSeen||Date.now()))}</div><div class="state ${ack?'ack':'pending'}">${ack?spScadaMessage('ack'):spScadaMessage('ackPending')}</div></div>`}).join(''):`<div class="alarm-item sev-ok"><time>LIVE</time><div class="sev">NORMAL</div><div class="msg">${spScadaText('Aucune alarme active sur les packs supervisés')}</div><div class="state">OK</div></div>`;
  const histHtml=history.length?history.map(r=>`<div class="alarm-history-row" onclick="openAlarmHistoryDetail('${r.id}')"><time>${alarmDateTime(r.firstSeen)}</time><div class="sev ${r.severity==='ALARME'?'crit':'warn'}">${r.severity}</div><div class="msg"><b>${r.packName}</b> · ${r.category}<small>${r.code.replaceAll('_',' ')} · dernière valeur ${r.value}</small></div><div class="ack ${r.ackAt?'':'none'}">${r.ackAt?`QUITTANCÉE<small>${alarmDateTime(r.ackAt)}</small>`:'NON QUITT.'}</div><div class="duration">${alarmDuration((r.clearedAt||r.lastSeen)-r.firstSeen)}</div><div class="resolved">RETOUR NORMAL<small>${alarmDateTime(r.clearedAt)}</small></div></div>`).join(''):`<div class="alarm-history-empty">${centralAuditSubscriptionFailed?'Accès à l’historique détaillé indisponible : compte administrateur Home Assistant requis.':centralAuditSubscriptionPending?'Chargement du journal MQTT central…':'Aucun événement revenu à la normale disponible dans ce SCADA.'}</div>`;
  document.getElementById('detailBody').innerHTML=`<div class="alarm-center-shell"><div class="alarm-center-summary"><div class="alarm-center-kpi" style="--kpi-accent:${rows.length?'var(--amber)':'var(--green)'}"><span>Actives</span><b>${rows.length}</b><small>${rows.length?'Conditions physiques en cours':'Installation sans alarme SCADA'}</small></div><div class="alarm-center-kpi" style="--kpi-accent:var(--amber)"><span>À quittancer</span><b>${pending}</b><small>Prise en compte opérateur requise</small></div><div class="alarm-center-kpi" style="--kpi-accent:var(--cyan)"><span>Quittancées actives</span><b>${acked}</b><small>Conditions toujours présentes</small></div><div class="alarm-center-kpi" style="--kpi-accent:var(--green)"><span>Historique</span><b>${historyTotal}</b><small>${central?'Journal central Node-RED':'Historique local de secours'}</small></div></div><div class="alarm-center-section"><div class="alarm-center-head"><div><span>Événements actifs</span><b>Temps réel · cliquer pour le détail / quittance</b></div><small>${rows.length} actif(s)</small></div><div class="alarm-list">${activeHtml}</div></div><div class="alarm-center-section"><div class="alarm-center-head"><div><span>Historique observé</span><b>Apparition · quittance · retour normal · durée</b></div><small>${history.length}${historyTotal>history.length?' / '+historyTotal:''} affiché(s)</small></div><div class="alarm-history-list">${histHtml}</div></div><div class="alarm-history-note"><b>${central?'Journal centralisé Node-RED/MQTT.':'Mode local de secours.'}</b> ${central?'Les apparitions, retours à la normale et quittances des diagnostics centraux sont persistés côté add-on et partagés entre les postes SCADA.':'Le navigateur conserve temporairement les événements lorsque le journal central n’est pas disponible.'}</div></div>`;
  showScadaDetail()
@@ -2193,7 +2267,7 @@ function auditFilteredRows(){
  });
 }
 function auditStatusClass(r){return r.group==='success'?'ok':r.group==='error'?'bad':'pending'}
-function auditDateParts(ts){const d=new Date(ts);return {date:d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'}),time:d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})}}
+function auditDateParts(ts){const d=new Date(ts);return {date:d.toLocaleDateString(spScadaLocale(),{day:'2-digit',month:'2-digit',year:'2-digit'}),time:d.toLocaleTimeString(spScadaLocale(),{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})}}
 function auditOpenEvent(id){const r=auditRowCache[id];if(!r)return;if(r.ref?.kind==='command'){if(typeof r.raw?.requested==='number')openBmsTechnicalParameters(r.ref.packId,r.ref.bms);else openBmsControls(r.ref.packId,r.ref.bms);return}if(r.ref?.kind==='alarm-active'){openAlarmDetail(r.ref.key);return}if(r.ref?.kind==='alarm-history'&&r.ref.id){openAlarmHistoryDetail(String(r.ref.id));return}}
 function setAuditFilter(k,v){auditFilter[k]=v;renderAuditOverviewBody()}
 function renderAuditOverviewBody(){
@@ -2215,7 +2289,7 @@ function openServiceOverview(){
  const di=serviceDiagInfo(h);const diagClass=di.issues>0?(di.status==='PACK_OFFLINE'?'bad':'warn'):(['UNAVAILABLE','UNKNOWN'].includes(di.status)?'warn':'ok');
  const haVersion=serviceText(h?.config?.version);const tz=serviceText(h?.config?.time_zone,Intl.DateTimeFormat().resolvedOptions().timeZone||'LOCAL');
  const globalAge=h?entityAgeSec(h,GLOBAL):null;const recorderReady=!!h&&typeof h.callApi==='function';
- const recorderText=mainTrendLoadedAt?`OK · ${new Date(mainTrendLoadedAt).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}`:(recorderReady?'API PRÊTE':'INDISPONIBLE');
+ const recorderText=mainTrendLoadedAt?`OK · ${new Date(mainTrendLoadedAt).toLocaleTimeString(spScadaLocale(),{hour:'2-digit',minute:'2-digit'})}`:(recorderReady?'API PRÊTE':'INDISPONIBLE');
  const recorderClass=recorderReady?'ok':'warn';
  const mode=commModeLabel();
  const packsHtml=currentPacks.map(p=>{const members=(p.members&&p.members.length?p.members:Array.from({length:p.bms},(_,i)=>String(i+1)));const f=freshnessClass(p.ageSec??999);const process=p.power>25?'CHARGE':p.power<-25?'DÉCHARGE':'REPOS';return `<div class="service-pack"><div class="service-pack-head"><b>${p.name}</b><span>${p.online===false?'● OFFLINE':'● ONLINE'}</span></div><div class="service-rows"><div class="service-row"><span>BMS détectés</span><b>${members.length} · JK ${members.join(', ')}</b></div><div class="service-row"><span>Télémétrie la plus lente</span><b class="${f}">${freshnessLabel(p.ageSec)}</b></div><div class="service-row"><span>Process</span><b>${process} · ${(p.power/1000).toFixed(2)} kW</b></div><div class="service-row"><span>Delta / T° max</span><b>${(p.d||0).toFixed(0)} mV · ${(p.t||0).toFixed(0)} °C</b></div></div></div>`}).join('');
@@ -2288,7 +2362,7 @@ function renderTrendSvg(points,metric){
  if(max-min<0.001){const pad=Math.max(1,Math.abs(max)*.05);min-=pad;max+=pad}else{const pad=(max-min)*.08;min-=pad;max+=pad}
  const W=1000,H=360,x0=68,y0=20,w=908,h=286,start=points[0].t,end=points[points.length-1].t;
  let grid='';for(let i=0;i<5;i++){const y=y0+i*h/4,val=max-(max-min)*i/4;grid+=`<line class="trend-gridline" x1="${x0}" y1="${y}" x2="${x0+w}" y2="${y}"/><text class="trend-axis" x="4" y="${y+4}">${fmtTrendValue(val,meta.unit)}</text>`}
- let xt='';for(let i=0;i<5;i++){const x=x0+i*w/4,t=start+(end-start)*i/4;xt+=`<text class="trend-axis" text-anchor="${i===0?'start':i===4?'end':'middle'}" x="${x}" y="342">${new Date(t).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</text>`}
+ let xt='';for(let i=0;i<5;i++){const x=x0+i*w/4,t=start+(end-start)*i/4;xt+=`<text class="trend-axis" text-anchor="${i===0?'start':i===4?'end':'middle'}" x="${x}" y="342">${new Date(t).toLocaleTimeString(spScadaLocale(),{hour:'2-digit',minute:'2-digit'})}</text>`}
  const poly=svgPolyline(points,x0,y0,w,h,min,max,start,end);const zero=(min<0&&max>0)?y0+h-(0-min)/(max-min)*h:null;
  const area=`${x0},${y0+h} ${poly} ${x0+w},${y0+h}`;
  svg.innerHTML=`<defs><linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#38e58c"/><stop offset="1" stop-color="#38e58c" stop-opacity="0"/></linearGradient></defs>${grid}${zero!==null?`<line class="trend-zero" x1="${x0}" y1="${zero}" x2="${x0+w}" y2="${zero}"/>`:''}<polygon class="trend-area" points="${area}"/><polyline class="trend-line" points="${poly}"/>${xt}`;
@@ -2350,7 +2424,7 @@ function dualMiniSvg(records){
  const pn=norm(pv),cn=norm(cv),tden=Math.max(1,end-start);
  const ppoly=records.filter(r=>Number.isFinite(r.p)).map(r=>`${(x0+(r.t-start)/tden*w).toFixed(1)},${(y0+h-(r.p-pn.mn)/(pn.mx-pn.mn)*h).toFixed(1)}`).join(' ');
  const cpoly=records.filter(r=>Number.isFinite(r.c)).map(r=>`${(x0+(r.t-start)/tden*w).toFixed(1)},${(y0+h-(r.c-cn.mn)/(cn.mx-cn.mn)*h).toFixed(1)}`).join(' ');
- let ticks='';for(let i=0;i<5;i++){const x=i*w/4,t=start+(end-start)*i/4;ticks+=`<text class="axistext" text-anchor="${i===0?'start':i===4?'end':'middle'}" x="${x}" y="140">${new Date(t).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</text>`}
+ let ticks='';for(let i=0;i<5;i++){const x=i*w/4,t=start+(end-start)*i/4;ticks+=`<text class="axistext" text-anchor="${i===0?'start':i===4?'end':'middle'}" x="${x}" y="140">${new Date(t).toLocaleTimeString(spScadaLocale(),{hour:'2-digit',minute:'2-digit'})}</text>`}
  return `<line class="gridline" x1="0" y1="25" x2="900" y2="25"/><line class="gridline" x1="0" y1="72" x2="900" y2="72"/><line class="gridline" x1="0" y1="120" x2="900" y2="120"/><polyline class="powerline" points="${ppoly}"/><polyline class="currentline" points="${cpoly}"/>${ticks}`;
 }
 async function loadMainTrend(force=false){
@@ -2370,15 +2444,15 @@ async function loadMainTrend(force=false){
  finally{mainTrendLoading=false}
 }
 function addOperatorEvent(source,text,warn=false,bad=false){
- const now=new Date();operatorEvents.unshift({time:now.toLocaleTimeString('fr-FR',{hour12:false}),source,text,warn,bad});operatorEvents=operatorEvents.slice(0,5);renderOperatorEvents();
+ const now=new Date();operatorEvents.unshift({time:now.toLocaleTimeString(spScadaLocale(),{hour12:false}),source,text,warn,bad});operatorEvents=operatorEvents.slice(0,5);renderOperatorEvents();
 }
-function renderOperatorEvents(){const el=document.getElementById('eventList');if(!el)return;if(!operatorEvents.length){el.innerHTML='<div class="event empty">Aucun événement depuis l’ouverture du SCADA</div>';return}el.innerHTML=operatorEvents.map(e=>`<div class="event ${e.warn?'warn':''}"><time>${e.time}</time><i class="edot ${e.bad?'bad':''}"></i><div class="etxt"><b>${e.source}</b> · ${e.text}</div></div>`).join('')}
+function renderOperatorEvents(){const el=document.getElementById('eventList');if(!el)return;if(!operatorEvents.length){el.innerHTML=`<div class="event empty">${spScadaMessage('noEvents')}</div>`;return}el.innerHTML=operatorEvents.map(e=>`<div class="event ${e.warn?'warn':''}"><time>${e.time}</time><i class="edot ${e.bad?'bad':''}"></i><div class="etxt"><b>${e.source}</b> · ${e.text}</div></div>`).join('')}
 function updateOperatorJournal(packs,live){
  if(operatorLastLive!==live){operatorEvents=[];operatorSnapshot={};operatorSessionStarted=false;operatorLastLive=live}
- if(!live){if(!operatorSessionStarted){operatorEvents=[];addOperatorEvent('DEMO','Mode démonstration SCADA',true);operatorSessionStarted=true}return}
+ if(!live){if(!operatorSessionStarted){operatorEvents=[];addOperatorEvent('DEMO',spScadaMessage('demo'),true);operatorSessionStarted=true}return}
  const totalBms=packs.reduce((s,p)=>s+(p.bms||0),0);
- if(!operatorSessionStarted){operatorEvents=[];addOperatorEvent('SCADA','Connexion Home Assistant établie');addOperatorEvent('Topologie',`${packs.length} pack(s) · ${totalBms} BMS détectés`);operatorSessionStarted=true}
- for(const p of packs){const mode=p.power>25?'CHARGE':p.power<-25?'DÉCHARGE':'REPOS',delta=(p.d||0)>=50?'crit':(p.d||0)>=30?'warn':'ok',snap={online:p.online!==false,mode,delta};const old=operatorSnapshot[p.id];if(old){if(old.online!==snap.online)addOperatorEvent(p.name,snap.online?'Communication rétablie':'Communication perdue',!snap.online,!snap.online);if(old.mode!==snap.mode)addOperatorEvent(p.name,`Mode ${old.mode} → ${snap.mode}`);if(old.delta!==snap.delta){if(snap.delta==='ok')addOperatorEvent(p.name,'Delta cellules revenu normal');else addOperatorEvent(p.name,`Delta cellules ${p.d.toFixed(0)} mV`,true,snap.delta==='crit')}}operatorSnapshot[p.id]=snap}
+ if(!operatorSessionStarted){operatorEvents=[];addOperatorEvent('SCADA',spScadaMessage('connected'));addOperatorEvent('Topologie',spScadaMessage('topology',{packs:packs.length,bms:totalBms}));operatorSessionStarted=true}
+ for(const p of packs){const mode=p.power>25?'CHARGE':p.power<-25?'DÉCHARGE':'REPOS',delta=(p.d||0)>=50?'crit':(p.d||0)>=30?'warn':'ok',snap={online:p.online!==false,mode,delta};const old=operatorSnapshot[p.id];if(old){if(old.online!==snap.online)addOperatorEvent(p.name,snap.online?spScadaMessage('commRestored'):spScadaMessage('commLost'),!snap.online,!snap.online);if(old.mode!==snap.mode)addOperatorEvent(p.name,spScadaMessage('mode',{from:old.mode,to:snap.mode}));if(old.delta!==snap.delta){if(snap.delta==='ok')addOperatorEvent(p.name,spScadaMessage('cellDeltaNormal'));else addOperatorEvent(p.name,spScadaMessage('cellDelta',{delta:p.d.toFixed(0)}),true,snap.delta==='crit')}}operatorSnapshot[p.id]=snap}
 }
 
 function render(){
@@ -2507,8 +2581,8 @@ document.querySelectorAll('.navitem').forEach(n=>n.addEventListener('click',()=>
 document.getElementById('processTrendPanel').addEventListener('click',()=>openTrendsOverview());
 document.getElementById('demoToggle').addEventListener('click',()=>{if(getHass())return;demoSingleMode=!demoSingleMode;render();});
 
-function tick(){const d=new Date();document.getElementById('clock').textContent=d.toLocaleTimeString('fr-FR',{hour12:false});const de=document.getElementById('clockDate');if(de){const m=['JAN','FÉV','MAR','AVR','MAI','JUN','JUL','AOÛ','SEP','OCT','NOV','DÉC'];de.textContent=`${String(d.getDate()).padStart(2,'0')} ${m[d.getMonth()]} ${d.getFullYear()} · LOCAL`;}}
-tick();ensureCentralAuditSubscription();render();setInterval(ensureCentralAuditSubscription,5000);setTimeout(()=>loadMainTrend(true),1200);setInterval(tick,1000);setInterval(refreshDryCards,1000);setInterval(render,1000);setInterval(()=>loadMainTrend(true),300000);
+function tick(){const d=new Date();document.getElementById('clock').textContent=d.toLocaleTimeString(spScadaLocale(),{hour12:false});const de=document.getElementById('clockDate');if(de){const m=['JAN','FÉV','MAR','AVR','MAI','JUN','JUL','AOÛ','SEP','OCT','NOV','DÉC'];de.textContent=`${String(d.getDate()).padStart(2,'0')} ${m[d.getMonth()]} ${d.getFullYear()} · LOCAL`;}}
+tick();ensureCentralAuditSubscription();render();spApplyLanguage();spTranslateScada();setInterval(ensureCentralAuditSubscription,5000);setTimeout(()=>loadMainTrend(true),1200);setInterval(tick,1000);setInterval(refreshDryCards,1000);setInterval(()=>{render();spTranslateScada();},1000);setInterval(()=>loadMainTrend(true),300000);
 </script>
 </body>
 </html>

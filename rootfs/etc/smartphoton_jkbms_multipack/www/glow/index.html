@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>JK-BMS Multipack Glow</title>
+<title>JK-BMS MultiPack</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
@@ -469,6 +469,82 @@ h2{color:color-mix(in srgb,var(--flow) 45%,var(--mut))}
 <div id="modal"></div>
 
 <script>
+
+// DEV75 - shared translation keys (FR fallback); no credentials, no external assets.
+const SP_I18N={"fr":{"language":"Langue","hardware":"Alarmes matérielles JK-BMS","supervision":"Alertes de supervision","noHardware":"Aucune alarme matérielle signalée","hardwareActive":"Alarme matérielle active","noSupervision":"Aucun seuil de supervision dépassé","supervisionActive":"Écart ou température à surveiller","hardwareExplanation":"Les indicateurs d’alarme transmis par le BMS ne signalent aucun défaut. Les alertes calculées sont présentées séparément ci-dessous.","supervisionExplanation":"Les seuils de surveillance des cellules et de température ne sont pas dépassés.","supervisionIndependent":"Calcul indépendant des indicateurs d’alarme du JK-BMS.","centralHistory":"Alarmes & historique opérateur","alarmCenter":"Centre alarmes · Cycle de vie","active":"Actives","toAck":"À quittancer","ackActive":"Quittancées actives","history":"Historique","normal":"Normal","close":"Fermer","alarmEvents":"Événements actifs","observedHistory":"Historique observé"},"en":{"language":"Language","hardware":"JK-BMS hardware alarms","supervision":"Supervision alerts","noHardware":"No hardware alarm reported","hardwareActive":"Hardware alarm active","noSupervision":"No supervision threshold exceeded","supervisionActive":"Cell imbalance or temperature requires attention","hardwareExplanation":"The BMS alarm indicators report no fault. Calculated alerts are shown separately below.","supervisionExplanation":"No cell-voltage imbalance or temperature monitoring threshold has been exceeded.","supervisionIndependent":"Calculated independently of JK-BMS hardware alarm indicators.","centralHistory":"Alarms & operator history","alarmCenter":"Alarm center · Lifecycle","active":"Active","toAck":"Awaiting acknowledgement","ackActive":"Acknowledged and active","history":"History","normal":"Normal","close":"Close","alarmEvents":"Active events","observedHistory":"Observed history"},"de":{"language":"Sprache","hardware":"JK-BMS-Hardwarealarme","supervision":"Überwachungswarnungen","noHardware":"Kein Hardwarealarm gemeldet","hardwareActive":"Hardwarealarm aktiv","noSupervision":"Kein Überwachungsgrenzwert überschritten","supervisionActive":"Zellabweichung oder Temperatur prüfen","hardwareExplanation":"Die Alarmmeldungen des BMS zeigen keinen Fehler an. Berechnete Warnungen werden unten separat angezeigt.","supervisionExplanation":"Die Grenzwerte für Zellabweichung und Temperatur sind nicht überschritten.","supervisionIndependent":"Unabhängig von den Hardware-Alarmmeldungen des JK-BMS berechnet.","centralHistory":"Alarme & Bedienerprotokoll","alarmCenter":"Alarmzentrale · Lebenszyklus","active":"Aktiv","toAck":"Zu quittieren","ackActive":"Quittiert und aktiv","history":"Verlauf","normal":"Normal","close":"Schließen","alarmEvents":"Aktive Ereignisse","observedHistory":"Ereignisverlauf"}};
+const SP_LANG_KEY='smartphoton_multipack_language_v1';
+function spNormalizeLanguage(value){const v=String(value||'').toLowerCase().split(/[-_]/)[0];return Object.hasOwn(SP_I18N,v)?v:'fr'}
+function spHaLanguage(){
+ try{
+  const ha=window.parent?.document?.querySelector('home-assistant')?.hass;
+  return ha?.locale?.language||ha?.language||null;
+ }catch(_){return null}
+}
+let spManualLanguage=null;
+try{spManualLanguage=localStorage.getItem(SP_LANG_KEY)}catch(_){}
+let spLanguage=spNormalizeLanguage(spManualLanguage||spHaLanguage()||navigator.language);
+function spLocale(){return {fr:'fr-FR',en:'en-GB',de:'de-DE'}[spLanguage]||'fr-FR'}
+function spText(key){return SP_I18N[spLanguage]?.[key]||SP_I18N.fr[key]||key}
+function spSetLanguage(value){
+ spLanguage=spNormalizeLanguage(value);
+ try{localStorage.setItem(SP_LANG_KEY,spLanguage)}catch(_){}
+ try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:'smartphoton-multipack-language',language:spLanguage},window.location.origin)}catch(_){}
+ if(document.documentElement)document.documentElement.lang=spLanguage;
+ if(typeof render==='function')render();
+ spApplyLanguage();
+}
+
+// DEV75.1: translation of visible Glow labels without modifying HA entity ids or BMS command payloads.
+const SP_GLOW_LABELS={"Parc":{"en":"Fleet","de":"Übersicht"},"Vue d’ensemble":{"en":"Overview","de":"Gesamtübersicht"},"Comparatif des sites":{"en":"Site comparison","de":"Standortvergleich"},"Diagnostics":{"en":"Diagnostics","de":"Diagnose"},"Diagnostic":{"en":"Diagnostics","de":"Diagnose"},"Journal":{"en":"Log","de":"Protokoll"},"Sites":{"en":"Sites","de":"Standorte"},"Thème clair":{"en":"Light theme","de":"Helles Design"},"Thème sombre":{"en":"Dark theme","de":"Dunkles Design"},"Mode écran mural":{"en":"Wall display","de":"Wandanzeige"},"Connexion Home Assistant":{"en":"Home Assistant connection","de":"Home-Assistant-Verbindung"},"Connecté à Home Assistant":{"en":"Connected to Home Assistant","de":"Mit Home Assistant verbunden"},"Données de démonstration":{"en":"Demo data","de":"Demodaten"},"En attente de Home Assistant":{"en":"Waiting for Home Assistant","de":"Warte auf Home Assistant"},"Comparer":{"en":"Compare","de":"Vergleichen"},"Réglages":{"en":"Settings","de":"Einstellungen"},"Menu":{"en":"Menu","de":"Menü"},"Paramètres":{"en":"Parameters","de":"Parameter"},"Alarmes":{"en":"Alarms","de":"Alarme"},"État énergétique":{"en":"Energy status","de":"Energiezustand"},"Puissance":{"en":"Power","de":"Leistung"},"Tension":{"en":"Voltage","de":"Spannung"},"Courant":{"en":"Current","de":"Strom"},"Écart cellules":{"en":"Cell imbalance","de":"Zellabweichung"},"Capacité":{"en":"Capacity","de":"Kapazität"},"Cellules":{"en":"Cells","de":"Zellen"},"Autonomie":{"en":"Remaining runtime","de":"Restlaufzeit"},"Températures & équilibrage":{"en":"Temperatures & balancing","de":"Temperaturen & Balancing"},"État du BMS":{"en":"BMS status","de":"BMS-Status"},"Historiques":{"en":"History","de":"Verlauf"},"Température MOS":{"en":"MOS temperature","de":"MOS-Temperatur"},"Courant d’équilibrage":{"en":"Balancing current","de":"Balancierstrom"},"Sonde batterie 1":{"en":"Battery probe 1","de":"Batteriesensor 1"},"Sonde batterie 2":{"en":"Battery probe 2","de":"Batteriesensor 2"},"État de charge":{"en":"Charge status","de":"Ladestatus"},"Alarme":{"en":"Alarm","de":"Alarm"},"Aucune":{"en":"None","de":"Keine"},"Lecture seule":{"en":"Read-only","de":"Nur lesen"},"Mode modification":{"en":"Editing mode","de":"Bearbeitungsmodus"},"Annuler":{"en":"Cancel","de":"Abbrechen"},"Enregistrer":{"en":"Save","de":"Speichern"},"Modifier":{"en":"Edit","de":"Bearbeiten"},"Interrupteurs de contrôle":{"en":"Control switches","de":"Steuerschalter"},"Cellules à surveiller":{"en":"Cells to monitor","de":"Zellen beobachten"},"Aucune cellule suspecte":{"en":"No suspicious cells","de":"Keine auffälligen Zellen"},"Batterie & durée de vie":{"en":"Battery & lifespan","de":"Batterie & Lebensdauer"},"Capacité restante":{"en":"Remaining capacity","de":"Restkapazität"},"Cycles":{"en":"Cycles","de":"Zyklen"},"Durée de fonctionnement":{"en":"Operating time","de":"Betriebsdauer"},"Tensions des cellules":{"en":"Cell voltages","de":"Zellspannungen"},"Moyenne":{"en":"Average","de":"Durchschnitt"},"Mesures":{"en":"Measurements","de":"Messwerte"},"Tout afficher":{"en":"Show all","de":"Alle anzeigen"},"Seulement les différences":{"en":"Differences only","de":"Nur Unterschiede"},"Paramètres identiques sur tous les BMS":{"en":"Identical parameters on all BMS","de":"Identische Parameter auf allen BMS"},"Données anciennes":{"en":"Stale data","de":"Veraltete Daten"},"Autres cellules":{"en":"Other cells","de":"Andere Zellen"},"En équilibrage":{"en":"Balancing","de":"Balancierung"},"Inactif":{"en":"Inactive","de":"Inaktiv"},"Maintenant":{"en":"Now","de":"Jetzt"},"maintenant":{"en":"now","de":"jetzt"},"Temp. max":{"en":"Max. temp.","de":"Max. Temp."},"Résistance moy.":{"en":"Avg. resistance","de":"Mittl. Widerstand"},"Tensions cellules":{"en":"Cell voltages","de":"Zellspannungen"},"Courants & capacité":{"en":"Currents & capacity","de":"Ströme & Kapazität"},"Protections":{"en":"Protections","de":"Schutzfunktionen"},"Thermique":{"en":"Thermal","de":"Temperatur"},"MOS charge":{"en":"Charging MOS","de":"Lade-MOS"},"MOS décharge":{"en":"Discharging MOS","de":"Entlade-MOS"},"Équilibrage":{"en":"Balancing","de":"Balancierung"},"Chauffage":{"en":"Heating","de":"Heizung"},"Écran toujours allumé":{"en":"Display always on","de":"Display immer an"},"Désactiver module PCL":{"en":"Disable PCL module","de":"PCL-Modul deaktivieren"},"Stockage temporisé":{"en":"Timed storage","de":"Zeitgesteuerte Speicherung"},"Mode Floating charge":{"en":"Float charging mode","de":"Erhaltungslademodus"}};
+Object.assign(SP_GLOW_LABELS,{"Les changements ne sont envoyés au BMS qu’après confirmation.":{"en":"Changes are sent to the BMS only after confirmation.","de":"Änderungen werden erst nach Bestätigung an das BMS gesendet."},"Cliquez sur « Modifier » pour changer un réglage. Chaque envoi demande une confirmation.":{"en":"Select Edit to change a setting. Each write requires confirmation.","de":"Wählen Sie Bearbeiten, um eine Einstellung zu ändern. Jeder Schreibvorgang erfordert eine Bestätigung."},"Surlignés ci-dessous — vérifiez qu’il ne s’agit pas d’une erreur de réglage.":{"en":"Highlighted below — check for a configuration mistake.","de":"Unten markiert – bitte auf Konfigurationsfehler prüfen."},"Une cellule durablement en bas de la pile indique souvent une capacité plus faible ou une mauvaise connexion.":{"en":"A cell consistently at the lowest voltage may indicate lower capacity or a poor connection.","de":"Eine dauerhaft spannungsschwache Zelle kann auf geringere Kapazität oder einen schlechten Kontakt hinweisen."},"Une hausse progressive pointe généralement un contact qui se dégrade (barre desserrée, oxydation).":{"en":"A gradual increase may indicate a deteriorating connection (loose busbar or oxidation).","de":"Ein allmählicher Anstieg kann auf einen schlechter werdenden Kontakt hinweisen."},"Pas de cellule durablement basse ni de résistance en hausse sur 30 jours.":{"en":"No persistently low-voltage cell or rising cell resistance over 30 days.","de":"Keine dauerhaft spannungsschwache Zelle oder steigender Zellwiderstand in 30 Tagen."},"Les valeurs hors majorité sont surlignées en orange.":{"en":"Values that differ from the majority are highlighted in orange.","de":"Von der Mehrheit abweichende Werte sind orange markiert."},"Statut":{"en":"Status","de":"Status"},"Contexte":{"en":"Context","de":"Kontext"},"Alarme matérielle BMS":{"en":"BMS hardware alarm","de":"BMS-Hardwarealarm"},"État général (inclut diagnostics)":{"en":"Overall status (includes diagnostics)","de":"Gesamtstatus (einschließlich Diagnose)"},"Liste des alarmes matérielles":{"en":"Hardware alarms","de":"Hardwarealarme"},"Événements de ce BMS (48 h)":{"en":"Events for this BMS (48 h)","de":"Ereignisse dieses BMS (48 Std.)"},"Oui":{"en":"Yes","de":"Ja"},"Non":{"en":"No","de":"Nein"},"Résistances des cellules":{"en":"Cell resistances","de":"Zellwiderstände"},"Plein écran":{"en":"Full screen","de":"Vollbild"},"Quitter":{"en":"Exit","de":"Verlassen"},"Sites à jour":{"en":"Sites up to date","de":"Standorte aktuell"},"SOC le plus bas":{"en":"Lowest SOC","de":"Niedrigster SOC"},"Autonomie la plus courte":{"en":"Shortest remaining runtime","de":"Kürzeste Restlaufzeit"},"En attente des données JK-BMS":{"en":"Waiting for JK-BMS data","de":"Warte auf JK-BMS-Daten"}});
+const spOriginalText=new WeakMap();
+const SP_GLOW_MESSAGES={"fr":{"delta":"Écart cellules","temp":"Température","warning":"alerte","critical":"critique","weakLow":"Cellule {cell} est la plus basse depuis {days} jours","weakResistance":"Résistance de la cellule {cell} : +{rise} % en 30 jours"},"en":{"delta":"Cell imbalance","temp":"Temperature","warning":"warning","critical":"critical","weakLow":"Cell {cell} has had the lowest voltage for {days} days","weakResistance":"Cell {cell} resistance: +{rise}% over 30 days"},"de":{"delta":"Zellabweichung","temp":"Temperatur","warning":"Warnung","critical":"kritisch","weakLow":"Zelle {cell} hat seit {days} Tagen die niedrigste Spannung","weakResistance":"Widerstand von Zelle {cell}: +{rise}% in 30 Tagen"}};
+function spMessage(key,params={}){let value=SP_GLOW_MESSAGES[spLanguage]?.[key]||SP_GLOW_MESSAGES.fr[key]||key;return value.replace(/\{(\w+)\}/g,(_,name)=>String(params[name]??''))}
+Object.assign(SP_GLOW_MESSAGES.fr,{"confirmSend":"Confirmer l’envoi","sensitive":"Réglage sensible","sensitiveNote":"Ces paramètres touchent aux MOS ou aux protections : une erreur peut couper le pack.","commandSent":"Commande transmise","commandRejected":"Commande refusée","readback":"relecture BMS à vérifier","sendChanges":"Envoyer {count} modification(s) au {bms} ?"});
+Object.assign(SP_GLOW_MESSAGES.en,{"confirmSend":"Confirm sending","sensitive":"Sensitive setting","sensitiveNote":"These settings affect MOS switches or protections: an error may disconnect the battery pack.","commandSent":"Command sent","commandRejected":"Command rejected","readback":"verify BMS readback","sendChanges":"Send {count} change(s) to {bms}?"});
+Object.assign(SP_GLOW_MESSAGES.de,{"confirmSend":"Senden bestätigen","sensitive":"Sicherheitsrelevante Einstellung","sensitiveNote":"Diese Einstellungen betreffen MOS-Schalter oder Schutzfunktionen. Ein Fehler kann das Batteriepack abschalten.","commandSent":"Befehl gesendet","commandRejected":"Befehl abgelehnt","readback":"BMS-Rückmeldung prüfen","sendChanges":"{count} Änderung(en) an {bms} senden?"});
+function spTranslateGlow(){
+ if(!document.createTreeWalker||!document.body||typeof NodeFilter==='undefined')return;
+ const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+ let node;
+ while((node=walker.nextNode())){
+  const parent=node.parentElement;
+  if(!parent||/SCRIPT|STYLE|INPUT|TEXTAREA|OPTION/.test(parent.tagName))continue;
+  const original=spOriginalText.get(node)??node.nodeValue;
+  if(!spOriginalText.has(node))spOriginalText.set(node,original);
+  const hit=original.match(/^(\s*)(.*?)(\s*)$/s);
+  if(!hit)continue;
+  const word=hit[2],translations=SP_GLOW_LABELS[word];
+  if(translations)node.nodeValue=hit[1]+(translations[spLanguage]||word)+hit[3];
+ }
+}
+
+// Synchronize language between dashboards on the same Home Assistant origin.
+function spSyncLanguage(){
+ try{const saved=localStorage.getItem(SP_LANG_KEY);if(saved&&saved!==spLanguage){spLanguage=spNormalizeLanguage(saved);if(typeof render==='function')render();spApplyLanguage()}}catch(_){}
+}
+if(typeof window.addEventListener==='function'){
+ window.addEventListener('storage',event=>{if(event.key===SP_LANG_KEY)spSyncLanguage()});
+ window.addEventListener('focus',spSyncLanguage);
+}
+function spApplyLanguage(){
+ if(document.documentElement)document.documentElement.lang=spLanguage;
+ let control=document.getElementById('sp-language-switch');
+ if(!control){
+   control=document.createElement('label');control.id='sp-language-switch';
+   control.style.cssText='position:fixed;right:12px;bottom:12px;z-index:100000;background:#091b29;color:#ecf6fb;border:1px solid #32718b;border-radius:9px;padding:5px 8px;font:12px system-ui;display:flex;align-items:center;gap:6px;box-shadow:0 6px 20px #0009';
+   const label=document.createElement('span');label.id='sp-language-label';control.append(label);
+   const select=document.createElement('select');select.id='sp-language-select';select.style.cssText='color:#ecf6fb;background:#102b3b;border:1px solid #32718b;border-radius:5px;padding:4px';
+   for(const [value,name] of [['fr','FR'],['en','EN'],['de','DE']]){const option=document.createElement('option');option.value=value;option.textContent=name;select.append(option)}
+   select.addEventListener('change',e=>spSetLanguage(e.target.value));
+   control.append(select);document.body.append(control);
+ }
+ control.querySelector('#sp-language-label').textContent=spText('language');
+ control.querySelector('#sp-language-select').value=spLanguage;
+ spTranslateGlow();
+}
+if(document.documentElement)document.documentElement.lang=spLanguage;
+
 /* =========================================================
    CONFIGURATION
    ========================================================= */
@@ -691,7 +767,7 @@ function sparkData(list, key){
 /* =========================================================
    HELPERS UI
    ========================================================= */
-const f = (v,d=1) => Number(v).toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const f = (v,d=1) => Number(v).toLocaleString(spLocale(),{minimumFractionDigits:d,maximumFractionDigits:d});
 const pw = w => Math.abs(w)>=1000 ? `${f(w/1000,2)}<small>kW</small>` : `${f(w,0)}<small>W</small>`;
 const COL = {ok:'var(--ok)',warn:'var(--warn)',crit:'var(--crit)',bal:'var(--bal)',off:'var(--off)'};
 const flowTxt = c => c>0.3 ? ['↑ Charge','flow'] : c<-0.3 ? ['↓ Décharge','flow'] : ['• Repos',''];
@@ -738,7 +814,7 @@ function chart(id, title, list, unit, dec, thresholds=[], opts={}){
   const thl = ths.map(th=>`<line x1="0" x2="1000" y1="${Y(th.v)}" y2="${Y(th.v)}" stroke="${th.color}" stroke-dasharray="4 4" vector-effect="non-scaling-stroke" opacity=".8"/>`).join('');
   const thLabels = ths.map(th=>`<span class="ch-th" style="top:${Y(th.v)}%;color:${th.color}">${th.label}</span>`).join('');
   CHARTS[id] = { list:ready, unit, dec, t0, t1:now, range };
-  const fmtX = t => new Date(t).toLocaleString('fr-FR', range==='7j'?{weekday:'short',hour:'2-digit'}:{hour:'2-digit',minute:'2-digit'});
+  const fmtX = t => new Date(t).toLocaleString(spLocale(), range==='7j'?{weekday:'short',hour:'2-digit'}:{hour:'2-digit',minute:'2-digit'});
   return `<div class="${cp?'mchart':'card'} chart">${head}
     <div class="ch-plot" data-chart="${id}"><span class="ch-y" style="top:0">${f(mx,dec)}</span><span class="ch-y" style="top:50%">${f((mx+mn)/2,dec)}</span><span class="ch-y" style="top:100%">${f(mn,dec)}</span>
       ${[25,50,75].map(y=>`<i class="ch-grid" style="top:${y}%"></i>`).join('')}
@@ -755,7 +831,7 @@ document.addEventListener('pointermove', e=>{
   const rc = plot.getBoundingClientRect(), fx = Math.max(0,Math.min(1,(e.clientX-rc.left)/rc.width)), t = c.t0 + fx*(c.t1-c.t0);
   const cross=plot.querySelector('.ch-cross'), tip=plot.querySelector('.ch-tip');
   cross.style.display='block'; cross.style.left=(fx*100)+'%';
-  const time = new Date(t).toLocaleString('fr-FR',{weekday:c.range==='7j'?'short':undefined,hour:'2-digit',minute:'2-digit'});
+  const time = new Date(t).toLocaleString(spLocale(),{weekday:c.range==='7j'?'short':undefined,hour:'2-digit',minute:'2-digit'});
   tip.innerHTML = `<div style="color:var(--mut);margin-bottom:3px">${time}</div>` + c.list.map(s=>{ const i=nearest(s.data.t,t); return `<div><i style="background:${s.color}"></i>${c.list.length>1?s.name+' : ':''}<b>${f(s.data.v[i],c.dec)} ${c.unit}</b></div>`; }).join('');
   tip.style.display='block';
   const tw = tip.offsetWidth; tip.style.left = (fx*rc.width + 12 + tw > rc.width ? fx*rc.width - tw - 12 : fx*rc.width + 12) + 'px';
@@ -927,10 +1003,10 @@ function eventsList(list, max=200){
   if(!list.length) return `<div class="alert ok"><span class="ic">✅</span><div><b>Aucun événement</b><small>Rien à signaler sur la période.</small></div></div>`;
   let h='', day='';
   list.slice(0,max).forEach(e=>{
-    const d=new Date(e.t), dl=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+    const d=new Date(e.t), dl=d.toLocaleDateString(spLocale(),{weekday:'long',day:'numeric',month:'long'});
     if(dl!==day){ h+=`<div class="day">${dl}</div>`; day=dl; }
     const p=PACKS.find(x=>x.id===e.pack);
-    h+=`<div class="ev"><time>${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time><span class="dot ${e.lvl==='info'?'':e.lvl}" style="${e.lvl==='info'?'background:var(--flow)':''}"></span>
+    h+=`<div class="ev"><time>${d.toLocaleTimeString(spLocale(),{hour:'2-digit',minute:'2-digit'})}</time><span class="dot ${e.lvl==='info'?'':e.lvl}" style="${e.lvl==='info'?'background:var(--flow)':''}"></span>
       <div><b>${e.txt}</b><small>${p?esc(p.name):''}${e.bms?` · BMS ${e.bms}`:''}${e.det?' — '+e.det:''}</small></div></div>`;
   });
   return `<div class="card events">${h}</div>`;
@@ -1114,8 +1190,8 @@ function pageBms(p,b,tab){
 
   if(tab==='diag'){
     const rmn=Math.min(...b.res)*1000, rmx=Math.max(...b.res)*1000, cavg=b.voltage/16;
-    const watch=[]; if(b.weak.lowestDays>=5) watch.push(['📉',`Cellule ${b.weak.cell} est la plus basse depuis ${b.weak.lowestDays} jours`,'Une cellule durablement en bas de la pile indique souvent une capacité plus faible ou une mauvaise connexion.']);
-    if(b.weak.resRise>=15) watch.push(['🔧',`Résistance de la cellule ${b.weak.cell} : +${b.weak.resRise} % en 30 jours`,'Une hausse progressive pointe généralement un contact qui se dégrade (barre desserrée, oxydation).']);
+    const watch=[]; if(b.weak.lowestDays>=5) watch.push(['📉',spMessage('weakLow',{cell:b.weak.cell,days:b.weak.lowestDays}),'Une cellule durablement en bas de la pile indique souvent une capacité plus faible ou une mauvaise connexion.']);
+    if(b.weak.resRise>=15) watch.push(['🔧',spMessage('weakResistance',{cell:b.weak.cell,rise:b.weak.resRise}),'Une hausse progressive pointe généralement un contact qui se dégrade (barre desserrée, oxydation).']);
     h+=`<h2>Cellules à surveiller</h2>`+(watch.length?`<div class="grid g2">${watch.map(w=>`<div class="alert warn"><span class="ic">${w[0]}</span><div><b>${w[1]}</b><small>${w[2]}</small></div></div>`).join('')}</div>
       <div class="card chart" style="margin-top:12px"><div class="t"><span>Résistance cellule ${b.weak.cell} sur 30 jours</span><b>${f(b.res30[b.weak.cell-1].at(-1)*1000,0)} mΩ</b></div><div style="height:60px">${spark(b.res30[b.weak.cell-1],'var(--warn)').replace('<svg','<svg style="width:100%;height:60px"')}</div></div>`
       :`<div class="alert ok"><span class="ic">✅</span><div><b>Aucune cellule suspecte</b><small>Pas de cellule durablement basse ni de résistance en hausse sur 30 jours.</small></div></div>`);
@@ -1134,12 +1210,12 @@ function pageBms(p,b,tab){
   if(tab==='alarms'){
     const on=b.alarms.length>0;
     const diagnostics=[];
-    if(d>=TH.deltaWarn)diagnostics.push(`Écart cellules ${f(d,0)} mV (alerte ${TH.deltaWarn} / critique ${TH.deltaCrit} mV)`);
-    if(t>=TH.tempWarn)diagnostics.push(`Température ${f(t,1)} °C (alerte ${TH.tempWarn} / critique ${TH.tempCrit} °C)`);
+    if(d>=TH.deltaWarn)diagnostics.push(`${spMessage('delta')} ${f(d,0)} mV (${spMessage('warning')} ${TH.deltaWarn} / ${spMessage('critical')} ${TH.deltaCrit} mV)`);
+    if(t>=TH.tempWarn)diagnostics.push(`${spMessage('temp')} ${f(t,1)} °C (${spMessage('warning')} ${TH.tempWarn} / ${spMessage('critical')} ${TH.tempCrit} °C)`);
     const diagCrit=d>=TH.deltaCrit||t>=TH.tempCrit;
-    h+=`<h2>Alarmes matérielles JK-BMS</h2><div class="alert ${on?'crit':'ok'}" style="margin-top:16px"><span class="ic">${on?'🚨':'✅'}</span><div><b>${on?'Alarme matérielle active':'Aucune alarme matérielle signalée'}</b><small>${on?esc(b.alarms.join(' · ')):'Les indicateurs d’alarme transmis par le BMS ne signalent aucun défaut. Les alertes calculées sont présentées séparément ci-dessous.'}</small></div></div>
-    <h2>Alertes de supervision Glow</h2>
-    <div class="alert ${diagnostics.length?(diagCrit?'crit':'warn'):'ok'}" style="margin-top:10px"><span class="ic">${diagnostics.length?'⚠️':'✅'}</span><div><b>${diagnostics.length?'Écart ou température à surveiller':'Aucun dépassement des seuils Glow'}</b><small>${diagnostics.length?esc(diagnostics.join(' · ')):'Les seuils de surveillance des cellules et de température ne sont pas dépassés.'} — Calcul indépendant des indicateurs d’alarme du JK-BMS.</small></div></div>
+    h+=`<h2>${spText('hardware')}</h2><div class="alert ${on?'crit':'ok'}" style="margin-top:16px"><span class="ic">${on?'🚨':'✅'}</span><div><b>${on?spText('hardwareActive'):spText('noHardware')}</b><small>${on?esc(b.alarms.join(' · ')):spText('hardwareExplanation')}</small></div></div>
+    <h2>${spText('supervision')}</h2>
+    <div class="alert ${diagnostics.length?(diagCrit?'crit':'warn'):'ok'}" style="margin-top:10px"><span class="ic">${diagnostics.length?'⚠️':'✅'}</span><div><b>${diagnostics.length?spText('supervisionActive'):spText('noSupervision')}</b><small>${diagnostics.length?esc(diagnostics.join(' · ')):spText('supervisionExplanation')} — ${spText('supervisionIndependent')}</small></div></div>
     <div class="grid g2"><div><h2>Statut</h2><div class="card"><table class="tbl"><tr><td>Alarme matérielle BMS</td><td class="num">${on?'Oui':'Non'}</td></tr><tr><td>État général (inclut diagnostics)</td><td class="num">${stTxt[st]}</td></tr><tr><td>Liste des alarmes matérielles</td><td class="num">${on?esc(b.alarms.join(', ')):'—'}</td></tr></table></div></div>
     <div><h2>Contexte</h2><div class="card"><table class="tbl"><tr><td>Écart cellules</td><td class="num">${f(d,0)} mV</td></tr><tr><td>Température MOS</td><td class="num">${f(b.mos,1)} °C</td></tr><tr><td>MOS charge</td><td class="num">${b.chargeMos?'ON':'OFF'}</td></tr><tr><td>MOS décharge</td><td class="num">${b.dischargeMos?'ON':'OFF'}</td></tr></table></div></div></div>
     <h2>Événements de ce BMS (48 h)</h2>${eventsList(EVENTS.filter(e=>e.pack===p.id&&(e.bms===b.id||e.bms==null)),60)}`;
@@ -1149,7 +1225,7 @@ function pageBms(p,b,tab){
 
 function pageWall(){
   const F=fleetStats();
-  let h=`<div class="wall-top"><div class="wall-clock" id="wallclock">${new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>
+  let h=`<div class="wall-top"><div class="wall-clock" id="wallclock">${new Date().toLocaleTimeString(spLocale(),{hour:'2-digit',minute:'2-digit'})}</div>
     <div class="pills"><button class="btn" data-act="fs">⛶ Plein écran</button><a class="btn" href="#/">✕ Quitter</a></div></div>`;
   h+=statusBanner(true)+`<div class="wall-kpis">
     <div class="card kpi ${F.live<PACKS.length?'warn':'ok'}"><div class="lbl">📡 Sites à jour</div><div class="val">${F.live}<small>/ ${PACKS.length}</small></div></div>
@@ -1348,10 +1424,10 @@ document.addEventListener('click', e=>{
     Object.entries(E.sw).forEach(([k,v])=>{ if(v!==b.switches[k]) list.push({k,type:'sw',label:SW_DEF.find(s=>s[0]===k)[1],from:b.switches[k]?'ON':'OFF',to:v?'ON':'OFF',v}); });
     const risky=list.some(x=>/charging_switch|discharging_switch|protection|power_off/.test(x.k));
     S.pendingChanges={p,b,list};
-    openModal(`<h3>Envoyer ${list.length} modification${list.length>1?'s':''} au ${bn(b)} ?</h3><small style="color:var(--mut)">${esc(p.name)}</small>
+    openModal(`<h3>${spMessage('sendChanges',{count:list.length,bms:bn(b)})}</h3><small style="color:var(--mut)">${esc(p.name)}</small>
       <ul>${list.map(x=>`<li>${x.label} : <b>${x.from}</b> → <b style="color:var(--flow)">${x.to}</b></li>`).join('')}</ul>
-      ${risky?`<div class="alert warn"><span class="ic">⚠️</span><div><b>Réglage sensible</b><small>Ces paramètres touchent aux MOS ou aux protections : une erreur peut couper le pack.</small></div></div>`:''}
-      <div class="row"><button class="btn" data-act="close">Annuler</button><button class="btn ${risky?'danger':'primary'}" data-act="confirm">Confirmer l’envoi</button></div>`);
+      ${risky?`<div class="alert warn"><span class="ic">⚠️</span><div><b>${spMessage('sensitive')}</b><small>${spMessage('sensitiveNote')}</small></div></div>`:''}
+      <div class="row"><button class="btn" data-act="close">Annuler</button><button class="btn ${risky?'danger':'primary'}" data-act="confirm">${spMessage('confirmSend')}</button></div>`);
   }
   else if(act==='confirm'){
     const {p,b,list}=S.pendingChanges;
@@ -1366,10 +1442,10 @@ document.addEventListener('click', e=>{
       const data=x.type==='num'?{entity_id,value:x.v}:{entity_id};
       callService(domain,service,data).then(()=>{
         EVENTS.unshift({t:Date.now(),lvl:'info',cat:'param',pack:p.id,bms:b.id,
-          txt:'Commande transmise',det:`${x.label} : ${x.from} → ${x.to} · relecture BMS à vérifier`});
+          txt:spMessage('commandSent'),det:`${x.label} : ${x.from} → ${x.to} · ${spMessage('readback')}`});
       }).catch(err=>{
         EVENTS.unshift({t:Date.now(),lvl:'crit',cat:'param',pack:p.id,bms:b.id,
-          txt:'Commande refusée',det:`${x.label} : ${String(err.message||err)}`});
+          txt:spMessage('commandRejected'),det:`${x.label} : ${String(err.message||err)}`});
       });
     });
     S.pendingChanges=null; S.edit=null; closeModal();
@@ -1419,10 +1495,11 @@ function render(){
   document.getElementById('bnav').innerHTML=route==='/wall'?'':bottomNav(route);
   document.getElementById('bnav').style.display=route==='/wall'?'none':'';
   tickFresh();
+  spTranslateGlow();
 }
 function tickFresh(){
   document.querySelectorAll('.fresh').forEach(el=>{ const ts=+el.dataset.ts; if(!ts){el.textContent='—';return;} el.textContent=relTime(ts); el.classList.toggle('old',(Date.now()-ts)/1000>TH.staleSec); });
-  const c=document.getElementById('wallclock'); if(c) c.textContent=new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  const c=document.getElementById('wallclock'); if(c) c.textContent=new Date().toLocaleTimeString(spLocale(),{hour:'2-digit',minute:'2-digit'});
 }
 const canAutoRender = () => !S.edit && !S.modal && !(document.activeElement && /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) && !document.querySelector('.ch-plot:hover');
 addEventListener('hashchange',()=>{ S.edit=null; render(); scrollTo(0,0); });
@@ -1461,7 +1538,7 @@ if(new URLSearchParams(location.search).get('demo')==='1'){
     },2000);
   }
 }
-render();
+render();spApplyLanguage();
 </script>
 </body>
 </html>
