@@ -194,4 +194,9 @@ for(const lang of ['fr','en','de']){
  }
 }
 assert.ok(scada.includes('spRestoreParameterDrafts(drafts);panel.scrollTop=at'));
+const noteMatch=scada.match(/const SP_AUDIT_NOTE=([^;]+);/);
+assert.ok(noteMatch,'audit provenance translations missing');
+const auditNotes=JSON.parse(noteMatch[1]);
+for(const lang of ['fr','en','de'])assert.ok(auditNotes[lang].includes('dev59'),lang+' missing audit provenance');
+assert.ok(scada.includes('spAuditNote()'));
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
