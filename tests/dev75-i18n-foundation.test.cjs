@@ -31,4 +31,14 @@ for(const [fr,tr] of Object.entries(labels)){
 }
 assert.match(glow,/function spTranslateGlow\(/);
 assert.match(glow,/tickFresh\(\);\s*spTranslateGlow\(\);/);
+const dynamicSource=glow.match(/const SP_GLOW_MESSAGES=([^;]+);/);
+assert.ok(dynamicSource,'dynamic Glow translations missing');
+const dynamic=JSON.parse(dynamicSource[1]);
+for(const lang of ['fr','en','de']){
+ for(const key of ['delta','temp','warning','critical','weakLow','weakResistance']){
+  assert.ok(dynamic[lang][key],lang+' dynamic message missing: '+key);
+ }
+}
+assert.match(glow,/spMessage\('weakLow',\{cell:b\.weak\.cell,days:b\.weak\.lowestDays\}\)/);
+assert.match(glow,/spMessage\('weakResistance',\{cell:b\.weak\.cell,rise:b\.weak\.resRise\}\)/);
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
