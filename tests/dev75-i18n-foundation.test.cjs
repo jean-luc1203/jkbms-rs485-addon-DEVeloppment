@@ -185,7 +185,7 @@ assert.ok(scada.includes("spParamExtra('range',{min,max,step})"));
 assert.ok(scada.includes("spParamExtra('quick')"));
 assert.ok(scada.includes("spParamExtra('dryConfig')"));
 assert.ok(scada.includes("spParamExtra('setup')"));
-const dryMatch=scada.match(/const SP_DRY_DISPLAY_I18N=([^;]+);/);
+const dryMatch=scada.match(/^const SP_DRY_DISPLAY_I18N=(.+);$/m);
 assert.ok(dryMatch,'DRY display dictionary missing');
 const dryLabels=JSON.parse(dryMatch[1]);
 for(const lang of ['fr','en','de']){
@@ -194,7 +194,7 @@ for(const lang of ['fr','en','de']){
  }
 }
 assert.ok(scada.includes('spRestoreParameterDrafts(drafts);panel.scrollTop=at'));
-const noteMatch=scada.match(/const SP_AUDIT_NOTE=([^;]+);/);
+const noteMatch=scada.match(/^const SP_AUDIT_NOTE=(.+);$/m);
 assert.ok(noteMatch,'audit provenance translations missing');
 const auditNotes=JSON.parse(noteMatch[1]);
 for(const lang of ['fr','en','de'])assert.ok(auditNotes[lang].includes('dev59'),lang+' missing audit provenance');
