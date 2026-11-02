@@ -41,4 +41,11 @@ for(const lang of ['fr','en','de']){
 }
 assert.match(glow,/spMessage\('weakLow',\{cell:b\.weak\.cell,days:b\.weak\.lowestDays\}\)/);
 assert.match(glow,/spMessage\('weakResistance',\{cell:b\.weak\.cell,rise:b\.weak\.resRise\}\)/);
+assert.match(glow,/function spLocale\(\)/);
+assert.match(glow,/spMessage\('confirmSend'\)/);
+assert.match(glow,/spMessage\('sensitiveNote'\)/);
+assert.match(glow,/spMessage\('commandSent'\)/);
+assert.match(glow,/spMessage\('commandRejected'\)/);
+assert.match(glow,/toLocaleString\(spLocale\(\)/);
+assert.doesNotMatch(glow,/toLocale(?:String|TimeString|DateString)\('fr-FR'/);
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
