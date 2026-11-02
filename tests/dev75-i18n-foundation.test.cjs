@@ -141,4 +141,14 @@ for(const label of ['Mesures instantanées','Capacité restante','État des pack
  assert.ok(scada.includes('spView("'+label+'")'),'view does not render localized label: '+label);
 }
 assert.match(scada,/function spView\(fr\)/);
+const paramUiMatch=scada.match(/const SP_PARAM_UI=([^;]+);/);
+assert.ok(paramUiMatch,'technical parameter screen localization missing');
+const paramUi=JSON.parse(paramUiMatch[1]);
+for(const lang of ['fr','en','de']){
+ for(const key of Object.keys(paramUi.fr))assert.ok(paramUi[lang][key],lang+' missing parameter UI '+key);
+}
+for(const key of ['title','config','accessible','expert','warn','modify','readonly']){
+ assert.ok(scada.includes("spParamUi('"+key+"')"),'parameter view not using '+key);
+}
+assert.match(scada,/requestParameterCommand\('\$\{packId\}','\$\{bms\}','\$\{def\.key\}'\)/);
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
