@@ -483,6 +483,7 @@ function spHaLanguage(){
 let spManualLanguage=null;
 try{spManualLanguage=localStorage.getItem(SP_LANG_KEY)}catch(_){}
 let spLanguage=spNormalizeLanguage(spManualLanguage||spHaLanguage()||navigator.language);
+function spLocale(){return {fr:'fr-FR',en:'en-GB',de:'de-DE'}[spLanguage]||'fr-FR'}
 function spText(key){return SP_I18N[spLanguage]?.[key]||SP_I18N.fr[key]||key}
 function spSetLanguage(value){
  spLanguage=spNormalizeLanguage(value);
@@ -498,6 +499,9 @@ Object.assign(SP_GLOW_LABELS,{"Les changements ne sont envoyés au BMS qu’apr�
 const spOriginalText=new WeakMap();
 const SP_GLOW_MESSAGES={"fr":{"delta":"Écart cellules","temp":"Température","warning":"alerte","critical":"critique","weakLow":"Cellule {cell} est la plus basse depuis {days} jours","weakResistance":"Résistance de la cellule {cell} : +{rise} % en 30 jours"},"en":{"delta":"Cell imbalance","temp":"Temperature","warning":"warning","critical":"critical","weakLow":"Cell {cell} has had the lowest voltage for {days} days","weakResistance":"Cell {cell} resistance: +{rise}% over 30 days"},"de":{"delta":"Zellabweichung","temp":"Temperatur","warning":"Warnung","critical":"kritisch","weakLow":"Zelle {cell} hat seit {days} Tagen die niedrigste Spannung","weakResistance":"Widerstand von Zelle {cell}: +{rise}% in 30 Tagen"}};
 function spMessage(key,params={}){let value=SP_GLOW_MESSAGES[spLanguage]?.[key]||SP_GLOW_MESSAGES.fr[key]||key;return value.replace(/\{(\w+)\}/g,(_,name)=>String(params[name]??''))}
+Object.assign(SP_GLOW_MESSAGES.fr,{"confirmSend":"Confirmer l’envoi","sensitive":"Réglage sensible","sensitiveNote":"Ces paramètres touchent aux MOS ou aux protections : une erreur peut couper le pack.","commandSent":"Commande transmise","commandRejected":"Commande refusée","readback":"relecture BMS à vérifier","sendChanges":"Envoyer {count} modification(s) au {bms} ?"});
+Object.assign(SP_GLOW_MESSAGES.en,{"confirmSend":"Confirm sending","sensitive":"Sensitive setting","sensitiveNote":"These settings affect MOS switches or protections: an error may disconnect the battery pack.","commandSent":"Command sent","commandRejected":"Command rejected","readback":"verify BMS readback","sendChanges":"Send {count} change(s) to {bms}?"});
+Object.assign(SP_GLOW_MESSAGES.de,{"confirmSend":"Senden bestätigen","sensitive":"Sicherheitsrelevante Einstellung","sensitiveNote":"Diese Einstellungen betreffen MOS-Schalter oder Schutzfunktionen. Ein Fehler kann das Batteriepack abschalten.","commandSent":"Befehl gesendet","commandRejected":"Befehl abgelehnt","readback":"BMS-Rückmeldung prüfen","sendChanges":"{count} Änderung(en) an {bms} senden?"});
 function spTranslateGlow(){
  if(!document.createTreeWalker||!document.body||typeof NodeFilter==='undefined')return;
  const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
@@ -754,7 +758,7 @@ function sparkData(list, key){
 /* =========================================================
    HELPERS UI
    ========================================================= */
-const f = (v,d=1) => Number(v).toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const f = (v,d=1) => Number(v).toLocaleString(spLocale(),{minimumFractionDigits:d,maximumFractionDigits:d});
 const pw = w => Math.abs(w)>=1000 ? `${f(w/1000,2)}<small>kW</small>` : `${f(w,0)}<small>W</small>`;
 const COL = {ok:'var(--ok)',warn:'var(--warn)',crit:'var(--crit)',bal:'var(--bal)',off:'var(--off)'};
 const flowTxt = c => c>0.3 ? ['↑ Charge','flow'] : c<-0.3 ? ['↓ Décharge','flow'] : ['• Repos',''];
@@ -801,7 +805,7 @@ function chart(id, title, list, unit, dec, thresholds=[], opts={}){
   const thl = ths.map(th=>`<line x1="0" x2="1000" y1="${Y(th.v)}" y2="${Y(th.v)}" stroke="${th.color}" stroke-dasharray="4 4" vector-effect="non-scaling-stroke" opacity=".8"/>`).join('');
   const thLabels = ths.map(th=>`<span class="ch-th" style="top:${Y(th.v)}%;color:${th.color}">${th.label}</span>`).join('');
   CHARTS[id] = { list:ready, unit, dec, t0, t1:now, range };
-  const fmtX = t => new Date(t).toLocaleString('fr-FR', range==='7j'?{weekday:'short',hour:'2-digit'}:{hour:'2-digit',minute:'2-digit'});
+  const fmtX = t => new Date(t).toLocaleString(spLocale(), range==='7j'?{weekday:'short',hour:'2-digit'}:{hour:'2-digit',minute:'2-digit'});
   return `<div class="${cp?'mchart':'card'} chart">${head}
     <div class="ch-plot" data-chart="${id}"><span class="ch-y" style="top:0">${f(mx,dec)}</span><span class="ch-y" style="top:50%">${f((mx+mn)/2,dec)}</span><span class="ch-y" style="top:100%">${f(mn,dec)}</span>
       ${[25,50,75].map(y=>`<i class="ch-grid" style="top:${y}%"></i>`).join('')}
@@ -818,7 +822,7 @@ document.addEventListener('pointermove', e=>{
   const rc = plot.getBoundingClientRect(), fx = Math.max(0,Math.min(1,(e.clientX-rc.left)/rc.width)), t = c.t0 + fx*(c.t1-c.t0);
   const cross=plot.querySelector('.ch-cross'), tip=plot.querySelector('.ch-tip');
   cross.style.display='block'; cross.style.left=(fx*100)+'%';
-  const time = new Date(t).toLocaleString('fr-FR',{weekday:c.range==='7j'?'short':undefined,hour:'2-digit',minute:'2-digit'});
+  const time = new Date(t).toLocaleString(spLocale(),{weekday:c.range==='7j'?'short':undefined,hour:'2-digit',minute:'2-digit'});
   tip.innerHTML = `<div style="color:var(--mut);margin-bottom:3px">${time}</div>` + c.list.map(s=>{ const i=nearest(s.data.t,t); return `<div><i style="background:${s.color}"></i>${c.list.length>1?s.name+' : ':''}<b>${f(s.data.v[i],c.dec)} ${c.unit}</b></div>`; }).join('');
   tip.style.display='block';
   const tw = tip.offsetWidth; tip.style.left = (fx*rc.width + 12 + tw > rc.width ? fx*rc.width - tw - 12 : fx*rc.width + 12) + 'px';
@@ -990,10 +994,10 @@ function eventsList(list, max=200){
   if(!list.length) return `<div class="alert ok"><span class="ic">✅</span><div><b>Aucun événement</b><small>Rien à signaler sur la période.</small></div></div>`;
   let h='', day='';
   list.slice(0,max).forEach(e=>{
-    const d=new Date(e.t), dl=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+    const d=new Date(e.t), dl=d.toLocaleDateString(spLocale(),{weekday:'long',day:'numeric',month:'long'});
     if(dl!==day){ h+=`<div class="day">${dl}</div>`; day=dl; }
     const p=PACKS.find(x=>x.id===e.pack);
-    h+=`<div class="ev"><time>${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time><span class="dot ${e.lvl==='info'?'':e.lvl}" style="${e.lvl==='info'?'background:var(--flow)':''}"></span>
+    h+=`<div class="ev"><time>${d.toLocaleTimeString(spLocale(),{hour:'2-digit',minute:'2-digit'})}</time><span class="dot ${e.lvl==='info'?'':e.lvl}" style="${e.lvl==='info'?'background:var(--flow)':''}"></span>
       <div><b>${e.txt}</b><small>${p?esc(p.name):''}${e.bms?` · BMS ${e.bms}`:''}${e.det?' — '+e.det:''}</small></div></div>`;
   });
   return `<div class="card events">${h}</div>`;
@@ -1212,7 +1216,7 @@ function pageBms(p,b,tab){
 
 function pageWall(){
   const F=fleetStats();
-  let h=`<div class="wall-top"><div class="wall-clock" id="wallclock">${new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>
+  let h=`<div class="wall-top"><div class="wall-clock" id="wallclock">${new Date().toLocaleTimeString(spLocale(),{hour:'2-digit',minute:'2-digit'})}</div>
     <div class="pills"><button class="btn" data-act="fs">⛶ Plein écran</button><a class="btn" href="#/">✕ Quitter</a></div></div>`;
   h+=statusBanner(true)+`<div class="wall-kpis">
     <div class="card kpi ${F.live<PACKS.length?'warn':'ok'}"><div class="lbl">📡 Sites à jour</div><div class="val">${F.live}<small>/ ${PACKS.length}</small></div></div>
@@ -1411,10 +1415,10 @@ document.addEventListener('click', e=>{
     Object.entries(E.sw).forEach(([k,v])=>{ if(v!==b.switches[k]) list.push({k,type:'sw',label:SW_DEF.find(s=>s[0]===k)[1],from:b.switches[k]?'ON':'OFF',to:v?'ON':'OFF',v}); });
     const risky=list.some(x=>/charging_switch|discharging_switch|protection|power_off/.test(x.k));
     S.pendingChanges={p,b,list};
-    openModal(`<h3>Envoyer ${list.length} modification${list.length>1?'s':''} au ${bn(b)} ?</h3><small style="color:var(--mut)">${esc(p.name)}</small>
+    openModal(`<h3>${spMessage('sendChanges',{count:list.length,bms:bn(b)})}</h3><small style="color:var(--mut)">${esc(p.name)}</small>
       <ul>${list.map(x=>`<li>${x.label} : <b>${x.from}</b> → <b style="color:var(--flow)">${x.to}</b></li>`).join('')}</ul>
-      ${risky?`<div class="alert warn"><span class="ic">⚠️</span><div><b>Réglage sensible</b><small>Ces paramètres touchent aux MOS ou aux protections : une erreur peut couper le pack.</small></div></div>`:''}
-      <div class="row"><button class="btn" data-act="close">Annuler</button><button class="btn ${risky?'danger':'primary'}" data-act="confirm">Confirmer l’envoi</button></div>`);
+      ${risky?`<div class="alert warn"><span class="ic">⚠️</span><div><b>${spMessage('sensitive')}</b><small>${spMessage('sensitiveNote')}</small></div></div>`:''}
+      <div class="row"><button class="btn" data-act="close">Annuler</button><button class="btn ${risky?'danger':'primary'}" data-act="confirm">${spMessage('confirmSend')}</button></div>`);
   }
   else if(act==='confirm'){
     const {p,b,list}=S.pendingChanges;
@@ -1429,10 +1433,10 @@ document.addEventListener('click', e=>{
       const data=x.type==='num'?{entity_id,value:x.v}:{entity_id};
       callService(domain,service,data).then(()=>{
         EVENTS.unshift({t:Date.now(),lvl:'info',cat:'param',pack:p.id,bms:b.id,
-          txt:'Commande transmise',det:`${x.label} : ${x.from} → ${x.to} · relecture BMS à vérifier`});
+          txt:spMessage('commandSent'),det:`${x.label} : ${x.from} → ${x.to} · ${spMessage('readback')}`});
       }).catch(err=>{
         EVENTS.unshift({t:Date.now(),lvl:'crit',cat:'param',pack:p.id,bms:b.id,
-          txt:'Commande refusée',det:`${x.label} : ${String(err.message||err)}`});
+          txt:spMessage('commandRejected'),det:`${x.label} : ${String(err.message||err)}`});
       });
     });
     S.pendingChanges=null; S.edit=null; closeModal();
@@ -1486,7 +1490,7 @@ function render(){
 }
 function tickFresh(){
   document.querySelectorAll('.fresh').forEach(el=>{ const ts=+el.dataset.ts; if(!ts){el.textContent='—';return;} el.textContent=relTime(ts); el.classList.toggle('old',(Date.now()-ts)/1000>TH.staleSec); });
-  const c=document.getElementById('wallclock'); if(c) c.textContent=new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  const c=document.getElementById('wallclock'); if(c) c.textContent=new Date().toLocaleTimeString(spLocale(),{hour:'2-digit',minute:'2-digit'});
 }
 const canAutoRender = () => !S.edit && !S.modal && !(document.activeElement && /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) && !document.querySelector('.ch-plot:hover');
 addEventListener('hashchange',()=>{ S.edit=null; render(); scrollTo(0,0); });
