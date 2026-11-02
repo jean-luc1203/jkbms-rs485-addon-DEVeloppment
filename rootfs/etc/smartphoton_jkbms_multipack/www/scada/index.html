@@ -2209,7 +2209,7 @@ const SP_ALARM_UI={"fr":{"active":"Actives","activeNone":"Installation sans alar
 function spAlarmText(key){return SP_ALARM_UI[spLanguage]?.[key]||SP_ALARM_UI.fr[key]||key}
 
 // Translate recorded category for display only; keep raw MQTT event untouched.
-const SP_SCADA_CATEGORY={fr:{'Température':'Température','Cellules':'Cellules'},en:{'Température':'Temperature','Cellules':'Cells'},de:{'Température':'Temperatur','Cellules':'Zellen'}};
+const SP_SCADA_CATEGORY={"fr":{"Température":"Température","Cellules":"Cellules"},"en":{"Température":"Temperature","Cellules":"Cells"},"de":{"Température":"Temperatur","Cellules":"Zellen"}};
 function spScadaCategory(raw){return SP_SCADA_CATEGORY[spLanguage]?.[raw]||raw}
 
 function openAlarmOverview(){
