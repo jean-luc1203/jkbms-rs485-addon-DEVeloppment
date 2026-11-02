@@ -487,12 +487,12 @@ function spText(key){return SP_I18N[spLanguage]?.[key]||SP_I18N.fr[key]||key}
 function spSetLanguage(value){
  spLanguage=spNormalizeLanguage(value);
  try{localStorage.setItem(SP_LANG_KEY,spLanguage)}catch(_){}
- document.documentElement.lang=spLanguage;
+ if(document.documentElement)document.documentElement.lang=spLanguage;
  if(typeof render==='function')render();
  spApplyLanguage();
 }
 function spApplyLanguage(){
- document.documentElement.lang=spLanguage;
+ if(document.documentElement)document.documentElement.lang=spLanguage;
  let control=document.getElementById('sp-language-switch');
  if(!control){
    control=document.createElement('label');control.id='sp-language-switch';
@@ -506,7 +506,7 @@ function spApplyLanguage(){
  control.querySelector('#sp-language-label').textContent=spText('language');
  control.querySelector('#sp-language-select').value=spLanguage;
 }
-document.documentElement.lang=spLanguage;
+if(document.documentElement)document.documentElement.lang=spLanguage;
 
 /* =========================================================
    CONFIGURATION
