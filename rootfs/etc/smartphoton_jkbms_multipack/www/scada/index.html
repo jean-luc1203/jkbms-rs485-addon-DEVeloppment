@@ -1904,7 +1904,7 @@ function requestDryCommand(p,b,key){
  const pack=currentPacks.find(x=>x.id===p),label=`DRY${n} · ${isSource?'Déclencheur':key.endsWith('_trigger_value')?'Déclenchement':'Relâchement'}`;
  controlConfirmContext={kind:'dry',packId:p,bms:String(b),key,target:value,expected_raw:st.value,expected_source:c.source.value};
  document.getElementById('controlConfirmTitle').textContent=`${label} · ${pack?.name||p} / BMS ${b}`;
- document.getElementById('controlConfirmText').textContent='Confirmer cette modification de la configuration du contact sec ?';
+ document.getElementById('controlConfirmText').textContent=spDetail('confirmDry');
  const safety=document.getElementById('controlConfirmSafety');safety.style.display='block';
  safety.textContent='Cette configuration peut changer l’état du relais et de l’équipement raccordé. '+(isSource?'Les seuils existants seront interprétés selon le nouveau déclencheur. Pour changer de type, désactiver d’abord puis préparer les deux seuils.':c.source.value===8?'Valeur en °C selon la correspondance observée sur votre BMS.':'Valeur BRUTE : la documentation ne précise ni conversion ni plage métier. Vérifier la valeur dans l’application JK avant de la saisir.');
  document.getElementById('controlConfirmCard').classList.add('critical');document.getElementById('controlConfirmCard').classList.remove('cutting');
@@ -2118,8 +2118,8 @@ function requestParameterCommand(packId,bms,key){
  const min=st.min,max=st.max;if(min!=null&&target<min||max!=null&&target>max){setParameterCommand(packId,bms,key,{status:'error',completedAt:Date.now(),message:`hors plage ${min}…${max}`});refreshParameterWorkspace(packId,bms);return}
  const tol=Math.max(1e-6,Number(st.step||0)*0.05);if(Math.abs(target-st.value)<=tol)return;
  controlConfirmContext={kind:'number',packId:String(packId),bms:String(bms),key,target,entity:st.entity,label:def.label,packName:p.name,current:st.value,unit:st.unit,step:st.step,critical:def.critical===true};
- document.getElementById('controlConfirmTitle').textContent=`${def.label} · ${p.name} / BMS ${bms}`;document.getElementById('controlConfirmText').textContent=`Confirmer la modification de « ${def.label} » ?`;
- const safety=document.getElementById('controlConfirmSafety');safety.textContent=def.critical?'⚠ CRITIQUE · PARAMÈTRE DE PROTECTION · Une valeur inadaptée peut modifier la sécurité ou interrompre le fonctionnement du pack. Vérifier la consigne avant validation.':'PARAMÈTRE TECHNIQUE · La nouvelle valeur sera écrite dans le BMS puis relue avant confirmation.';safety.style.display='block';
+ document.getElementById('controlConfirmTitle').textContent=`${def.label} · ${p.name} / BMS ${bms}`;document.getElementById('controlConfirmText').textContent=spDetail('confirmParam',{label:def.label});
+ const safety=document.getElementById('controlConfirmSafety');safety.textContent=def.critical?spDetail('criticalParameter'):spDetail('technicalParameter');safety.style.display='block';
  const card=document.getElementById('controlConfirmCard');card.classList.toggle('critical',def.critical===true);card.classList.remove('cutting');
  document.getElementById('controlConfirmCurrent').textContent=formatParameterValue(st.value,st.unit,st.step);document.getElementById('controlConfirmRequested').textContent=formatParameterValue(target,st.unit,st.step);document.getElementById('controlConfirmEntity').textContent=st.entity;
  const go=document.getElementById('controlConfirmGo');go.classList.toggle('danger',def.critical===true);go.textContent='CONFIRMER MODIFICATION';document.getElementById('controlConfirmLayer').classList.add('open');
@@ -2143,9 +2143,9 @@ function requestControlCommand(packId,bms,key,target){
  controlConfirmContext={packId:String(packId),bms:String(bms),key,target:Boolean(target),entity:state.entity,label:def.label,packName:p.name,current:state.on,critical:def.critical===true};
  const critical=def.critical===true;const cutting=critical&&!target;
  document.getElementById('controlConfirmTitle').textContent=`${def.label} · ${p.name} / BMS ${bms}`;
- document.getElementById('controlConfirmText').textContent=`Confirmer ${target?'l’activation':'la désactivation'} de « ${def.label} » ?`;
+ document.getElementById('controlConfirmText').textContent=spDetail(target?'confirmOn':'confirmOff',{label:def.label});
  const safety=document.getElementById('controlConfirmSafety');
- safety.textContent=critical?(cutting?`ATTENTION · ${def.warning||'Cette commande peut interrompre le flux de puissance du pack.'}`:`COMMANDE MOS · Réactivation demandée. Le retour réel du BMS doit confirmer l’état avant validation.`):(def.warning||'');
+ safety.textContent=critical?(cutting?`ATTENTION · ${def.warning||spDetail('mosWarning')}`:spDetail('mosEnable')):(def.warning||'');
  safety.style.display=(critical||def.warning)?'block':'none';
  const card=document.getElementById('controlConfirmCard');card.classList.toggle('critical',critical);card.classList.toggle('cutting',cutting);
  document.getElementById('controlConfirmCurrent').textContent=state.on?'ACTIF':'INACTIF';
