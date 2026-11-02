@@ -2466,6 +2466,8 @@ function updateOperatorJournal(packs,live){
  for(const p of packs){const mode=p.power>25?'CHARGE':p.power<-25?'DÉCHARGE':'REPOS',delta=(p.d||0)>=50?'crit':(p.d||0)>=30?'warn':'ok',snap={online:p.online!==false,mode,delta};const old=operatorSnapshot[p.id];if(old){if(old.online!==snap.online)addOperatorEvent(p.name,snap.online?spScadaMessage('commRestored'):spScadaMessage('commLost'),!snap.online,!snap.online);if(old.mode!==snap.mode)addOperatorEvent(p.name,spScadaMessage('mode',{from:old.mode,to:snap.mode}));if(old.delta!==snap.delta){if(snap.delta==='ok')addOperatorEvent(p.name,spScadaMessage('cellDeltaNormal'));else addOperatorEvent(p.name,spScadaMessage('cellDelta',{delta:p.d.toFixed(0)}),true,snap.delta==='crit')}}operatorSnapshot[p.id]=snap}
 }
 
+const SP_SCADA_PROCESS_I18N={"fr":{"chargePack":"Charge du pack","dischargePack":"Décharge du pack","idlePack":"Batterie au repos","chargeMulti":"Charge agrégée Multi-Pack","dischargeMulti":"Décharge agrégée Multi-Pack","idleMulti":"Batteries au repos","batteryBus":"BUS BATTERIE","logicBus":"BUS LOGIQUE","issues":"{n} anomalie(s) active(s)","diagnosticsOffline":"Diagnostic temporairement indisponible","packHint":"Cliquer sur le pack pour accéder à ses BMS","batteryFlow":"Chaîne batterie SmartPhoton","modeCharge":"CHARGE","modeDischarge":"DÉCHARGE","modeRest":"REPOS"},"en":{"chargePack":"Pack charging","dischargePack":"Pack discharging","idlePack":"Battery idle","chargeMulti":"Combined Multi-Pack charging","dischargeMulti":"Combined Multi-Pack discharging","idleMulti":"Battery packs idle","batteryBus":"BATTERY BUS","logicBus":"LOGICAL BUS","issues":"{n} active issue(s)","diagnosticsOffline":"Diagnostics temporarily unavailable","packHint":"Select the pack to access its BMS","batteryFlow":"SmartPhoton battery flow","modeCharge":"CHARGING","modeDischarge":"DISCHARGING","modeRest":"IDLE"},"de":{"chargePack":"Pack wird geladen","dischargePack":"Pack wird entladen","idlePack":"Batterie im Ruhezustand","chargeMulti":"Zusammengefasste Multi-Pack-Ladung","dischargeMulti":"Zusammengefasste Multi-Pack-Entladung","idleMulti":"Batteriepacks im Ruhezustand","batteryBus":"BATTERIEBUS","logicBus":"LOGISCHER BUS","issues":"{n} aktive Auffälligkeit(en)","diagnosticsOffline":"Diagnose vorübergehend nicht verfügbar","packHint":"Pack auswählen, um seine BMS anzuzeigen","batteryFlow":"SmartPhoton-Batteriefluss","modeCharge":"LADEN","modeDischarge":"ENTLADEN","modeRest":"RUHE"}};
+function spProcessText(key,args={}){return (SP_SCADA_PROCESS_I18N[spLanguage]?.[key]||SP_SCADA_PROCESS_I18N.fr[key]||key).replace(/\{(\w+)\}/g,(_,k)=>String(args[k]??''))}
 function render(){
  const h=getHass(); let packs=[]; let diag=null; let glob=null; let live=false;
  if(h){
@@ -2483,11 +2485,11 @@ function render(){
  document.body.classList.toggle('single-pack',singlePack);
  const packrow=document.getElementById('packrow'); packrow.classList.toggle('single',singlePack); packrow.innerHTML=packs.map(packHTML).join('');
  document.getElementById('topologyChip').innerHTML=`<i class="dot"></i> ${singlePack?(online?'SINGLE PACK ONLINE':'SINGLE PACK OFFLINE'):`${online}/${packs.length} PACKS ONLINE`}`;
- document.getElementById('sectionEyebrow').textContent=singlePack?'Supervision batterie':'Supervision énergétique';
- document.getElementById('sectionTitle').textContent=singlePack?'Synoptique batterie':'Synoptique Multi‑Pack';
+ document.getElementById('sectionEyebrow').textContent=spScadaText(singlePack?'Supervision batterie':'Supervision énergétique');
+ document.getElementById('sectionTitle').textContent=spScadaText(singlePack?'Synoptique batterie':'Synoptique Multi‑Pack');
  document.getElementById('processEyebrow').textContent=singlePack?'Battery process':'Power process';
- document.getElementById('processTitle').textContent=singlePack?'Chaîne batterie SmartPhoton':'Chaîne énergétique SmartPhoton';
- document.getElementById('opHint').textContent=singlePack?'Cliquer sur le pack pour accéder à ses BMS':'Cliquer sur un pack pour ouvrir sa fiche opérateur';
+ document.getElementById('processTitle').textContent=singlePack?spProcessText('batteryFlow'):spScadaText('Chaîne énergétique SmartPhoton');
+ document.getElementById('opHint').textContent=singlePack?spProcessText('packHint'):spScadaText('Cliquer sur un pack pour ouvrir sa fiche opérateur');
  const totalPower=packs.reduce((s,p)=>s+(p.power||0),0);
  const totalCurrent=packs.reduce((s,p)=>s+(p.a||0),0);
  const avgSoc=packs.length?packs.reduce((s,p)=>s+(p.soc||0),0)/packs.length:0;
@@ -2503,8 +2505,8 @@ function render(){
  const normal=!diagAlarm&&!diagAttention;
  const pkw=totalPower/1000;
  document.getElementById('processPower').textContent=`${pkw>0?'+':''}${pkw.toFixed(2)} kW`;
- document.getElementById('processMode').textContent=singlePack?(pkw>0.03?'Charge du pack':pkw<-0.03?'Décharge du pack':'Batterie au repos'):(pkw>0.03?'Charge agrégée Multi-Pack':pkw<-0.03?'Décharge agrégée Multi-Pack':'Process batteries au repos');
- document.getElementById('busVoltage').textContent=`${singlePack?'BUS BATTERIE':'BUS LOGIQUE'} · ${avgV.toFixed(2)} V`;
+ document.getElementById('processMode').textContent=spProcessText(singlePack?(pkw>0.03?'chargePack':pkw<-0.03?'dischargePack':'idlePack'):(pkw>0.03?'chargeMulti':pkw<-0.03?'dischargeMulti':'idleMulti'));
+ document.getElementById('busVoltage').textContent=`${spProcessText(singlePack?'batteryBus':'logicBus')} · ${avgV.toFixed(2)} V`;
  const healthPanel=document.getElementById('healthPanel');
  healthPanel.classList.toggle('diag-info',diagUnavailable&&normal);
  healthPanel.classList.toggle('diag-attention',diagAttention);
@@ -2512,7 +2514,7 @@ function render(){
  if(diagAlarm){
    document.getElementById('healthStatus').textContent='ALARME';
    document.getElementById('healthStatus').style.color='var(--red-soft)';
-   document.getElementById('healthText').textContent=`${issueCount} anomalie(s) active(s)`;
+   document.getElementById('healthText').textContent=spProcessText('issues',{n:issueCount});
  }else if(diagAttention){
    document.getElementById('healthStatus').textContent='ATTENTION';
    document.getElementById('healthStatus').style.color='var(--amber)';
@@ -2520,7 +2522,7 @@ function render(){
  }else if(diagUnavailable){
    document.getElementById('healthStatus').textContent='DIAG. INDISP.';
    document.getElementById('healthStatus').style.color='var(--amber-soft)';
-   document.getElementById('healthText').textContent='Diagnostic temporairement indisponible';
+   document.getElementById('healthText').textContent=spProcessText('diagnosticsOffline');
  }else{
    document.getElementById('healthStatus').textContent='NORMAL';
    document.getElementById('healthStatus').style.color='var(--green)';
@@ -2557,7 +2559,7 @@ function render(){
  document.getElementById('topologyText').textContent=`${singlePack?'1 PACK':packs.length+' PACKS'} · ${bms} BMS · ${totalCurrent>=0?'+':''}${totalCurrent.toFixed(1)} A`;
  document.getElementById('opState').textContent=diagAlarm?'ALARME':diagAttention?'ATTENTION':'NORMAL'; document.getElementById('opState').style.color=diagAlarm?'var(--red-soft)':diagAttention?'var(--amber)':'var(--green)';
  document.getElementById('opComm').textContent=singlePack?(online?'PACK ONLINE':'PACK OFFLINE'):`${online}/${packs.length} PACKS`;
- document.getElementById('opMode').textContent=pkw>0.03?'CHARGE':pkw<-0.03?'DÉCHARGE':'REPOS';
+ document.getElementById('opMode').textContent=spProcessText(pkw>0.03?'modeCharge':pkw<-0.03?'modeDischarge':'modeRest');
  document.getElementById('opFresh').textContent=freshnessLabel(maxAge); document.getElementById('opFresh').style.color=maxAge<20?'var(--green)':maxAge<45?'var(--amber)':'var(--red)';
  document.getElementById('liveBadge').textContent=live?'● HA CONNECTÉ · UI 1 s':'● DEMO · LIVE READY';
  document.getElementById('dataMode').textContent=live?`SMARTPHOTON SCADA · HOME ASSISTANT LIVE · ${singlePack?'SINGLE PACK':'MULTI‑PACK'}`:`SMARTPHOTON SCADA · v0.39 · DEMO ${singlePack?'1 PACK':'MULTI'}`;
