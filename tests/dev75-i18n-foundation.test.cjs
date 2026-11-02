@@ -60,4 +60,19 @@ assert.match(scada,/function spTranslateScada\(/);
 assert.match(scada,/function spScadaLocale\(/);
 assert.match(scada,/spScadaText\('Aucune alarme active sur les packs supervisés'\)/);
 assert.doesNotMatch(scada,/toLocale(?:TimeString|DateString|String)\('fr-FR'/);
+for(const html of [glow,scada]){
+ assert.match(html,/function spSyncLanguage\(/);
+ assert.match(html,/addEventListener\('storage'/);
+ assert.match(html,/addEventListener\('focus',spSyncLanguage\)/);
+}
+const operatorMessagesMatch=scada.match(/const SP_SCADA_MESSAGES=([^;]+);/);
+assert.ok(operatorMessagesMatch,'missing SCADA dynamic operator translation dictionary');
+const operatorMessages=JSON.parse(operatorMessagesMatch[1]);
+for(const lang of ['fr','en','de']){
+ for(const key of Object.keys(operatorMessages.fr)){
+  assert.ok(operatorMessages[lang][key],lang+' missing operator message '+key);
+ }
+}
+assert.match(scada,/spScadaMessage\('topology',\{packs:packs\.length,bms:totalBms\}\)/);
+assert.match(scada,/spScadaMessage\('commLost'\)/);
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
