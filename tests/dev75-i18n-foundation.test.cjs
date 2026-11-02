@@ -74,7 +74,7 @@ for(const lang of ['fr','en','de']){
  }
 }
 assert.match(scada,/addOperatorLocalized\('Topologie','topology',\{packs:packs\.length,bms:totalBms\}\)/);
-assert.match(scada,/spScadaMessage\('commLost'\)/);
+assert.match(scada,/addOperatorLocalized\(p\.name,snap\.online\?'commRestored':'commLost'/);
 const alarmUiMatch=scada.match(/const SP_ALARM_UI=([^;]+);/);
 assert.ok(alarmUiMatch,'SCADA alarm history localization missing');
 const alarmUi=JSON.parse(alarmUiMatch[1]);
