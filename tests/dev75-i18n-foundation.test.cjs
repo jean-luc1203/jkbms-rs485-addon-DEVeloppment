@@ -117,4 +117,17 @@ for(const key of ['Synoptique Multi‑Pack','ÉTAT CONDUITE','MODE PROCESS','FRA
  assert.ok(scada.includes(key),'synoptic source label absent: '+key);
 }
 assert.match(scada,/healthText'\)\.textContent=spScadaText\('Aucun seuil diagnostic actif'\)/);
+const processMatch=scada.match(/const SP_SCADA_PROCESS_I18N=([^;]+);/);
+assert.ok(processMatch,'missing SCADA dynamic process translations');
+const processI18n=JSON.parse(processMatch[1]);
+for(const key of Object.keys(processI18n.fr)){
+ for(const lang of ['en','de'])assert.ok(processI18n[lang][key],lang+' missing process key '+key);
+}
+for(const key of ['batteryFlow','packHint','logicBus','issues','diagnosticsOffline','modeCharge']){
+ assert.ok(scada.includes("spProcessText("),'missing process localization call');
+ assert.ok(processI18n.en[key]&&processI18n.de[key]);
+}
+assert.match(scada,/function addOperatorLocalized\(/);
+assert.match(scada,/e\.key\?spScadaMessage\(e\.key,e\.args\):e\.text/);
+assert.match(scada,/addOperatorLocalized\(p\.name,'cellDelta'/);
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
