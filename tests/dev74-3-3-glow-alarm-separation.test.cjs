@@ -1,0 +1,14 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const html = fs.readFileSync('rootfs/etc/smartphoton_jkbms_multipack/www/glow/index.html','utf8');
+const config = fs.readFileSync('config.yaml','utf8');
+assert.match(config,/version:\s*1\.0\.0-dev74\.3\.3/);
+assert.match(html,/Alarmes matérielles JK-BMS/);
+assert.match(html,/Alertes de supervision Glow/);
+assert.match(html,/Aucune alarme matérielle signalée/);
+assert.match(html,/État général \(inclut diagnostics\)/);
+assert.match(html,/Calcul indépendant des indicateurs d’alarme du JK-BMS/);
+assert.match(html,/const diagCrit=d>=TH\.deltaCrit\|\|t>=TH\.tempCrit/);
+assert.match(html,/const on=b\.alarms\.length>0/);
+assert.doesNotMatch(html,/\?\x27Alarme active\x27:\x27Aucune alarme active\x27/);
+console.log('PASS: DEV74.3.3 Glow distinguishes BMS hardware alarms and computed warnings');
