@@ -84,4 +84,16 @@ for(const lang of ['fr','en','de']){
 assert.match(scada,/spAlarmText\('observedHelp'\)/);
 assert.match(scada,/spAlarmText\('centralDesc'\)/);
 assert.match(scada,/spAlarmText\('normal'\)/);
+const glowDynamicMatch=glow.match(/const SP_GLOW_DYNAMIC=([^;]+);/);
+assert.ok(glowDynamicMatch,'missing Glow dynamic translations');
+const glowDynamic=JSON.parse(glowDynamicMatch[1]);
+for(const lang of ['fr','en','de'])for(const key of ['watch','alarm','before','idle','inRange'])assert.ok(glowDynamic[lang][key],lang+' missing '+key);
+assert.match(glow,/spGlowLabel\('Vue d’ensemble'\)/);
+assert.match(glow,/spGlowText\('before',\{pct:100\}\)/);
+const scadaCategoriesMatch=scada.match(/const SP_SCADA_CATEGORY=([^;]+);/);
+assert.ok(scadaCategoriesMatch,'missing SCADA event categories');
+const scadaCategories=JSON.parse(scadaCategoriesMatch[1]);
+for(const lang of ['fr','en','de'])for(const key of ['Température','Cellules'])assert.ok(scadaCategories[lang][key]);
+assert.match(scada,/spScadaCategory\(r\.category\)/);
+assert.match(scada,/id="sp-scada-close"/);
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
