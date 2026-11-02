@@ -73,8 +73,8 @@ for(const lang of ['fr','en','de']){
   assert.ok(operatorMessages[lang][key],lang+' missing operator message '+key);
  }
 }
-assert.match(scada,/spScadaMessage\('topology',\{packs:packs\.length,bms:totalBms\}\)/);
-assert.match(scada,/spScadaMessage\('commLost'\)/);
+assert.match(scada,/addOperatorLocalized\('Topologie','topology',\{packs:packs\.length,bms:totalBms\}\)/);
+assert.match(scada,/addOperatorLocalized\(p\.name,snap\.online\?'commRestored':'commLost'/);
 const alarmUiMatch=scada.match(/const SP_ALARM_UI=([^;]+);/);
 assert.ok(alarmUiMatch,'SCADA alarm history localization missing');
 const alarmUi=JSON.parse(alarmUiMatch[1]);
@@ -109,4 +109,36 @@ for(const key of ['confirmDry','confirmParam','criticalParameter','technicalPara
 }
 assert.match(scada,/spDetail\(target\?'confirmOn':'confirmOff',\{label:def\.label\}\)/);
 assert.match(scada,/function spDetail\(/);
+const synopticMatch=scada.match(/Object\.assign\(SP_SCADA_LABELS,([^;]+)\);/);
+assert.ok(synopticMatch,'missing SCADA synoptic translations');
+const synoptic=JSON.parse(synopticMatch[1]);
+for(const key of ['Synoptique Multi‑Pack','ÉTAT CONDUITE','MODE PROCESS','FRAÎCHEUR MAX','Chaîne énergétique SmartPhoton','Cliquer sur un pack pour ouvrir sa fiche opérateur']){
+ assert.ok(synoptic[key]?.en && synoptic[key]?.de,'missing synoptic translation: '+key);
+ assert.ok(scada.includes(key),'synoptic source label absent: '+key);
+}
+assert.match(scada,/healthText'\)\.textContent=spScadaText\('Aucun seuil diagnostic actif'\)/);
+const processMatch=scada.match(/const SP_SCADA_PROCESS_I18N=([^;]+);/);
+assert.ok(processMatch,'missing SCADA dynamic process translations');
+const processI18n=JSON.parse(processMatch[1]);
+for(const key of Object.keys(processI18n.fr)){
+ for(const lang of ['en','de'])assert.ok(processI18n[lang][key],lang+' missing process key '+key);
+}
+for(const key of ['batteryFlow','packHint','logicBus','issues','diagnosticsOffline','modeCharge']){
+ assert.ok(scada.includes("spProcessText("),'missing process localization call');
+ assert.ok(processI18n.en[key]&&processI18n.de[key]);
+}
+assert.match(scada,/function addOperatorLocalized\(/);
+assert.match(scada,/e\.key\?spScadaMessage\(e\.key,e\.args\):e\.text/);
+assert.match(scada,/addOperatorLocalized\(p\.name,'cellDelta'/);
+const scadaViewMatch=scada.match(/const SP_SCADA_VIEW_LABELS=([^;]+);/);
+assert.ok(scadaViewMatch,'missing Packs/BMS/Service label dictionary');
+const scadaView=JSON.parse(scadaViewMatch[1]);
+for(const [fr,languages] of Object.entries(scadaView)){
+ assert.ok(fr&&languages.en&&languages.de,'missing operator-view translation: '+fr);
+}
+for(const label of ['Mesures instantanées','Capacité restante','État des packs','Diagnostic Premium','Modules BMS du pack']){
+ assert.ok(scadaView[label],'missing view dictionary label: '+label);
+ assert.ok(scada.includes('spView("'+label+'")'),'view does not render localized label: '+label);
+}
+assert.match(scada,/function spView\(fr\)/);
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
