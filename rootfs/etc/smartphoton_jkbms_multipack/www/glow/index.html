@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>JK-BMS Multipack Glow</title>
+<title>JK-BMS MultiPack</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
@@ -469,6 +469,44 @@ h2{color:color-mix(in srgb,var(--flow) 45%,var(--mut))}
 <div id="modal"></div>
 
 <script>
+
+// DEV75 - shared translation keys (FR fallback); no credentials, no external assets.
+const SP_I18N={"fr":{"language":"Langue","hardware":"Alarmes matérielles JK-BMS","supervision":"Alertes de supervision","noHardware":"Aucune alarme matérielle signalée","hardwareActive":"Alarme matérielle active","noSupervision":"Aucun seuil de supervision dépassé","supervisionActive":"Écart ou température à surveiller","hardwareExplanation":"Les indicateurs d’alarme transmis par le BMS ne signalent aucun défaut. Les alertes calculées sont présentées séparément ci-dessous.","supervisionExplanation":"Les seuils de surveillance des cellules et de température ne sont pas dépassés.","supervisionIndependent":"Calcul indépendant des indicateurs d’alarme du JK-BMS.","centralHistory":"Alarmes & historique opérateur","alarmCenter":"Centre alarmes · Cycle de vie","active":"Actives","toAck":"À quittancer","ackActive":"Quittancées actives","history":"Historique","normal":"Normal","close":"Fermer","alarmEvents":"Événements actifs","observedHistory":"Historique observé"},"en":{"language":"Language","hardware":"JK-BMS hardware alarms","supervision":"Supervision alerts","noHardware":"No hardware alarm reported","hardwareActive":"Hardware alarm active","noSupervision":"No supervision threshold exceeded","supervisionActive":"Cell imbalance or temperature requires attention","hardwareExplanation":"The BMS alarm indicators report no fault. Calculated alerts are shown separately below.","supervisionExplanation":"No cell-voltage imbalance or temperature monitoring threshold has been exceeded.","supervisionIndependent":"Calculated independently of JK-BMS hardware alarm indicators.","centralHistory":"Alarms & operator history","alarmCenter":"Alarm center · Lifecycle","active":"Active","toAck":"Awaiting acknowledgement","ackActive":"Acknowledged and active","history":"History","normal":"Normal","close":"Close","alarmEvents":"Active events","observedHistory":"Observed history"},"de":{"language":"Sprache","hardware":"JK-BMS-Hardwarealarme","supervision":"Überwachungswarnungen","noHardware":"Kein Hardwarealarm gemeldet","hardwareActive":"Hardwarealarm aktiv","noSupervision":"Kein Überwachungsgrenzwert überschritten","supervisionActive":"Zellabweichung oder Temperatur prüfen","hardwareExplanation":"Die Alarmmeldungen des BMS zeigen keinen Fehler an. Berechnete Warnungen werden unten separat angezeigt.","supervisionExplanation":"Die Grenzwerte für Zellabweichung und Temperatur sind nicht überschritten.","supervisionIndependent":"Unabhängig von den Hardware-Alarmmeldungen des JK-BMS berechnet.","centralHistory":"Alarme & Bedienerprotokoll","alarmCenter":"Alarmzentrale · Lebenszyklus","active":"Aktiv","toAck":"Zu quittieren","ackActive":"Quittiert und aktiv","history":"Verlauf","normal":"Normal","close":"Schließen","alarmEvents":"Aktive Ereignisse","observedHistory":"Ereignisverlauf"}};
+const SP_LANG_KEY='smartphoton_multipack_language_v1';
+function spNormalizeLanguage(value){const v=String(value||'').toLowerCase().split(/[-_]/)[0];return Object.hasOwn(SP_I18N,v)?v:'fr'}
+function spHaLanguage(){
+ try{
+  const ha=window.parent?.document?.querySelector('home-assistant')?.hass;
+  return ha?.locale?.language||ha?.language||null;
+ }catch(_){return null}
+}
+let spManualLanguage=null;
+try{spManualLanguage=localStorage.getItem(SP_LANG_KEY)}catch(_){}
+let spLanguage=spNormalizeLanguage(spManualLanguage||spHaLanguage()||navigator.language);
+function spText(key){return SP_I18N[spLanguage]?.[key]||SP_I18N.fr[key]||key}
+function spSetLanguage(value){
+ spLanguage=spNormalizeLanguage(value);
+ try{localStorage.setItem(SP_LANG_KEY,spLanguage)}catch(_){}
+ document.documentElement.lang=spLanguage;
+ spApplyLanguage();
+}
+function spApplyLanguage(){
+ document.documentElement.lang=spLanguage;
+ let control=document.getElementById('sp-language-switch');
+ if(!control){
+   control=document.createElement('label');control.id='sp-language-switch';
+   control.style.cssText='position:fixed;right:12px;bottom:12px;z-index:100000;background:#091b29;color:#ecf6fb;border:1px solid #32718b;border-radius:9px;padding:5px 8px;font:12px system-ui;display:flex;align-items:center;gap:6px;box-shadow:0 6px 20px #0009';
+   const label=document.createElement('span');label.id='sp-language-label';control.append(label);
+   const select=document.createElement('select');select.id='sp-language-select';select.style.cssText='color:#ecf6fb;background:#102b3b;border:1px solid #32718b;border-radius:5px;padding:4px';
+   for(const [value,name] of [['fr','FR'],['en','EN'],['de','DE']]){const option=document.createElement('option');option.value=value;option.textContent=name;select.append(option)}
+   select.addEventListener('change',e=>spSetLanguage(e.target.value));
+   control.append(select);document.body.append(control);
+ }
+ control.querySelector('#sp-language-label').textContent=spText('language');
+ control.querySelector('#sp-language-select').value=spLanguage;
+}
+document.documentElement.lang=spLanguage;
+
 /* =========================================================
    CONFIGURATION
    ========================================================= */
@@ -1137,9 +1175,9 @@ function pageBms(p,b,tab){
     if(d>=TH.deltaWarn)diagnostics.push(`Écart cellules ${f(d,0)} mV (alerte ${TH.deltaWarn} / critique ${TH.deltaCrit} mV)`);
     if(t>=TH.tempWarn)diagnostics.push(`Température ${f(t,1)} °C (alerte ${TH.tempWarn} / critique ${TH.tempCrit} °C)`);
     const diagCrit=d>=TH.deltaCrit||t>=TH.tempCrit;
-    h+=`<h2>Alarmes matérielles JK-BMS</h2><div class="alert ${on?'crit':'ok'}" style="margin-top:16px"><span class="ic">${on?'🚨':'✅'}</span><div><b>${on?'Alarme matérielle active':'Aucune alarme matérielle signalée'}</b><small>${on?esc(b.alarms.join(' · ')):'Les indicateurs d’alarme transmis par le BMS ne signalent aucun défaut. Les alertes calculées sont présentées séparément ci-dessous.'}</small></div></div>
-    <h2>Alertes de supervision</h2>
-    <div class="alert ${diagnostics.length?(diagCrit?'crit':'warn'):'ok'}" style="margin-top:10px"><span class="ic">${diagnostics.length?'⚠️':'✅'}</span><div><b>${diagnostics.length?'Écart ou température à surveiller':'Aucun seuil de supervision dépassé'}</b><small>${diagnostics.length?esc(diagnostics.join(' · ')):'Les seuils de surveillance des cellules et de température ne sont pas dépassés.'} — Calcul indépendant des indicateurs d’alarme du JK-BMS.</small></div></div>
+    h+=`<h2>${spText('hardware')}</h2><div class="alert ${on?'crit':'ok'}" style="margin-top:16px"><span class="ic">${on?'🚨':'✅'}</span><div><b>${on?spText('hardwareActive'):spText('noHardware')}</b><small>${on?esc(b.alarms.join(' · ')):spText('hardwareExplanation')}</small></div></div>
+    <h2>${spText('supervision')}</h2>
+    <div class="alert ${diagnostics.length?(diagCrit?'crit':'warn'):'ok'}" style="margin-top:10px"><span class="ic">${diagnostics.length?'⚠️':'✅'}</span><div><b>${diagnostics.length?spText('supervisionActive'):spText('noSupervision')}</b><small>${diagnostics.length?esc(diagnostics.join(' · ')):spText('supervisionExplanation')} — ${spText('supervisionIndependent')}</small></div></div>
     <div class="grid g2"><div><h2>Statut</h2><div class="card"><table class="tbl"><tr><td>Alarme matérielle BMS</td><td class="num">${on?'Oui':'Non'}</td></tr><tr><td>État général (inclut diagnostics)</td><td class="num">${stTxt[st]}</td></tr><tr><td>Liste des alarmes matérielles</td><td class="num">${on?esc(b.alarms.join(', ')):'—'}</td></tr></table></div></div>
     <div><h2>Contexte</h2><div class="card"><table class="tbl"><tr><td>Écart cellules</td><td class="num">${f(d,0)} mV</td></tr><tr><td>Température MOS</td><td class="num">${f(b.mos,1)} °C</td></tr><tr><td>MOS charge</td><td class="num">${b.chargeMos?'ON':'OFF'}</td></tr><tr><td>MOS décharge</td><td class="num">${b.dischargeMos?'ON':'OFF'}</td></tr></table></div></div></div>
     <h2>Événements de ce BMS (48 h)</h2>${eventsList(EVENTS.filter(e=>e.pack===p.id&&(e.bms===b.id||e.bms==null)),60)}`;
@@ -1461,7 +1499,7 @@ if(new URLSearchParams(location.search).get('demo')==='1'){
     },2000);
   }
 }
-render();
+render();spApplyLanguage();
 </script>
 </body>
 </html>
