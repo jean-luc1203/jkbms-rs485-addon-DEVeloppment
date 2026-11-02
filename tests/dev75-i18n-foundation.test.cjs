@@ -171,4 +171,10 @@ for(const label of ['Tous les packs','Tous les BMS']){
 }
 assert.match(scada,/openAuditOverview\(\);/,'audit overlay must refresh when language changes');
 assert.match(scada,/openBmsTechnicalParameters\(currentParameterContext\.packId,currentParameterContext\.bms,true\)/,'parameter overlay must refresh when language changes');
+// Regression: language switch must retain unsubmitted numeric form values without sending commands.
+assert.match(scada,/function spCaptureParameterDrafts\\(\\)/);
+assert.match(scada,/function spRestoreParameterDrafts\\(drafts\\)/);
+assert.match(scada,/const drafts=spCaptureParameterDrafts\\(\\);\\s*openBmsTechnicalParameters\\(currentParameterContext\\.packId,currentParameterContext\\.bms,true\\);\\s*spRestoreParameterDrafts\\(drafts\\);/);
+assert.match(scada,/\\$\\{all\\.length\\} \\$\\{spAuditText\\('événement\\(s\\) disponibles'\\)\\}/);
+assert.match(scada,/\\$\\{rows\\.length\\} \\$\\{spAuditText\\('ligne\\(s\\)'\\)\\}/);
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
