@@ -213,4 +213,9 @@ for(const lang of ['en','de'])assert.equal(triggerI18n[lang].length,15,lang+' DR
 assert.ok(scada.includes('spDryTriggerLabel(i)'));
 assert.ok(scada.includes('spDryTriggerLabel(st.raw)'));
 assert.ok(scada.includes('spDryTriggerLabel(v)'));
+const navMatch=scada.match(/^const SP_PARAM_NAV_I18N=(.+);$/m);
+assert.ok(navMatch,'parameter navigation translations missing');
+const navI18n=JSON.parse(navMatch[1]);
+for(const lang of ['fr','en','de'])for(const key of Object.keys(navI18n.fr))assert.ok(navI18n[lang][key],lang+' missing parameter UI '+key);
+for(const key of ['charge','cells','balance','current','temperatures','conduct','back','summary','heading','intro','settings'])assert.ok(scada.includes("spParamNav('"+key+"')"),'parameter view missing '+key);
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
