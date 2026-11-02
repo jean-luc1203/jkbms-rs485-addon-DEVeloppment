@@ -163,4 +163,40 @@ for(const [key,languages] of Object.entries(translatedParameters)){
 assert.match(scada,/function spParamDefinition\(def,field\)/);
 assert.match(scada,/spParamDefinition\(def,'label'\)/);
 assert.match(scada,/spParamDefinition\(def,'desc'\)/);
+// Regression: the audit all-option texts must be evaluated as template literals.
+for(const label of ['Tous les packs','Tous les BMS']){
+ const bad=String.fromCharCode(39)+'<option value="all">'+ '${spAuditText("'+label+'")}</option>'+String.fromCharCode(39);
+ assert.ok(!scada.includes(bad),'literal JavaScript leaked into audit option '+label);
+ assert.ok(scada.includes('spAuditText("'+label+'")'),'missing audit option translation '+label);
+}
+assert.match(scada,/openAuditOverview\(\);/,'audit overlay must refresh when language changes');
+assert.match(scada,/openBmsTechnicalParameters\(currentParameterContext\.packId,currentParameterContext\.bms,true\)/,'parameter overlay must refresh when language changes');
+// Regression: language switch must retain unsubmitted numeric form values without sending commands.
+assert.match(scada,/function spCaptureParameterDrafts\(\)/);
+assert.match(scada,/function spRestoreParameterDrafts\(drafts\)/);
+assert.match(scada,/const drafts=spCaptureParameterDrafts\(\);\s*openBmsTechnicalParameters\(currentParameterContext\.packId,currentParameterContext\.bms,true\);\s*spRestoreParameterDrafts\(drafts\);/);
+assert.match(scada,/\$\{all\.length\} \$\{spAuditText\('événement\(s\) disponibles'\)\}/);
+assert.match(scada,/\$\{rows\.length\} \$\{spAuditText\('ligne\(s\)'\)\}/);
+const extraMatch=scada.match(/const SP_PARAM_EXTRA=([^;]+);/);
+assert.ok(extraMatch,'parameter secondary translations missing');
+const extra=JSON.parse(extraMatch[1]);
+for(const lang of ['fr','en','de'])for(const key of ['missing','range','quick','setup','readonly','dryConfig','dryRead'])assert.ok(extra[lang][key],lang+' missing '+key);
+assert.ok(scada.includes("spParamExtra('range',{min,max,step})"));
+assert.ok(scada.includes("spParamExtra('quick')"));
+assert.ok(scada.includes("spParamExtra('dryConfig')"));
+assert.ok(scada.includes("spParamExtra('setup')"));
+const dryMatch=scada.match(/^const SP_DRY_DISPLAY_I18N=(.+);$/m);
+assert.ok(dryMatch,'DRY display dictionary missing');
+const dryLabels=JSON.parse(dryMatch[1]);
+for(const lang of ['fr','en','de']){
+ for(const key of Object.keys(dryLabels.fr)){
+  assert.ok(dryLabels[lang][key],lang+' missing DRY label '+key);
+ }
+}
+assert.ok(scada.includes('spRestoreParameterDrafts(drafts);panel.scrollTop=at'));
+const noteMatch=scada.match(/^const SP_AUDIT_NOTE=(.+);$/m);
+assert.ok(noteMatch,'audit provenance translations missing');
+const auditNotes=JSON.parse(noteMatch[1]);
+for(const lang of ['fr','en','de'])assert.ok(auditNotes[lang].includes('dev59'),lang+' missing audit provenance');
+assert.ok(scada.includes('spAuditNote()'));
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
