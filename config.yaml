@@ -1,8 +1,8 @@
 ---
-name: "SmartPhoton JK-BMS Multi-Pack DEV74.3.1 DIAGNOSTICS TEST"
-version: 1.0.0-dev74.3.1
+name: "SmartPhoton JK-BMS Multi-Pack DEV74.3.2 DIAGNOSTICS TEST"
+version: 1.0.0-dev74.3.2
 slug: "smartphoton_jkbms_multipack"
-description: DEV74.3.1 candidate - fixes existing Lovelace sidebar metadata titles, keeps Diagnostics/Aggregation and Premium
+description: DEV74.3.2 candidate - SCADA central alarm history via authenticated HA WebSocket, preserves Premium and existing configurations
 url: https://domosimple.eu/forum/thread-917.html
 ingress: false
 ingress_stream: false
