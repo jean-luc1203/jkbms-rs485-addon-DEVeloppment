@@ -1262,6 +1262,44 @@ html,body{min-width:0}
 
 <div class="control-confirm-layer" id="controlConfirmLayer"><div class="control-confirm-card" id="controlConfirmCard"><div class="ey">Confirmation opérateur · commande BMS</div><h3 id="controlConfirmTitle">Confirmer la commande</h3><p id="controlConfirmText"></p><div class="control-confirm-safety" id="controlConfirmSafety"></div><div class="control-confirm-target"><div><span>État actuel</span><b id="controlConfirmCurrent">—</b></div><div><span>État demandé</span><b id="controlConfirmRequested">—</b></div></div><div class="control-confirm-entity" id="controlConfirmEntity">—</div><p>Le SCADA n'anticipe jamais le résultat : après l'envoi, l'état ne sera déclaré confirmé qu'après lecture du retour réel publié par le BMS.</p><div class="control-confirm-actions"><button onclick="cancelControlCommandConfirm()">ANNULER</button><button class="go" id="controlConfirmGo" onclick="confirmControlCommand()">CONFIRMER</button></div></div></div>
 <script>
+
+// DEV75 - shared translation keys (FR fallback); no credentials, no external assets.
+const SP_I18N={"fr":{"language":"Langue","hardware":"Alarmes matérielles JK-BMS","supervision":"Alertes de supervision","noHardware":"Aucune alarme matérielle signalée","hardwareActive":"Alarme matérielle active","noSupervision":"Aucun seuil de supervision dépassé","supervisionActive":"Écart ou température à surveiller","hardwareExplanation":"Les indicateurs d’alarme transmis par le BMS ne signalent aucun défaut. Les alertes calculées sont présentées séparément ci-dessous.","supervisionExplanation":"Les seuils de surveillance des cellules et de température ne sont pas dépassés.","supervisionIndependent":"Calcul indépendant des indicateurs d’alarme du JK-BMS.","centralHistory":"Alarmes & historique opérateur","alarmCenter":"Centre alarmes · Cycle de vie","active":"Actives","toAck":"À quittancer","ackActive":"Quittancées actives","history":"Historique","normal":"Normal","close":"Fermer","alarmEvents":"Événements actifs","observedHistory":"Historique observé"},"en":{"language":"Language","hardware":"JK-BMS hardware alarms","supervision":"Supervision alerts","noHardware":"No hardware alarm reported","hardwareActive":"Hardware alarm active","noSupervision":"No supervision threshold exceeded","supervisionActive":"Cell imbalance or temperature requires attention","hardwareExplanation":"The BMS alarm indicators report no fault. Calculated alerts are shown separately below.","supervisionExplanation":"No cell-voltage imbalance or temperature monitoring threshold has been exceeded.","supervisionIndependent":"Calculated independently of JK-BMS hardware alarm indicators.","centralHistory":"Alarms & operator history","alarmCenter":"Alarm center · Lifecycle","active":"Active","toAck":"Awaiting acknowledgement","ackActive":"Acknowledged and active","history":"History","normal":"Normal","close":"Close","alarmEvents":"Active events","observedHistory":"Observed history"},"de":{"language":"Sprache","hardware":"JK-BMS-Hardwarealarme","supervision":"Überwachungswarnungen","noHardware":"Kein Hardwarealarm gemeldet","hardwareActive":"Hardwarealarm aktiv","noSupervision":"Kein Überwachungsgrenzwert überschritten","supervisionActive":"Zellabweichung oder Temperatur prüfen","hardwareExplanation":"Die Alarmmeldungen des BMS zeigen keinen Fehler an. Berechnete Warnungen werden unten separat angezeigt.","supervisionExplanation":"Die Grenzwerte für Zellabweichung und Temperatur sind nicht überschritten.","supervisionIndependent":"Unabhängig von den Hardware-Alarmmeldungen des JK-BMS berechnet.","centralHistory":"Alarme & Bedienerprotokoll","alarmCenter":"Alarmzentrale · Lebenszyklus","active":"Aktiv","toAck":"Zu quittieren","ackActive":"Quittiert und aktiv","history":"Verlauf","normal":"Normal","close":"Schließen","alarmEvents":"Aktive Ereignisse","observedHistory":"Ereignisverlauf"}};
+const SP_LANG_KEY='smartphoton_multipack_language_v1';
+function spNormalizeLanguage(value){const v=String(value||'').toLowerCase().split(/[-_]/)[0];return Object.hasOwn(SP_I18N,v)?v:'fr'}
+function spHaLanguage(){
+ try{
+  const ha=window.parent?.document?.querySelector('home-assistant')?.hass;
+  return ha?.locale?.language||ha?.language||null;
+ }catch(_){return null}
+}
+let spManualLanguage=null;
+try{spManualLanguage=localStorage.getItem(SP_LANG_KEY)}catch(_){}
+let spLanguage=spNormalizeLanguage(spManualLanguage||spHaLanguage()||navigator.language);
+function spText(key){return SP_I18N[spLanguage]?.[key]||SP_I18N.fr[key]||key}
+function spSetLanguage(value){
+ spLanguage=spNormalizeLanguage(value);
+ try{localStorage.setItem(SP_LANG_KEY,spLanguage)}catch(_){}
+ document.documentElement.lang=spLanguage;
+ spApplyLanguage();
+}
+function spApplyLanguage(){
+ document.documentElement.lang=spLanguage;
+ let control=document.getElementById('sp-language-switch');
+ if(!control){
+   control=document.createElement('label');control.id='sp-language-switch';
+   control.style.cssText='position:fixed;right:12px;bottom:12px;z-index:100000;background:#091b29;color:#ecf6fb;border:1px solid #32718b;border-radius:9px;padding:5px 8px;font:12px system-ui;display:flex;align-items:center;gap:6px;box-shadow:0 6px 20px #0009';
+   const label=document.createElement('span');label.id='sp-language-label';control.append(label);
+   const select=document.createElement('select');select.id='sp-language-select';select.style.cssText='color:#ecf6fb;background:#102b3b;border:1px solid #32718b;border-radius:5px;padding:4px';
+   for(const [value,name] of [['fr','FR'],['en','EN'],['de','DE']]){const option=document.createElement('option');option.value=value;option.textContent=name;select.append(option)}
+   select.addEventListener('change',e=>spSetLanguage(e.target.value));
+   control.append(select);document.body.append(control);
+ }
+ control.querySelector('#sp-language-label').textContent=spText('language');
+ control.querySelector('#sp-language-select').value=spLanguage;
+}
+document.documentElement.lang=spLanguage;
+
 const demoPacks=[
  {id:'pack_1',name:'Pack 1 · Real',soc:84,power:+1420,v:53.25,a:26.7,d:11,t:27,bms:2,members:['1','3'],ageSec:0.8},
  {id:'pack_2',name:'Pack 2 · Lab',soc:78,power:+1160,v:53.18,a:21.8,d:18,t:29,bms:3,members:['1','2','3'],ageSec:1.1},
@@ -2131,7 +2169,7 @@ function openBmsOverview(){
  showScadaDetail();
 }
 function openAlarmOverview(){
- document.getElementById('detailEyebrow').textContent='Centre alarmes · Cycle de vie';document.getElementById('detailTitle').textContent='Alarmes & historique opérateur';
+ document.getElementById('detailEyebrow').textContent=spText('alarmCenter');document.getElementById('detailTitle').textContent=spText('centralHistory');
  const rows=syncAlarmState(),pending=rows.filter(r=>!alarmAck(r)).length,acked=rows.length-pending;
  const history=alarmHistory.slice(0,50),historyTotal=alarmHistoryTotal(),central=!!centralAlarmLifecycle();
  const activeHtml=rows.length?rows.map(a=>{const ack=alarmAck(a),rt=alarmRuntime[a.key]||{};return `<div class="alarm-item active-row clickable ${issueSeverityClass(a)} ${ack?'acked':''}" onclick="openAlarmDetail('${a.key}')"><time>${alarmTime(rt.firstSeen)}</time><div class="sev">${a.severity}</div><div class="msg"><b>${a.packName}</b> · ${a.category} · ${a.value}</div><div class="duration">${alarmDuration(Date.now()-(rt.firstSeen||Date.now()))}</div><div class="state ${ack?'ack':'pending'}">${ack?'QUITTANCÉE':'À QUITTANCER'}</div></div>`}).join(''):`<div class="alarm-item sev-ok"><time>LIVE</time><div class="sev">NORMAL</div><div class="msg">Aucune alarme active sur les packs supervisés</div><div class="state">OK</div></div>`;
@@ -2508,7 +2546,7 @@ document.getElementById('processTrendPanel').addEventListener('click',()=>openTr
 document.getElementById('demoToggle').addEventListener('click',()=>{if(getHass())return;demoSingleMode=!demoSingleMode;render();});
 
 function tick(){const d=new Date();document.getElementById('clock').textContent=d.toLocaleTimeString('fr-FR',{hour12:false});const de=document.getElementById('clockDate');if(de){const m=['JAN','FÉV','MAR','AVR','MAI','JUN','JUL','AOÛ','SEP','OCT','NOV','DÉC'];de.textContent=`${String(d.getDate()).padStart(2,'0')} ${m[d.getMonth()]} ${d.getFullYear()} · LOCAL`;}}
-tick();ensureCentralAuditSubscription();render();setInterval(ensureCentralAuditSubscription,5000);setTimeout(()=>loadMainTrend(true),1200);setInterval(tick,1000);setInterval(refreshDryCards,1000);setInterval(render,1000);setInterval(()=>loadMainTrend(true),300000);
+tick();ensureCentralAuditSubscription();render();spApplyLanguage();setInterval(ensureCentralAuditSubscription,5000);setTimeout(()=>loadMainTrend(true),1200);setInterval(tick,1000);setInterval(refreshDryCards,1000);setInterval(render,1000);setInterval(()=>loadMainTrend(true),300000);
 </script>
 </body>
 </html>
