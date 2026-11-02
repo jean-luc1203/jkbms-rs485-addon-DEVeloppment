@@ -73,7 +73,7 @@ for(const lang of ['fr','en','de']){
   assert.ok(operatorMessages[lang][key],lang+' missing operator message '+key);
  }
 }
-assert.match(scada,/spScadaMessage\('topology',\{packs:packs\.length,bms:totalBms\}\)/);
+assert.match(scada,/addOperatorLocalized\('Topologie','topology',\{packs:packs\.length,bms:totalBms\}\)/);
 assert.match(scada,/spScadaMessage\('commLost'\)/);
 const alarmUiMatch=scada.match(/const SP_ALARM_UI=([^;]+);/);
 assert.ok(alarmUiMatch,'SCADA alarm history localization missing');
