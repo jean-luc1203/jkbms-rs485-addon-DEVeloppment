@@ -48,4 +48,16 @@ assert.match(glow,/spMessage\('commandSent'\)/);
 assert.match(glow,/spMessage\('commandRejected'\)/);
 assert.match(glow,/toLocaleString\(spLocale\(\)/);
 assert.doesNotMatch(glow,/toLocale(?:String|TimeString|DateString)\('fr-FR'/);
+const scada=fs.readFileSync(paths[1],'utf8');
+const scadaLabelsMatch=scada.match(/const SP_SCADA_LABELS=([^;]+);/);
+assert.ok(scadaLabelsMatch,'SCADA visual label dictionary missing');
+const scadaLabels=JSON.parse(scadaLabelsMatch[1]);
+assert.ok(Object.keys(scadaLabels).length>=30,'SCADA requires at least 30 translated operator labels');
+for(const [fr,translations] of Object.entries(scadaLabels)){
+ assert.ok(fr.trim()&&translations.en&&translations.de,'SCADA missing translation: '+fr);
+}
+assert.match(scada,/function spTranslateScada\(/);
+assert.match(scada,/function spScadaLocale\(/);
+assert.match(scada,/spScadaText\('Aucune alarme active sur les packs supervisés'\)/);
+assert.doesNotMatch(scada,/toLocale(?:TimeString|DateString|String)\('fr-FR'/);
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
