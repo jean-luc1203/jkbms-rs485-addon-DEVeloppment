@@ -185,4 +185,13 @@ assert.ok(scada.includes("spParamExtra('range',{min,max,step})"));
 assert.ok(scada.includes("spParamExtra('quick')"));
 assert.ok(scada.includes("spParamExtra('dryConfig')"));
 assert.ok(scada.includes("spParamExtra('setup')"));
+const dryMatch=scada.match(/const SP_DRY_DISPLAY_I18N=([^;]+);/);
+assert.ok(dryMatch,'DRY display dictionary missing');
+const dryLabels=JSON.parse(dryMatch[1]);
+for(const lang of ['fr','en','de']){
+ for(const key of Object.keys(dryLabels.fr)){
+  assert.ok(dryLabels[lang][key],lang+' missing DRY label '+key);
+ }
+}
+assert.ok(scada.includes('spRestoreParameterDrafts(drafts);panel.scrollTop=at'));
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
