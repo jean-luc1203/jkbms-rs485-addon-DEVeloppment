@@ -75,4 +75,13 @@ for(const lang of ['fr','en','de']){
 }
 assert.match(scada,/spScadaMessage\('topology',\{packs:packs\.length,bms:totalBms\}\)/);
 assert.match(scada,/spScadaMessage\('commLost'\)/);
+const alarmUiMatch=scada.match(/const SP_ALARM_UI=([^;]+);/);
+assert.ok(alarmUiMatch,'SCADA alarm history localization missing');
+const alarmUi=JSON.parse(alarmUiMatch[1]);
+for(const lang of ['fr','en','de']){
+ for(const key of Object.keys(alarmUi.fr))assert.ok(alarmUi[lang][key],lang+' missing SCADA history label '+key);
+}
+assert.match(scada,/spAlarmText\('observedHelp'\)/);
+assert.match(scada,/spAlarmText\('centralDesc'\)/);
+assert.match(scada,/spAlarmText\('normal'\)/);
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
