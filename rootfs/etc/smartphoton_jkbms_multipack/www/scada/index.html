@@ -1295,6 +1295,7 @@ function spSetLanguage(value){
   }
  }
  spApplyLanguage();
+ spRefreshOpenConfirmLanguage();
 }
 
 // DEV75.2: visual-only SCADA translations. Never rewrite service data, entity IDs or audit records.
@@ -2196,6 +2197,35 @@ function requestControlCommand(packId,bms,key,target){
 }
 function cancelControlCommandConfirm(){
  document.getElementById('controlConfirmLayer')?.classList.remove('open');document.getElementById('controlConfirmCard')?.classList.remove('critical','cutting');document.getElementById('controlConfirmGo')?.classList.remove('danger');controlConfirmContext=null;
+}
+// Presentation-only: never recreate confirmation context or issue commands on language switch.
+function spRefreshOpenConfirmLanguage(){
+ const layer=document.getElementById('controlConfirmLayer');
+ const c=controlConfirmContext;
+ if(!layer?.classList.contains('open')||!c)return;
+ const title=document.getElementById('controlConfirmTitle');
+ const question=document.getElementById('controlConfirmText');
+ const safety=document.getElementById('controlConfirmSafety');
+ const go=document.getElementById('controlConfirmGo');
+ if(c.kind==='dry'){
+  const key=c.key,n=Number(key[3]),source=key.endsWith('_trigger');
+  const label=`DRY${n} · ${source?spAuditDryWord('trigger'):key.endsWith('_trigger_value')?spAuditDryWord('threshold'):spAuditDryWord('release')}`;
+  const pack=currentPacks.find(p=>p.id===c.packId);
+  title.textContent=`${label} · ${pack?.name||c.packId} / BMS ${c.bms}`;
+  question.textContent=spDetail('confirmDry');
+  safety.textContent=spDryConfirm('risk')+(source?spDryConfirm('source'):Number(c.expected_source)===8?spDryConfirm('temp'):spDryConfirm('raw'));
+  go.textContent=spDryConfirm('confirm');
+  const fmt=v=>source?`${spDryTriggerLabel(v)} · code ${v}`:`${v} ${Number(c.expected_source)===8?'°C':spAuditDryWord('raw')}`;
+  document.getElementById('controlConfirmCurrent').textContent=fmt(c.expected_raw);
+  document.getElementById('controlConfirmRequested').textContent=fmt(c.target);
+ }else if(c.kind==='number'){
+  const def=findParameterDef(c.key);
+  const label=def?spParamDefinition(def,'label'):c.label;
+  title.textContent=`${label} · ${c.packName} / BMS ${c.bms}`;
+  question.textContent=spDetail('confirmParam',{label});
+  safety.textContent=c.critical?spDetail('criticalParameter'):spDetail('technicalParameter');
+  go.textContent=spScadaText('CONFIRMER');
+ }
 }
 function confirmControlCommand(){
  const c=controlConfirmContext;if(!c)return;const copy={...c};cancelControlCommandConfirm();if(copy.kind==='dry')executeDryCommand(copy);else if(copy.kind==='number')executeParameterCommand(copy.packId,copy.bms,copy.key,copy.target);else executeControlCommand(copy.packId,copy.bms,copy.key,copy.target);
