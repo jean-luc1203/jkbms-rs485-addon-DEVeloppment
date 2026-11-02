@@ -223,4 +223,10 @@ assert.ok(auditDryMatch,'localized DRY and audit event words missing');
 const auditDry=JSON.parse(auditDryMatch[1]);
 for(const lang of ['fr','en','de'])for(const key of Object.keys(auditDry.fr))assert.ok(auditDry[lang][key],lang+' missing DRY/audit '+key);
 for(const key of ['trigger','threshold','release','raw','acknowledged','duration','station'])assert.ok(scada.includes("spAuditDryWord('"+key+"')"),'missing displayed translation '+key);
+// Open confirmation language changes must remain presentation-only.
+assert.match(scada,/spApplyLanguage\(\);\s*spRefreshOpenConfirmLanguage\(\);/);
+const refresh=scada.split('function spRefreshOpenConfirmLanguage(){')[1]?.split('function confirmControlCommand(){')[0];
+assert.ok(refresh,'missing live confirmation translation refresh');
+for(const token of ["c.kind==='dry'","c.kind==='number'","spDetail('confirmDry')","spDetail('confirmParam',{label})","spDryConfirm('risk')","spDryTriggerLabel(v)","spParamDefinition(def,'label')"])assert.ok(refresh.includes(token),'missing confirmation refresh: '+token);
+assert.ok(!/callService|executeDryCommand|executeParameterCommand|confirmControlCommand\(\)|controlConfirmContext\s*=/.test(refresh),'language refresh must not modify context or issue any command');
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
