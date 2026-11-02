@@ -104,8 +104,9 @@ for(const lang of ['fr','en','de']){
   assert.ok(scadaDetail[lang][key],lang+' missing detail message '+key);
  }
 }
-for(const key of ['confirmOn','confirmOff','confirmDry','confirmParam','criticalParameter','technicalParameter','alarmDetail','alarmHistory']){
+for(const key of ['confirmDry','confirmParam','criticalParameter','technicalParameter','alarmDetail','alarmHistory']){
  assert.match(scada,new RegExp("spDetail\\('"+key+"'"));
 }
+assert.match(scada,/spDetail\(target\?'confirmOn':'confirmOff',\{label:def\.label\}\)/);
 assert.match(scada,/function spDetail\(/);
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
