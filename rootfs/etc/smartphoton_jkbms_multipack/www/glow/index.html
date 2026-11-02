@@ -491,6 +491,26 @@ function spSetLanguage(value){
  if(typeof render==='function')render();
  spApplyLanguage();
 }
+
+// DEV75.1: translation of visible Glow labels without modifying HA entity ids or BMS command payloads.
+const SP_GLOW_LABELS={"Parc":{"en":"Fleet","de":"Übersicht"},"Vue d’ensemble":{"en":"Overview","de":"Gesamtübersicht"},"Comparatif des sites":{"en":"Site comparison","de":"Standortvergleich"},"Diagnostics":{"en":"Diagnostics","de":"Diagnose"},"Diagnostic":{"en":"Diagnostics","de":"Diagnose"},"Journal":{"en":"Log","de":"Protokoll"},"Sites":{"en":"Sites","de":"Standorte"},"Thème clair":{"en":"Light theme","de":"Helles Design"},"Thème sombre":{"en":"Dark theme","de":"Dunkles Design"},"Mode écran mural":{"en":"Wall display","de":"Wandanzeige"},"Connexion Home Assistant":{"en":"Home Assistant connection","de":"Home-Assistant-Verbindung"},"Connecté à Home Assistant":{"en":"Connected to Home Assistant","de":"Mit Home Assistant verbunden"},"Données de démonstration":{"en":"Demo data","de":"Demodaten"},"En attente de Home Assistant":{"en":"Waiting for Home Assistant","de":"Warte auf Home Assistant"},"Comparer":{"en":"Compare","de":"Vergleichen"},"Réglages":{"en":"Settings","de":"Einstellungen"},"Menu":{"en":"Menu","de":"Menü"},"Paramètres":{"en":"Parameters","de":"Parameter"},"Alarmes":{"en":"Alarms","de":"Alarme"},"État énergétique":{"en":"Energy status","de":"Energiezustand"},"Puissance":{"en":"Power","de":"Leistung"},"Tension":{"en":"Voltage","de":"Spannung"},"Courant":{"en":"Current","de":"Strom"},"Écart cellules":{"en":"Cell imbalance","de":"Zellabweichung"},"Capacité":{"en":"Capacity","de":"Kapazität"},"Cellules":{"en":"Cells","de":"Zellen"},"Autonomie":{"en":"Remaining runtime","de":"Restlaufzeit"},"Températures & équilibrage":{"en":"Temperatures & balancing","de":"Temperaturen & Balancing"},"État du BMS":{"en":"BMS status","de":"BMS-Status"},"Historiques":{"en":"History","de":"Verlauf"},"Température MOS":{"en":"MOS temperature","de":"MOS-Temperatur"},"Courant d’équilibrage":{"en":"Balancing current","de":"Balancierstrom"},"Sonde batterie 1":{"en":"Battery probe 1","de":"Batteriesensor 1"},"Sonde batterie 2":{"en":"Battery probe 2","de":"Batteriesensor 2"},"État de charge":{"en":"Charge status","de":"Ladestatus"},"Alarme":{"en":"Alarm","de":"Alarm"},"Aucune":{"en":"None","de":"Keine"},"Lecture seule":{"en":"Read-only","de":"Nur lesen"},"Mode modification":{"en":"Editing mode","de":"Bearbeitungsmodus"},"Annuler":{"en":"Cancel","de":"Abbrechen"},"Enregistrer":{"en":"Save","de":"Speichern"},"Modifier":{"en":"Edit","de":"Bearbeiten"},"Interrupteurs de contrôle":{"en":"Control switches","de":"Steuerschalter"},"Cellules à surveiller":{"en":"Cells to monitor","de":"Zellen beobachten"},"Aucune cellule suspecte":{"en":"No suspicious cells","de":"Keine auffälligen Zellen"},"Batterie & durée de vie":{"en":"Battery & lifespan","de":"Batterie & Lebensdauer"},"Capacité restante":{"en":"Remaining capacity","de":"Restkapazität"},"Cycles":{"en":"Cycles","de":"Zyklen"},"Durée de fonctionnement":{"en":"Operating time","de":"Betriebsdauer"},"Tensions des cellules":{"en":"Cell voltages","de":"Zellspannungen"},"Moyenne":{"en":"Average","de":"Durchschnitt"},"Mesures":{"en":"Measurements","de":"Messwerte"},"Tout afficher":{"en":"Show all","de":"Alle anzeigen"},"Seulement les différences":{"en":"Differences only","de":"Nur Unterschiede"},"Paramètres identiques sur tous les BMS":{"en":"Identical parameters on all BMS","de":"Identische Parameter auf allen BMS"},"Données anciennes":{"en":"Stale data","de":"Veraltete Daten"},"Autres cellules":{"en":"Other cells","de":"Andere Zellen"},"En équilibrage":{"en":"Balancing","de":"Balancierung"},"Inactif":{"en":"Inactive","de":"Inaktiv"},"Maintenant":{"en":"Now","de":"Jetzt"},"maintenant":{"en":"now","de":"jetzt"},"Temp. max":{"en":"Max. temp.","de":"Max. Temp."},"Résistance moy.":{"en":"Avg. resistance","de":"Mittl. Widerstand"},"Tensions cellules":{"en":"Cell voltages","de":"Zellspannungen"},"Courants & capacité":{"en":"Currents & capacity","de":"Ströme & Kapazität"},"Protections":{"en":"Protections","de":"Schutzfunktionen"},"Thermique":{"en":"Thermal","de":"Temperatur"},"MOS charge":{"en":"Charging MOS","de":"Lade-MOS"},"MOS décharge":{"en":"Discharging MOS","de":"Entlade-MOS"},"Équilibrage":{"en":"Balancing","de":"Balancierung"},"Chauffage":{"en":"Heating","de":"Heizung"},"Écran toujours allumé":{"en":"Display always on","de":"Display immer an"},"Désactiver module PCL":{"en":"Disable PCL module","de":"PCL-Modul deaktivieren"},"Stockage temporisé":{"en":"Timed storage","de":"Zeitgesteuerte Speicherung"},"Mode Floating charge":{"en":"Float charging mode","de":"Erhaltungslademodus"}};
+const spOriginalText=new WeakMap();
+function spTranslateGlow(){
+ if(!document.createTreeWalker||!document.body||typeof NodeFilter==='undefined')return;
+ const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+ let node;
+ while((node=walker.nextNode())){
+  const parent=node.parentElement;
+  if(!parent||/SCRIPT|STYLE|INPUT|TEXTAREA|OPTION/.test(parent.tagName))continue;
+  const original=spOriginalText.get(node)??node.nodeValue;
+  if(!spOriginalText.has(node))spOriginalText.set(node,original);
+  const hit=original.match(/^(\s*)(.*?)(\s*)$/s);
+  if(!hit)continue;
+  const word=hit[2],translations=SP_GLOW_LABELS[word];
+  if(translations)node.nodeValue=hit[1]+(translations[spLanguage]||word)+hit[3];
+ }
+}
+
 function spApplyLanguage(){
  if(document.documentElement)document.documentElement.lang=spLanguage;
  let control=document.getElementById('sp-language-switch');
@@ -505,6 +525,7 @@ function spApplyLanguage(){
  }
  control.querySelector('#sp-language-label').textContent=spText('language');
  control.querySelector('#sp-language-select').value=spLanguage;
+ spTranslateGlow();
 }
 if(document.documentElement)document.documentElement.lang=spLanguage;
 
@@ -1458,6 +1479,7 @@ function render(){
   document.getElementById('bnav').innerHTML=route==='/wall'?'':bottomNav(route);
   document.getElementById('bnav').style.display=route==='/wall'?'none':'';
   tickFresh();
+  spTranslateGlow();
 }
 function tickFresh(){
   document.querySelectorAll('.fresh').forEach(el=>{ const ts=+el.dataset.ts; if(!ts){el.textContent='—';return;} el.textContent=relTime(ts); el.classList.toggle('old',(Date.now()-ts)/1000>TH.staleSec); });
