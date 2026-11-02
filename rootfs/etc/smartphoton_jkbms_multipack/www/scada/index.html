@@ -1840,6 +1840,8 @@ const DRY_TRIGGER_LABELS_FR=[
  'Surintensité charge','Surintensité décharge','Surtempérature batterie','Surtempérature MOSFET','Alarme système',
  'Température batterie basse','Commande distante','SOC supérieur à','Anomalie MOSFET'
 ];
+const SP_DRY_TRIGGER_I18N={"en":["Disabled","Low SOC","Battery overvoltage","Battery undervoltage","Cell overvoltage","Cell undervoltage","Charge overcurrent","Discharge overcurrent","Battery overtemperature","MOSFET overtemperature","System alarm","Low battery temperature","Remote command","SOC above","MOSFET fault"],"de":["Deaktiviert","Niedriger SOC","Batterieüberspannung","Batterieunterspannung","Zellüberspannung","Zellunterspannung","Ladeüberstrom","Entladeüberstrom","Batterieübertemperatur","MOSFET-Übertemperatur","Systemalarm","Niedrige Batterietemperatur","Fernbefehl","SOC über","MOSFET-Störung"]};
+function spDryTriggerLabel(code){return (SP_DRY_TRIGGER_I18N[spLanguage]||DRY_TRIGGER_LABELS_FR)[Number(code)]||DRY_TRIGGER_LABELS_FR[Number(code)]||'—'}
 const dryCommands={},dryDrafts={};
 const dryKey=(p,b,k)=>`${p}:${b}:${k}`;
 function dryEscape(x){return String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -1857,7 +1859,7 @@ function readDryConfigField(packId,bms,key){
  }
  return {available:false,state:null,raw:null,value:null,entity:null,attrs:{}};
 }
-function dryTriggerDisplay(st){if(!st?.available)return spParamUi('noEntity');return `${dryEscape(DRY_TRIGGER_LABELS_FR[st.raw]||'Code inconnu')} · code ${st.raw}`}
+function dryTriggerDisplay(st){if(!st?.available)return spParamUi('noEntity');return `${dryEscape(spDryTriggerLabel(st.raw))} · code ${st.raw}`}
 function dryRawDisplay(st,code){if(!st?.available)return spParamUi('noEntity');return `${st.value} ${code===8?'°C':'· brut'}`}
 function dryControlEntity(p,b,key){return `${key.endsWith('_trigger')?'select':'number'}.${p}_bms_${b}_${key}_active_polling`}
 function dryBusy(p,b){return Object.entries(dryCommands).some(([k,v])=>k.startsWith(`${p}:${b}:`)&&['sending','pending'].includes(v.status))}
@@ -1881,7 +1883,7 @@ function renderDryConfigCard(p,b,n){
  const code=c.source.value,locked=!c.writable||dryBusy(p,b);
  const rows=[['trigger',spDryUi('trigger'),c.source],['trigger_value',spDryUi('threshold'),c.trigger],['release_value',spDryUi('release'),c.release]].map(([suffix,label,st])=>{
   const key=`dry${n}_${suffix}`,id=dryKey(p,b,key),draft=dryDrafts[id]??st.value;
-  const input=suffix==='trigger'?`<select aria-label="Déclencheur DRY${n}" id="dry-input-${key}" onchange="dryDraft('${p}','${b}','${key}',this.value)" ${locked?'disabled':''}>${DRY_TRIGGER_LABELS_FR.map((l,i)=>`<option value="${i}" ${String(draft)===String(i)?'selected':''}>${i} · ${l}</option>`).join('')}</select>`:`<input aria-label="${label} DRY${n}" id="dry-input-${key}" type="number" step="1" min="-2147483648" max="2147483647" value="${dryEscape(draft??'')}" oninput="dryDraft('${p}','${b}','${key}',this.value)" ${locked?'disabled':''}>`;
+  const input=suffix==='trigger'?`<select aria-label="Déclencheur DRY${n}" id="dry-input-${key}" onchange="dryDraft('${p}','${b}','${key}',this.value)" ${locked?'disabled':''}>${DRY_TRIGGER_LABELS_FR.map((l,i)=>`<option value="${i}" ${String(draft)===String(i)?'selected':''}>${i} · ${spDryTriggerLabel(i)}</option>`).join('')}</select>`:`<input aria-label="${label} DRY${n}" id="dry-input-${key}" type="number" step="1" min="-2147483648" max="2147483647" value="${dryEscape(draft??'')}" oninput="dryDraft('${p}','${b}','${key}',this.value)" ${locked?'disabled':''}>`;
   const display=suffix==='trigger'?dryTriggerDisplay(st):dryRawDisplay(st,code);
   return `<div class="dry-edit-row"><div class="dry-config-row"><span>${label}</span><b>${display}</b></div><div class="dry-editor">${input}<button class="dry-apply" ${locked?'disabled':''} onclick="requestDryCommand('${p}','${b}','${key}')" >${spParamUi('modify')}</button></div>${dryStatus(dryCommands[id])}</div>`;
  }).join('');
@@ -1922,7 +1924,7 @@ function requestDryCommand(p,b,key){
  const safety=document.getElementById('controlConfirmSafety');safety.style.display='block';
  safety.textContent=spDryConfirm('risk')+(isSource?spDryConfirm('source'):c.source.value===8?spDryConfirm('temp'):spDryConfirm('raw'));
  document.getElementById('controlConfirmCard').classList.add('critical');document.getElementById('controlConfirmCard').classList.remove('cutting');
- const fmt=v=>isSource?`${DRY_TRIGGER_LABELS_FR[v]} · code ${v}`:`${v} ${c.source.value===8?'°C':'brut'}`;
+ const fmt=v=>isSource?`${spDryTriggerLabel(v)} · code ${v}`:`${v} ${c.source.value===8?'°C':'brut'}`;
  document.getElementById('controlConfirmCurrent').textContent=fmt(st.value);document.getElementById('controlConfirmRequested').textContent=fmt(value);
  document.getElementById('controlConfirmEntity').textContent=dryControlEntity(p,b,key);
  const go=document.getElementById('controlConfirmGo');go.classList.add('danger');go.textContent=spDryConfirm('confirm');document.getElementById('controlConfirmLayer').classList.add('open');
