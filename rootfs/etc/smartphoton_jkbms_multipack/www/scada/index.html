@@ -1945,7 +1945,7 @@ const controlCommandState={};
 let controlConfirmContext=null;
 let currentControlContext=null;
 function controlCommandId(packId,bms,key){return `${packId}:${bms}:${key}`}
-function commandClock(ts){return new Date(ts||Date.now()).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+function commandClock(ts){return new Date(ts||Date.now()).toLocaleTimeString(spScadaLocale(),{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
 function getControlCommand(packId,bms,key){return controlCommandState[controlCommandId(packId,bms,key)]||null}
 function setControlCommand(packId,bms,key,data){controlCommandState[controlCommandId(packId,bms,key)]={...(getControlCommand(packId,bms,key)||{}),...data}}
 function commandableControl(packId,bms,def,state){
@@ -2256,7 +2256,7 @@ function auditFilteredRows(){
  });
 }
 function auditStatusClass(r){return r.group==='success'?'ok':r.group==='error'?'bad':'pending'}
-function auditDateParts(ts){const d=new Date(ts);return {date:d.toLocaleDateString(spScadaLocale(),{day:'2-digit',month:'2-digit',year:'2-digit'}),time:d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})}}
+function auditDateParts(ts){const d=new Date(ts);return {date:d.toLocaleDateString(spScadaLocale(),{day:'2-digit',month:'2-digit',year:'2-digit'}),time:d.toLocaleTimeString(spScadaLocale(),{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})}}
 function auditOpenEvent(id){const r=auditRowCache[id];if(!r)return;if(r.ref?.kind==='command'){if(typeof r.raw?.requested==='number')openBmsTechnicalParameters(r.ref.packId,r.ref.bms);else openBmsControls(r.ref.packId,r.ref.bms);return}if(r.ref?.kind==='alarm-active'){openAlarmDetail(r.ref.key);return}if(r.ref?.kind==='alarm-history'&&r.ref.id){openAlarmHistoryDetail(String(r.ref.id));return}}
 function setAuditFilter(k,v){auditFilter[k]=v;renderAuditOverviewBody()}
 function renderAuditOverviewBody(){
@@ -2278,7 +2278,7 @@ function openServiceOverview(){
  const di=serviceDiagInfo(h);const diagClass=di.issues>0?(di.status==='PACK_OFFLINE'?'bad':'warn'):(['UNAVAILABLE','UNKNOWN'].includes(di.status)?'warn':'ok');
  const haVersion=serviceText(h?.config?.version);const tz=serviceText(h?.config?.time_zone,Intl.DateTimeFormat().resolvedOptions().timeZone||'LOCAL');
  const globalAge=h?entityAgeSec(h,GLOBAL):null;const recorderReady=!!h&&typeof h.callApi==='function';
- const recorderText=mainTrendLoadedAt?`OK · ${new Date(mainTrendLoadedAt).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}`:(recorderReady?'API PRÊTE':'INDISPONIBLE');
+ const recorderText=mainTrendLoadedAt?`OK · ${new Date(mainTrendLoadedAt).toLocaleTimeString(spScadaLocale(),{hour:'2-digit',minute:'2-digit'})}`:(recorderReady?'API PRÊTE':'INDISPONIBLE');
  const recorderClass=recorderReady?'ok':'warn';
  const mode=commModeLabel();
  const packsHtml=currentPacks.map(p=>{const members=(p.members&&p.members.length?p.members:Array.from({length:p.bms},(_,i)=>String(i+1)));const f=freshnessClass(p.ageSec??999);const process=p.power>25?'CHARGE':p.power<-25?'DÉCHARGE':'REPOS';return `<div class="service-pack"><div class="service-pack-head"><b>${p.name}</b><span>${p.online===false?'● OFFLINE':'● ONLINE'}</span></div><div class="service-rows"><div class="service-row"><span>BMS détectés</span><b>${members.length} · JK ${members.join(', ')}</b></div><div class="service-row"><span>Télémétrie la plus lente</span><b class="${f}">${freshnessLabel(p.ageSec)}</b></div><div class="service-row"><span>Process</span><b>${process} · ${(p.power/1000).toFixed(2)} kW</b></div><div class="service-row"><span>Delta / T° max</span><b>${(p.d||0).toFixed(0)} mV · ${(p.t||0).toFixed(0)} °C</b></div></div></div>`}).join('');
@@ -2351,7 +2351,7 @@ function renderTrendSvg(points,metric){
  if(max-min<0.001){const pad=Math.max(1,Math.abs(max)*.05);min-=pad;max+=pad}else{const pad=(max-min)*.08;min-=pad;max+=pad}
  const W=1000,H=360,x0=68,y0=20,w=908,h=286,start=points[0].t,end=points[points.length-1].t;
  let grid='';for(let i=0;i<5;i++){const y=y0+i*h/4,val=max-(max-min)*i/4;grid+=`<line class="trend-gridline" x1="${x0}" y1="${y}" x2="${x0+w}" y2="${y}"/><text class="trend-axis" x="4" y="${y+4}">${fmtTrendValue(val,meta.unit)}</text>`}
- let xt='';for(let i=0;i<5;i++){const x=x0+i*w/4,t=start+(end-start)*i/4;xt+=`<text class="trend-axis" text-anchor="${i===0?'start':i===4?'end':'middle'}" x="${x}" y="342">${new Date(t).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</text>`}
+ let xt='';for(let i=0;i<5;i++){const x=x0+i*w/4,t=start+(end-start)*i/4;xt+=`<text class="trend-axis" text-anchor="${i===0?'start':i===4?'end':'middle'}" x="${x}" y="342">${new Date(t).toLocaleTimeString(spScadaLocale(),{hour:'2-digit',minute:'2-digit'})}</text>`}
  const poly=svgPolyline(points,x0,y0,w,h,min,max,start,end);const zero=(min<0&&max>0)?y0+h-(0-min)/(max-min)*h:null;
  const area=`${x0},${y0+h} ${poly} ${x0+w},${y0+h}`;
  svg.innerHTML=`<defs><linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#38e58c"/><stop offset="1" stop-color="#38e58c" stop-opacity="0"/></linearGradient></defs>${grid}${zero!==null?`<line class="trend-zero" x1="${x0}" y1="${zero}" x2="${x0+w}" y2="${zero}"/>`:''}<polygon class="trend-area" points="${area}"/><polyline class="trend-line" points="${poly}"/>${xt}`;
@@ -2413,7 +2413,7 @@ function dualMiniSvg(records){
  const pn=norm(pv),cn=norm(cv),tden=Math.max(1,end-start);
  const ppoly=records.filter(r=>Number.isFinite(r.p)).map(r=>`${(x0+(r.t-start)/tden*w).toFixed(1)},${(y0+h-(r.p-pn.mn)/(pn.mx-pn.mn)*h).toFixed(1)}`).join(' ');
  const cpoly=records.filter(r=>Number.isFinite(r.c)).map(r=>`${(x0+(r.t-start)/tden*w).toFixed(1)},${(y0+h-(r.c-cn.mn)/(cn.mx-cn.mn)*h).toFixed(1)}`).join(' ');
- let ticks='';for(let i=0;i<5;i++){const x=i*w/4,t=start+(end-start)*i/4;ticks+=`<text class="axistext" text-anchor="${i===0?'start':i===4?'end':'middle'}" x="${x}" y="140">${new Date(t).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</text>`}
+ let ticks='';for(let i=0;i<5;i++){const x=i*w/4,t=start+(end-start)*i/4;ticks+=`<text class="axistext" text-anchor="${i===0?'start':i===4?'end':'middle'}" x="${x}" y="140">${new Date(t).toLocaleTimeString(spScadaLocale(),{hour:'2-digit',minute:'2-digit'})}</text>`}
  return `<line class="gridline" x1="0" y1="25" x2="900" y2="25"/><line class="gridline" x1="0" y1="72" x2="900" y2="72"/><line class="gridline" x1="0" y1="120" x2="900" y2="120"/><polyline class="powerline" points="${ppoly}"/><polyline class="currentline" points="${cpoly}"/>${ticks}`;
 }
 async function loadMainTrend(force=false){
@@ -2433,7 +2433,7 @@ async function loadMainTrend(force=false){
  finally{mainTrendLoading=false}
 }
 function addOperatorEvent(source,text,warn=false,bad=false){
- const now=new Date();operatorEvents.unshift({time:now.toLocaleTimeString('fr-FR',{hour12:false}),source,text,warn,bad});operatorEvents=operatorEvents.slice(0,5);renderOperatorEvents();
+ const now=new Date();operatorEvents.unshift({time:now.toLocaleTimeString(spScadaLocale(),{hour12:false}),source,text,warn,bad});operatorEvents=operatorEvents.slice(0,5);renderOperatorEvents();
 }
 function renderOperatorEvents(){const el=document.getElementById('eventList');if(!el)return;if(!operatorEvents.length){el.innerHTML='<div class="event empty">Aucun événement depuis l’ouverture du SCADA</div>';return}el.innerHTML=operatorEvents.map(e=>`<div class="event ${e.warn?'warn':''}"><time>${e.time}</time><i class="edot ${e.bad?'bad':''}"></i><div class="etxt"><b>${e.source}</b> · ${e.text}</div></div>`).join('')}
 function updateOperatorJournal(packs,live){
@@ -2570,7 +2570,7 @@ document.querySelectorAll('.navitem').forEach(n=>n.addEventListener('click',()=>
 document.getElementById('processTrendPanel').addEventListener('click',()=>openTrendsOverview());
 document.getElementById('demoToggle').addEventListener('click',()=>{if(getHass())return;demoSingleMode=!demoSingleMode;render();});
 
-function tick(){const d=new Date();document.getElementById('clock').textContent=d.toLocaleTimeString('fr-FR',{hour12:false});const de=document.getElementById('clockDate');if(de){const m=['JAN','FÉV','MAR','AVR','MAI','JUN','JUL','AOÛ','SEP','OCT','NOV','DÉC'];de.textContent=`${String(d.getDate()).padStart(2,'0')} ${m[d.getMonth()]} ${d.getFullYear()} · LOCAL`;}}
+function tick(){const d=new Date();document.getElementById('clock').textContent=d.toLocaleTimeString(spScadaLocale(),{hour12:false});const de=document.getElementById('clockDate');if(de){const m=['JAN','FÉV','MAR','AVR','MAI','JUN','JUL','AOÛ','SEP','OCT','NOV','DÉC'];de.textContent=`${String(d.getDate()).padStart(2,'0')} ${m[d.getMonth()]} ${d.getFullYear()} · LOCAL`;}}
 tick();ensureCentralAuditSubscription();render();spApplyLanguage();spTranslateScada();setInterval(ensureCentralAuditSubscription,5000);setTimeout(()=>loadMainTrend(true),1200);setInterval(tick,1000);setInterval(refreshDryCards,1000);setInterval(()=>{render();spTranslateScada();},1000);setInterval(()=>loadMainTrend(true),300000);
 </script>
 </body>
