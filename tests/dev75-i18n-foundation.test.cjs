@@ -20,4 +20,15 @@ for(const path of paths){
  }
  assert.ok(!html.includes('Aucun dépassement des seuils Glow'),'internal name in operator labels');
 }
+const glow=fs.readFileSync(paths[0],'utf8');
+const labelSource=glow.match(/const SP_GLOW_LABELS=([^;]+);/);
+assert.ok(labelSource,'Glow label translations missing');
+const labels=JSON.parse(labelSource[1]);
+assert.ok(Object.keys(labels).length>=70,'Glow translation coverage is below 70 labels');
+for(const [fr,tr] of Object.entries(labels)){
+ assert.ok(fr.trim(),'empty source label');
+ assert.ok(tr.en&&tr.de,'missing English or German for '+fr);
+}
+assert.match(glow,/function spTranslateGlow\(/);
+assert.match(glow,/tickFresh\(\);\s*spTranslateGlow\(\);/);
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
