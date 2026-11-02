@@ -109,4 +109,12 @@ for(const key of ['confirmDry','confirmParam','criticalParameter','technicalPara
 }
 assert.match(scada,/spDetail\(target\?'confirmOn':'confirmOff',\{label:def\.label\}\)/);
 assert.match(scada,/function spDetail\(/);
+const synopticMatch=scada.match(/Object\.assign\(SP_SCADA_LABELS,([^;]+)\);/);
+assert.ok(synopticMatch,'missing SCADA synoptic translations');
+const synoptic=JSON.parse(synopticMatch[1]);
+for(const key of ['Synoptique Multi‑Pack','ÉTAT CONDUITE','MODE PROCESS','FRAÎCHEUR MAX','Chaîne énergétique SmartPhoton','Cliquer sur un pack pour ouvrir sa fiche opérateur']){
+ assert.ok(synoptic[key]?.en && synoptic[key]?.de,'missing synoptic translation: '+key);
+ assert.ok(scada.includes(key),'synoptic source label absent: '+key);
+}
+assert.match(scada,/healthText'\)\.textContent=spScadaText\('Aucun seuil diagnostic actif'\)/);
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
