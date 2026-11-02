@@ -151,4 +151,16 @@ for(const key of ['title','config','accessible','expert','warn','modify','readon
  assert.ok(scada.includes("spParamUi('"+key+"')"),'parameter view not using '+key);
 }
 assert.match(scada,/requestParameterCommand\('\$\{packId\}','\$\{bms\}','\$\{def\.key\}'\)/);
+const parameterDefinitions=scada.match(/const SP_PARAM_DEFINITIONS_I18N=([^;]+);/);
+assert.ok(parameterDefinitions,'missing BMS numeric parameter translations');
+const translatedParameters=JSON.parse(parameterDefinitions[1]);
+assert.equal(Object.keys(translatedParameters).length,30,'all 30 numeric BMS parameters must be translated');
+for(const [key,languages] of Object.entries(translatedParameters)){
+ for(const lang of ['en','de']){
+  assert.ok(languages[lang]?.label&&languages[lang]?.desc,key+' missing '+lang+' label/description');
+ }
+}
+assert.match(scada,/function spParamDefinition\(def,field\)/);
+assert.match(scada,/spParamDefinition\(def,'label'\)/);
+assert.match(scada,/spParamDefinition\(def,'desc'\)/);
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
