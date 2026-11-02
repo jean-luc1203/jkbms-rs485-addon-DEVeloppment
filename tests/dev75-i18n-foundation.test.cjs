@@ -130,4 +130,15 @@ for(const key of ['batteryFlow','packHint','logicBus','issues','diagnosticsOffli
 assert.match(scada,/function addOperatorLocalized\(/);
 assert.match(scada,/e\.key\?spScadaMessage\(e\.key,e\.args\):e\.text/);
 assert.match(scada,/addOperatorLocalized\(p\.name,'cellDelta'/);
+const scadaViewMatch=scada.match(/const SP_SCADA_VIEW_LABELS=([^;]+);/);
+assert.ok(scadaViewMatch,'missing Packs/BMS/Service label dictionary');
+const scadaView=JSON.parse(scadaViewMatch[1]);
+for(const [fr,languages] of Object.entries(scadaView)){
+ assert.ok(fr&&languages.en&&languages.de,'missing operator-view translation: '+fr);
+}
+for(const label of ['Mesures instantanées','Capacité restante','État des packs','Diagnostic Premium','Modules BMS du pack']){
+ assert.ok(scadaView[label],'missing view dictionary label: '+label);
+ assert.ok(scada.includes('spView("'+label+'")'),'view does not render localized label: '+label);
+}
+assert.match(scada,/function spView\(fr\)/);
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
