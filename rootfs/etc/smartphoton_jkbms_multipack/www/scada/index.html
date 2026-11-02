@@ -1498,6 +1498,8 @@ const CENTRAL_ALARM_CODES=new Set(['PACK_OFFLINE','TEMPERATURE_HIGH','CELL_DELTA
 const CENTRAL_ACK_TOPIC='jkbms/scada/alarm/ack/set';
 const COMMAND_AUDIT_TOPIC='jkbms/scada/audit/command';
 function centralAuditSnapshot(){
+ const full=centralAuditDetail;
+ if(full?.source==='node_red'&&full?.command_audit)return full;
  const h=getHass();const a=h?.states?.[AUDIT]?.attributes;
  return a&&typeof a==='object'&&a.source==='node_red'?a:null;
 }
@@ -1521,8 +1523,43 @@ async function publishCommandAudit(payload){
    return true;
  }catch(e){console.warn('SmartPhoton SCADA command audit publish failed',e);return false}
 }
+const CENTRAL_AUDIT_DETAIL_TOPIC='jkbms/scada/audit/snapshot';
+let centralAuditDetail=null;
+let centralAuditConnection=null;
+let centralAuditSubscriptionPending=false;
+let centralAuditSubscriptionFailed=false;
+let centralAuditUnsubscribe=null;
+function ensureCentralAuditSubscription(){
+ const h=getHass(),conn=h?.connection;
+ if(!conn||typeof conn.subscribeMessage!=='function')return;
+ if(centralAuditConnection===conn&&(centralAuditSubscriptionPending||centralAuditUnsubscribe||centralAuditSubscriptionFailed))return;
+ if(centralAuditUnsubscribe){try{centralAuditUnsubscribe()}catch(_){}}
+ centralAuditConnection=conn;centralAuditDetail=null;centralAuditUnsubscribe=null;
+ centralAuditSubscriptionPending=true;centralAuditSubscriptionFailed=false;
+ conn.subscribeMessage(event=>{
+   if(centralAuditConnection!==conn)return;
+   if(event?.topic!==CENTRAL_AUDIT_DETAIL_TOPIC)return;
+   try{
+     const snap=typeof event.payload==='string'?JSON.parse(event.payload):event.payload;
+     if(snap?.source==='node_red'&&snap?.alarm_lifecycle?.source==='node_red'&&Array.isArray(snap.alarm_lifecycle.history)){
+       centralAuditDetail=snap;
+       syncAlarmState();
+     }
+   }catch(e){console.warn('SCADA: invalid central audit snapshot',e)}
+ },{type:'mqtt/subscribe',topic:CENTRAL_AUDIT_DETAIL_TOPIC}).then(unsub=>{
+   if(centralAuditConnection===conn){centralAuditUnsubscribe=unsub;centralAuditSubscriptionPending=false}
+   else if(typeof unsub==='function')unsub();
+ }).catch(e=>{
+   if(centralAuditConnection===conn){
+     centralAuditSubscriptionPending=false;centralAuditSubscriptionFailed=true;
+     console.warn('SCADA: central MQTT audit subscription unavailable (HA admin rights required)',e);
+   }
+ });
+}
 function centralAlarmLifecycle(){
- const h=getHass();const lc=h?.states?.[DIAG]?.attributes?.alarm_lifecycle;
+ const full=centralAuditDetail?.alarm_lifecycle;
+ if(full?.source==='node_red'&&Array.isArray(full.history))return full;
+ const h=getHass(),lc=h?.states?.[DIAG]?.attributes?.alarm_lifecycle;
  return lc&&typeof lc==='object'&&lc.source==='node_red'?lc:null;
 }
 function centralAlarmEvent(key){
@@ -2098,7 +2135,7 @@ function openAlarmOverview(){
  const rows=syncAlarmState(),pending=rows.filter(r=>!alarmAck(r)).length,acked=rows.length-pending;
  const history=alarmHistory.slice(0,50),historyTotal=alarmHistoryTotal(),central=!!centralAlarmLifecycle();
  const activeHtml=rows.length?rows.map(a=>{const ack=alarmAck(a),rt=alarmRuntime[a.key]||{};return `<div class="alarm-item active-row clickable ${issueSeverityClass(a)} ${ack?'acked':''}" onclick="openAlarmDetail('${a.key}')"><time>${alarmTime(rt.firstSeen)}</time><div class="sev">${a.severity}</div><div class="msg"><b>${a.packName}</b> · ${a.category} · ${a.value}</div><div class="duration">${alarmDuration(Date.now()-(rt.firstSeen||Date.now()))}</div><div class="state ${ack?'ack':'pending'}">${ack?'QUITTANCÉE':'À QUITTANCER'}</div></div>`}).join(''):`<div class="alarm-item sev-ok"><time>LIVE</time><div class="sev">NORMAL</div><div class="msg">Aucune alarme active sur les packs supervisés</div><div class="state">OK</div></div>`;
- const histHtml=history.length?history.map(r=>`<div class="alarm-history-row" onclick="openAlarmHistoryDetail('${r.id}')"><time>${alarmDateTime(r.firstSeen)}</time><div class="sev ${r.severity==='ALARME'?'crit':'warn'}">${r.severity}</div><div class="msg"><b>${r.packName}</b> · ${r.category}<small>${r.code.replaceAll('_',' ')} · dernière valeur ${r.value}</small></div><div class="ack ${r.ackAt?'':'none'}">${r.ackAt?`QUITTANCÉE<small>${alarmDateTime(r.ackAt)}</small>`:'NON QUITT.'}</div><div class="duration">${alarmDuration((r.clearedAt||r.lastSeen)-r.firstSeen)}</div><div class="resolved">RETOUR NORMAL<small>${alarmDateTime(r.clearedAt)}</small></div></div>`).join(''):`<div class="alarm-history-empty">Aucun événement revenu à la normale n’a encore été observé par ce SCADA.</div>`;
+ const histHtml=history.length?history.map(r=>`<div class="alarm-history-row" onclick="openAlarmHistoryDetail('${r.id}')"><time>${alarmDateTime(r.firstSeen)}</time><div class="sev ${r.severity==='ALARME'?'crit':'warn'}">${r.severity}</div><div class="msg"><b>${r.packName}</b> · ${r.category}<small>${r.code.replaceAll('_',' ')} · dernière valeur ${r.value}</small></div><div class="ack ${r.ackAt?'':'none'}">${r.ackAt?`QUITTANCÉE<small>${alarmDateTime(r.ackAt)}</small>`:'NON QUITT.'}</div><div class="duration">${alarmDuration((r.clearedAt||r.lastSeen)-r.firstSeen)}</div><div class="resolved">RETOUR NORMAL<small>${alarmDateTime(r.clearedAt)}</small></div></div>`).join(''):`<div class="alarm-history-empty">${centralAuditSubscriptionFailed?'Accès à l’historique détaillé indisponible : compte administrateur Home Assistant requis.':centralAuditSubscriptionPending?'Chargement du journal MQTT central…':'Aucun événement revenu à la normale disponible dans ce SCADA.'}</div>`;
  document.getElementById('detailBody').innerHTML=`<div class="alarm-center-shell"><div class="alarm-center-summary"><div class="alarm-center-kpi" style="--kpi-accent:${rows.length?'var(--amber)':'var(--green)'}"><span>Actives</span><b>${rows.length}</b><small>${rows.length?'Conditions physiques en cours':'Installation sans alarme SCADA'}</small></div><div class="alarm-center-kpi" style="--kpi-accent:var(--amber)"><span>À quittancer</span><b>${pending}</b><small>Prise en compte opérateur requise</small></div><div class="alarm-center-kpi" style="--kpi-accent:var(--cyan)"><span>Quittancées actives</span><b>${acked}</b><small>Conditions toujours présentes</small></div><div class="alarm-center-kpi" style="--kpi-accent:var(--green)"><span>Historique</span><b>${historyTotal}</b><small>${central?'Journal central Node-RED':'Historique local de secours'}</small></div></div><div class="alarm-center-section"><div class="alarm-center-head"><div><span>Événements actifs</span><b>Temps réel · cliquer pour le détail / quittance</b></div><small>${rows.length} actif(s)</small></div><div class="alarm-list">${activeHtml}</div></div><div class="alarm-center-section"><div class="alarm-center-head"><div><span>Historique observé</span><b>Apparition · quittance · retour normal · durée</b></div><small>${history.length}${historyTotal>history.length?' / '+historyTotal:''} affiché(s)</small></div><div class="alarm-history-list">${histHtml}</div></div><div class="alarm-history-note"><b>${central?'Journal centralisé Node-RED/MQTT.':'Mode local de secours.'}</b> ${central?'Les apparitions, retours à la normale et quittances des diagnostics centraux sont persistés côté add-on et partagés entre les postes SCADA.':'Le navigateur conserve temporairement les événements lorsque le journal central n’est pas disponible.'}</div></div>`;
  showScadaDetail()
 }
@@ -2127,7 +2164,7 @@ function auditCommandRows(){
  }).filter(r=>r.ts>0);
 }
 function auditAlarmRows(){
- const out=[];const lc=centralAuditSnapshot()?.alarm_lifecycle||centralAlarmLifecycle();
+ const out=[];const lc=centralAlarmLifecycle();
  const push=(ev,phase,active=false)=>{
    if(!ev)return;const first=Number(ev.first_seen||0),ack=Number(ev.ack_at||0),clear=Number(ev.cleared_at||0);const base={packId:ev.pack_id||null,packName:ev.pack_name||ev.pack_id||'Pack',bms:ev.bms==null?null:String(ev.bms),title:ev.code||'ALARME',raw:ev};
    if(phase==='appearance'&&first)out.push({...base,id:`alarm:${ev.id||ev.key}:appearance`,ts:first,type:'alarm',kind:'APPARITION',detail:`${ev.category||'Diagnostic'} · ${ev.value??'—'}`,result:ev.severity||'ATTENTION',group:ev.severity==='ALARME'?'error':'active',actor:'Node-RED',ref:{kind:active?'alarm-active':'alarm-history',key:ev.key,id:ev.id}});
@@ -2471,7 +2508,7 @@ document.getElementById('processTrendPanel').addEventListener('click',()=>openTr
 document.getElementById('demoToggle').addEventListener('click',()=>{if(getHass())return;demoSingleMode=!demoSingleMode;render();});
 
 function tick(){const d=new Date();document.getElementById('clock').textContent=d.toLocaleTimeString('fr-FR',{hour12:false});const de=document.getElementById('clockDate');if(de){const m=['JAN','FÉV','MAR','AVR','MAI','JUN','JUL','AOÛ','SEP','OCT','NOV','DÉC'];de.textContent=`${String(d.getDate()).padStart(2,'0')} ${m[d.getMonth()]} ${d.getFullYear()} · LOCAL`;}}
-tick();render();setTimeout(()=>loadMainTrend(true),1200);setInterval(tick,1000);setInterval(refreshDryCards,1000);setInterval(render,1000);setInterval(()=>loadMainTrend(true),300000);
+tick();ensureCentralAuditSubscription();render();setInterval(ensureCentralAuditSubscription,5000);setTimeout(()=>loadMainTrend(true),1200);setInterval(tick,1000);setInterval(refreshDryCards,1000);setInterval(render,1000);setInterval(()=>loadMainTrend(true),300000);
 </script>
 </body>
 </html>
