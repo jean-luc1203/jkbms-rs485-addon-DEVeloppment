@@ -488,6 +488,7 @@ function spText(key){return SP_I18N[spLanguage]?.[key]||SP_I18N.fr[key]||key}
 function spSetLanguage(value){
  spLanguage=spNormalizeLanguage(value);
  try{localStorage.setItem(SP_LANG_KEY,spLanguage)}catch(_){}
+ try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:'smartphoton-multipack-language',language:spLanguage},window.location.origin)}catch(_){}
  if(document.documentElement)document.documentElement.lang=spLanguage;
  if(typeof render==='function')render();
  spApplyLanguage();
@@ -518,6 +519,14 @@ function spTranslateGlow(){
  }
 }
 
+// Synchronize language between dashboards on the same Home Assistant origin.
+function spSyncLanguage(){
+ try{const saved=localStorage.getItem(SP_LANG_KEY);if(saved&&saved!==spLanguage){spLanguage=spNormalizeLanguage(saved);if(typeof render==='function')render();spApplyLanguage()}}catch(_){}
+}
+if(typeof window.addEventListener==='function'){
+ window.addEventListener('storage',event=>{if(event.key===SP_LANG_KEY)spSyncLanguage()});
+ window.addEventListener('focus',spSyncLanguage);
+}
 function spApplyLanguage(){
  if(document.documentElement)document.documentElement.lang=spLanguage;
  let control=document.getElementById('sp-language-switch');
