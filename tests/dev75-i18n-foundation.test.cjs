@@ -164,7 +164,6 @@ assert.match(scada,/function spParamDefinition\(def,field\)/);
 assert.match(scada,/spParamDefinition\(def,'label'\)/);
 assert.match(scada,/spParamDefinition\(def,'desc'\)/);
 // Regression: the audit all-option texts must be evaluated as template literals.
-assert.ok(scada.includes('‌'.replace('\u200c','')) || scada.length>0);
 for(const label of ['Tous les packs','Tous les BMS']){
  const bad=String.fromCharCode(39)+'<option value="all">'+ '${spAuditText("'+label+'")}</option>'+String.fromCharCode(39);
  assert.ok(!scada.includes(bad),'literal JavaScript leaked into audit option '+label);
