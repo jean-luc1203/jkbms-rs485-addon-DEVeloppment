@@ -1286,6 +1286,25 @@ function spSetLanguage(value){
  if(title&&document.getElementById('scadaOverlay')?.classList.contains('open')&&/Alarmes & historique opérateur|Alarms & operator history|Alarme & Bedienerprotokoll/.test(title.textContent))openAlarmOverview();
  spApplyLanguage();
 }
+
+// DEV75.2: visual-only SCADA translations. Never rewrite service data, entity IDs or audit records.
+const SP_SCADA_LABELS={"QUITTANCÉE":{"en":"ACKNOWLEDGED","de":"QUITTIERT"},"À QUITTANCER":{"en":"TO ACKNOWLEDGE","de":"ZU QUITTIEREN"},"Aucune alarme active sur les packs supervisés":{"en":"No active alarms on monitored packs","de":"Keine aktiven Alarme der überwachten Packs"},"Supervision batterie":{"en":"Battery monitoring","de":"Batterieüberwachung"},"Supervision énergétique":{"en":"Energy monitoring","de":"Energieüberwachung"},"Synoptique batterie":{"en":"Battery overview","de":"Batterieübersicht"},"Alarmes & historique opérateur":{"en":"Alarms & operator history","de":"Alarme & Bedienerprotokoll"},"Journal opérateur":{"en":"Operator log","de":"Bedienerprotokoll"},"Session courante":{"en":"Current session","de":"Aktuelle Sitzung"},"Processus":{"en":"Process","de":"Prozess"},"Packs":{"en":"Packs","de":"Packs"},"Alarmes":{"en":"Alarms","de":"Alarme"},"Audit":{"en":"Audit","de":"Audit"},"Tendances":{"en":"Trends","de":"Trends"},"Service":{"en":"Service","de":"Service"},"Puissance":{"en":"Power","de":"Leistung"},"Courant":{"en":"Current","de":"Strom"},"Tension moyenne":{"en":"Average voltage","de":"Mittlere Spannung"},"Delta cellule max":{"en":"Maximum cell delta","de":"Max. Zellabweichung"},"État processus":{"en":"Process status","de":"Prozessstatus"},"Fiche opérateur":{"en":"Operator detail","de":"Bedieneransicht"},"FERMER":{"en":"CLOSE","de":"SCHLIESSEN"},"ANNULER":{"en":"CANCEL","de":"ABBRECHEN"},"CONFIRMER":{"en":"CONFIRM","de":"BESTÄTIGEN"},"Confirmer la commande":{"en":"Confirm command","de":"Befehl bestätigen"},"Confirmation opérateur · commande BMS":{"en":"Operator confirmation · BMS command","de":"Bedienerbestätigung · BMS-Befehl"},"État actuel":{"en":"Current state","de":"Aktueller Zustand"},"État demandé":{"en":"Requested state","de":"Gewünschter Zustand"},"Le SCADA n'anticipe jamais le résultat : après l'envoi, l'état ne sera déclaré confirmé qu'après lecture du retour réel publié par le BMS.":{"en":"SCADA never assumes a command succeeded. Confirmation requires actual BMS feedback.","de":"SCADA nimmt keinen Befehlserfolg vorweg. Die Bestätigung erfolgt erst nach tatsächlicher BMS-Rückmeldung."},"Aucun seuil diagnostic dépassé":{"en":"No diagnostic threshold exceeded","de":"Kein Diagnosegrenzwert überschritten"},"Initialisation du journal SCADA…":{"en":"Initializing SCADA log…","de":"SCADA-Protokoll wird initialisiert…"},"Écran en préparation":{"en":"Screen under development","de":"Ansicht in Vorbereitung"},"Puissance active":{"en":"Active power","de":"Wirkleistung"},"BMS actifs":{"en":"Active BMS","de":"Aktive BMS"}};
+const spScadaOriginalText=new WeakMap();
+function spTranslateScada(root=document.body){
+ if(!root||!document.createTreeWalker||typeof NodeFilter==='undefined')return;
+ const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;
+ while((node=walker.nextNode())){
+  const parent=node.parentElement;
+  if(!parent||/SCRIPT|STYLE|INPUT|TEXTAREA|OPTION|CODE/.test(parent.tagName))continue;
+  const original=spScadaOriginalText.get(node)??node.nodeValue;
+  if(!spScadaOriginalText.has(node))spScadaOriginalText.set(node,original);
+  const match=original.match(/^(\s*)(.*?)(\s*)$/s);
+  if(!match)continue;
+  const translated=SP_SCADA_LABELS[match[2]];
+  if(translated)node.nodeValue=match[1]+(translated[spLanguage]||match[2])+match[3];
+ }
+}
+
 function spApplyLanguage(){
  document.documentElement.lang=spLanguage;
  let control=document.getElementById('sp-language-switch');
@@ -1300,6 +1319,7 @@ function spApplyLanguage(){
  }
  control.querySelector('#sp-language-label').textContent=spText('language');
  control.querySelector('#sp-language-select').value=spLanguage;
+ spTranslateScada();
 }
 document.documentElement.lang=spLanguage;
 
@@ -2549,7 +2569,7 @@ document.getElementById('processTrendPanel').addEventListener('click',()=>openTr
 document.getElementById('demoToggle').addEventListener('click',()=>{if(getHass())return;demoSingleMode=!demoSingleMode;render();});
 
 function tick(){const d=new Date();document.getElementById('clock').textContent=d.toLocaleTimeString('fr-FR',{hour12:false});const de=document.getElementById('clockDate');if(de){const m=['JAN','FÉV','MAR','AVR','MAI','JUN','JUL','AOÛ','SEP','OCT','NOV','DÉC'];de.textContent=`${String(d.getDate()).padStart(2,'0')} ${m[d.getMonth()]} ${d.getFullYear()} · LOCAL`;}}
-tick();ensureCentralAuditSubscription();render();spApplyLanguage();setInterval(ensureCentralAuditSubscription,5000);setTimeout(()=>loadMainTrend(true),1200);setInterval(tick,1000);setInterval(refreshDryCards,1000);setInterval(render,1000);setInterval(()=>loadMainTrend(true),300000);
+tick();ensureCentralAuditSubscription();render();spApplyLanguage();spTranslateScada();setInterval(ensureCentralAuditSubscription,5000);setTimeout(()=>loadMainTrend(true),1200);setInterval(tick,1000);setInterval(refreshDryCards,1000);setInterval(()=>{render();spTranslateScada();},1000);setInterval(()=>loadMainTrend(true),300000);
 </script>
 </body>
 </html>
