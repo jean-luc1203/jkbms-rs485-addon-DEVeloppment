@@ -206,4 +206,11 @@ for(const lang of ['fr','en','de'])for(const key of Object.keys(dryConfirm.fr))a
 assert.ok(scada.includes("go.textContent=spDryConfirm('confirm')"));
 assert.ok(scada.includes("safety.textContent=spDryConfirm('risk')"));
 assert.ok(scada.includes('spDryConfirm("foot")'));
+const triggerI18nMatch=scada.match(/^const SP_DRY_TRIGGER_I18N=(.+);$/m);
+assert.ok(triggerI18nMatch,'DRY trigger dictionary missing');
+const triggerI18n=JSON.parse(triggerI18nMatch[1]);
+for(const lang of ['en','de'])assert.equal(triggerI18n[lang].length,15,lang+' DRY trigger codes must remain aligned');
+assert.ok(scada.includes('spDryTriggerLabel(i)'));
+assert.ok(scada.includes('spDryTriggerLabel(st.raw)'));
+assert.ok(scada.includes('spDryTriggerLabel(v)'));
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
