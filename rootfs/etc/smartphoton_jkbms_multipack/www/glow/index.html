@@ -504,6 +504,8 @@ function spMessage(key,params={}){let value=SP_GLOW_MESSAGES[spLanguage]?.[key]|
 Object.assign(SP_GLOW_MESSAGES.fr,{"confirmSend":"Confirmer l’envoi","sensitive":"Réglage sensible","sensitiveNote":"Ces paramètres touchent aux MOS ou aux protections : une erreur peut couper le pack.","commandSent":"Commande transmise","commandRejected":"Commande refusée","readback":"relecture BMS à vérifier","sendChanges":"Envoyer {count} modification(s) au {bms} ?"});
 Object.assign(SP_GLOW_MESSAGES.en,{"confirmSend":"Confirm sending","sensitive":"Sensitive setting","sensitiveNote":"These settings affect MOS switches or protections: an error may disconnect the battery pack.","commandSent":"Command sent","commandRejected":"Command rejected","readback":"verify BMS readback","sendChanges":"Send {count} change(s) to {bms}?"});
 Object.assign(SP_GLOW_MESSAGES.de,{"confirmSend":"Senden bestätigen","sensitive":"Sicherheitsrelevante Einstellung","sensitiveNote":"Diese Einstellungen betreffen MOS-Schalter oder Schutzfunktionen. Ein Fehler kann das Batteriepack abschalten.","commandSent":"Befehl gesendet","commandRejected":"Befehl abgelehnt","readback":"BMS-Rückmeldung prüfen","sendChanges":"{count} Änderung(en) an {bms} senden?"});
+const SP_GLOW_DYNAMIC={"fr":{"watch":"{n} point(s) à surveiller","alarm":"{n} alarme(s) active(s)","inRange":"{sites} sites · {bms} BMS dans les seuils","before":"avant {pct} %","idle":"au repos","reached":"Atteint","bmsDelta":"Écart cellules {delta} mV","notDetected":"{n} BMS non détecté(s)"},"en":{"watch":"{n} point(s) to monitor","alarm":"{n} active alarm(s)","inRange":"{sites} sites · {bms} BMS within limits","before":"until {pct}%","idle":"idle","reached":"Reached","bmsDelta":"Cell imbalance {delta} mV","notDetected":"{n} BMS not detected"},"de":{"watch":"{n} Punkt(e) zu überwachen","alarm":"{n} aktive(r) Alarm(e)","inRange":"{sites} Standorte · {bms} BMS innerhalb der Grenzwerte","before":"bis {pct} %","idle":"im Ruhezustand","reached":"Erreicht","bmsDelta":"Zellabweichung {delta} mV","notDetected":"{n} BMS nicht erkannt"}};
+function spGlowText(key,vars={}){return (SP_GLOW_DYNAMIC[spLanguage]?.[key]||SP_GLOW_DYNAMIC.fr[key]||key).replace(/\{(\w+)\}/g,(_,key)=>String(vars[key]??''))}
 function spTranslateGlow(){
  if(!document.createTreeWalker||!document.body||typeof NodeFilter==='undefined')return;
  const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
@@ -715,9 +717,9 @@ const allBms = () => PACKS.flatMap(p=>p.bms);
 
 function autonomy(capRem, capNom, current){
   const fmt = h => h>99 ? '> 99 h' : `${Math.floor(h)} h ${String(Math.round((h%1)*60)).padStart(2,'0')}`;
-  if (current < -0.3){ const h=(capRem - TH.autonomyFloor/100*capNom)/-current; return {v:h<=0?'Atteint':fmt(h), sub:`avant ${TH.autonomyFloor} %`, ic:'⏳', mode:'dis'}; }
-  if (current > 0.3){ const h=(capNom-capRem)/current; return {v:fmt(h), sub:'avant 100 %', ic:'⚡', mode:'chg'}; }
-  return {v:'—', sub:'au repos', ic:'•', mode:'idle'};
+  if (current < -0.3){ const h=(capRem - TH.autonomyFloor/100*capNom)/-current; return {v:h<=0?spGlowText('reached'):fmt(h), sub:spGlowText('before',{pct:TH.autonomyFloor}), ic:'⏳', mode:'dis'}; }
+  if (current > 0.3){ const h=(capNom-capRem)/current; return {v:fmt(h), sub:spGlowText('before',{pct:100}), ic:'⚡', mode:'chg'}; }
+  return {v:'—', sub:spGlowText('idle'), ic:'•', mode:'idle'};
 }
 
 function issues(){
@@ -845,12 +847,13 @@ const rangeSeg = () => `<div class="seg">${Object.keys(RANGES).map(k=>`<button d
 /* =========================================================
    NAVIGATION
    ========================================================= */
+function spGlowLabel(fr){return SP_GLOW_LABELS[fr]?.[spLanguage]||fr}
 function sidebar(route){
   const iss = issues(), crit = iss.filter(i=>i.lvl==='crit').length;
   const L=(href,label,dot='',extra='')=>`<a href="#${href}" class="${route===href||(route.startsWith(href+'/')&&href.startsWith('/pack'))?'on':''}">${dot?`<span class="dot ${dot}"></span>`:''}${label}${extra}</a>`;
   let h=`<div class="brand"><div class="logo">⚡</div><div><b>JK-BMS Multipack</b><small>SmartPhoton</small></div><button class="side-close" data-act="menu-close" aria-label="Fermer le menu">✕</button></div><nav class="nav">
-  <div class="nav-sec">Parc</div>${L('/','🏠 Vue d’ensemble')}${L('/aggregation','📍 Comparatif des sites')}
-  ${L('/diagnostics','🩺 Diagnostics','',iss.length?`<span class="badge ${crit?'':'warn'}">${iss.length}</span>`:'')}${L('/journal','📜 Journal')}
+  <div class="nav-sec">Parc</div>${L('/',`🏠 ${spGlowLabel('Vue d’ensemble')}`)}${L('/aggregation',`📍 ${spGlowLabel('Comparatif des sites')}`)}
+  ${L('/diagnostics',`🩺 ${spGlowLabel('Diagnostics')}`,'',iss.length?`<span class="badge ${crit?'':'warn'}">${iss.length}</span>`:'')}${L('/journal',`📜 ${spGlowLabel('Journal')}`)}
   <div class="nav-sec">Sites</div>`;
   PACKS.forEach(p=>{
     h+=L('/pack/'+p.id,p.name,stateL(agg(p.bms)));
@@ -879,8 +882,8 @@ function statusBanner(big=false){
   const iss=issues(), crit=iss.filter(i=>i.lvl==='crit'), warn=iss.filter(i=>i.lvl==='warn'), nb=allBms().length;
   const l = crit.length?'crit':warn.length?'warn':'ok';
   const title = crit.length ? `${crit.length} alarme${crit.length>1?'s':''} active${crit.length>1?'s':''}${warn.length?` · ${warn.length} point${warn.length>1?'s':''} à surveiller`:''}`
-              : warn.length ? `${warn.length} point${warn.length>1?'s':''} à surveiller` : 'Tout va bien';
-  const sub = iss.length ? iss.slice(0,big?3:2).map(i=>`${i.where} : ${i.txt}`).join(' · ') : `${PACKS.length} sites · ${nb} BMS dans les seuils`;
+              : warn.length ? spGlowText('watch',{n:warn.length}) : spGlowLabel('Tout va bien');
+  const sub = iss.length ? iss.slice(0,big?3:2).map(i=>`${i.where} : ${i.txt}`).join(' · ') : spGlowText('inRange',{sites:PACKS.length,bms:nb});
   return `<a class="banner ${l}" href="#/diagnostics"><div class="ic">${l==='crit'?'⛔':l==='warn'?'⚠️':'✅'}</div><div><b>${title}</b><small>${sub}</small></div><span class="go">Voir le diagnostic ›</span></a>`;
 }
 
