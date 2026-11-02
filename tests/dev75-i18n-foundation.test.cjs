@@ -96,4 +96,16 @@ const scadaCategories=JSON.parse(scadaCategoriesMatch[1]);
 for(const lang of ['fr','en','de'])for(const key of ['Température','Cellules'])assert.ok(scadaCategories[lang][key]);
 assert.match(scada,/spScadaCategory\(r\.category\)/);
 assert.match(scada,/id="sp-scada-close"/);
+const scadaDetailMatch=scada.match(/const SP_SCADA_DETAIL_I18N=([^;]+);/);
+assert.ok(scadaDetailMatch,'missing SCADA alarm detail and command translations');
+const scadaDetail=JSON.parse(scadaDetailMatch[1]);
+for(const lang of ['fr','en','de']){
+ for(const key of Object.keys(scadaDetail.fr)){
+  assert.ok(scadaDetail[lang][key],lang+' missing detail message '+key);
+ }
+}
+for(const key of ['confirmOn','confirmOff','confirmDry','confirmParam','criticalParameter','technicalParameter','alarmDetail','alarmHistory']){
+ assert.match(scada,new RegExp("spDetail\\('"+key+"'"));
+}
+assert.match(scada,/function spDetail\(/);
 console.log('PASS: DEV75 FR/EN/DE dictionaries, language selection and dashboard JS syntax');
