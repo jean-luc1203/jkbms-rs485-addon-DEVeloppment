@@ -523,7 +523,7 @@ function spGlowDetail(key,vars={}){return (SP_GLOW_DETAIL_I18N[spLanguage]?.[key
 function spGlowRuntime(value){
  const raw=String(value??'—').trim();
  // Keep all source values unchanged: format display only for JK compact D/H/M strings.
- const match=raw.match(/^(\\d+)\\s*(?:D|d|j|T)\\s*(\\d+)\\s*[Hh]\\s*(\\d+)\\s*[Mm]$/);
+ const match=raw.match(/^(\d+)\s*(?:D|d|j|T)\s*(\d+)\s*[Hh]\s*(\d+)\s*[Mm]$/);
  if(!match)return raw;
  return match[1]+' '+spGlowDetail('runtimeUnits')+' '+match[2]+' h '+match[3]+' min';
 }
