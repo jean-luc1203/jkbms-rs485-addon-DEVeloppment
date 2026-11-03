@@ -87,5 +87,21 @@ const many=Array.from({length:280},(_,i)=>({id:'m'+i,pack_id:'pack_1',bms:'0',st
 for(let i=0;i<280;i+=60)publish({source:'node_red',command_audit:{history:many.slice(i,i+60)},alarm_lifecycle:{active:[],history:[]}});
 assert.ok(state.get(KEY).events.length<=250,'retention bound');
 assert.equal(state.get(KEY).events.length,250,'retention should cap at exactly 250 events');
+// Simulate a fresh Node-RED Function runtime after restart with persisted localfilesystem context.
+const persisted=structuredClone(state.get(KEY));
+const recovered=new Map([[KEY,persisted]]);
+const ctx={get:k=>recovered.get(k),set:(k,v)=>recovered.set(k,structuredClone(v))};
+const restarted=msg=>vm.runInNewContext(executable,{
+ msg,global:ctx,node:{status:()=>{}},Buffer,Date:ClockDate,JSON,Number,String,Array,Object,Math,RegExp
+});
+const restoredCount=persisted.events.length;
+restarted({topic:'jkbms/pack_1/BMS_0/alarm/active',payload:'OFF',retain:true});
+restarted({topic:'jkbms/pack_1/aggregate',payload:JSON.stringify({
+ step:'13E',pack_id:'pack_1',current_total_a:-8,balancing_details:[{bms:'0',active:false}]
+}),retain:true});
+assert.equal(recovered.get(KEY).events.length,restoredCount,'restart retained replay must not invent events');
+assert.deepEqual(recovered.get(KEY).events,persisted.events,'restart must preserve existing event history');
+restarted({topic:'jkbms/scada/audit/snapshot',payload:JSON.stringify(audit),retain:true});
+assert.equal(recovered.get(KEY).events.length,restoredCount,'replayed SCADA events must be idempotent after restart');
 assert.ok(!JSON.stringify(state.get(KEY)).includes('password'));
 console.log('PASS dev76-glow-journal.test.cjs');
