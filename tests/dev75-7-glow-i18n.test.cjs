@@ -9,7 +9,7 @@ const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert.ok(script,'Glow inline script missing');
 new vm.Script(script,{filename:'glow/index.html'});
 
-for(const name of ['SP_GLOW_OVERVIEW_I18N','SP_GLOW_CARD_I18N','SP_GLOW_TIME_UNITS','SP_GLOW_VIEWS_I18N','SP_GLOW_BMS_UI','SP_GLOW_DIAG_I18N']){
+for(const name of ['SP_GLOW_OVERVIEW_I18N','SP_GLOW_CARD_I18N','SP_GLOW_TIME_UNITS','SP_GLOW_VIEWS_I18N','SP_GLOW_BMS_UI','SP_GLOW_DIAG_I18N','SP_GLOW_CELL_I18N','SP_GLOW_DETAIL_I18N']){
  const line=script.match(new RegExp('^const '+name+'=(.+);$','m'));
  assert.ok(line,name+' missing');
  const dict=JSON.parse(line[1]);
@@ -63,6 +63,51 @@ for(const lang of ['en','de']){
 }
 for(const needle of ['spGlowParamLabel(k,l)','label:spGlowParamLabel(k,d.label)','label:spGlowLabel(SW_DEF.find(s=>s[0]===k)[1])','spGlowParamGroup(g)'])
  assert.ok(script.includes(needle),'missing presentation localization: '+needle);
+// Compare-view labels and per-cell descriptions must be translated without changing BMS IDs.
+for(const needle of [
+ "spGlowParamLabel(k,l)",
+ "spGlowParamGroup(g)",
+ "spGlowCell('different',{n:nd})",
+ "spGlowCell('balanced')",
+ "spGlowCell('slight')",
+ "spGlowCell('hardwareAlarm',{alarms:b.alarms.join(', ')})",
+ "spGlowCell('mapIntro')",
+ "spGlowCell('cellDeltaTooltip'",
+ "spGlowCell('cellTooltip'",
+ "spGlowDetail('res30',{cell:b.weak.cell})",
+ "spGlowDetail('paramDiff',{n:nd})",
+ "spGlowDetail('historyDelta')"
+])assert.ok(script.includes(needle),'Glow view not translated: '+needle);
+
+// Exercise the cell report with a temperature alarm in each language.
+// Raw hardware alarm wording is preserved; no speculative low-SOC diagnosis.
+const cellDict=JSON.parse(script.match(/^const SP_GLOW_CELL_I18N=(.+);$/m)[1]);
+const reportCode=script.split('function cellReport(b){')[1]?.split('function cellMap(p){')[0];
+assert.ok(reportCode,'cellReport function missing');
+const simulated={
+ cells:Array.from({length:16},(_,i)=>i===0?3.27:3.30),
+ deltaMv:30,
+ weak:{lowestDays:0,resRise:0,cell:1},
+ alarms:['MOS overtemperature']
+};
+const reportTranslations={
+ fr:'Alarme matérielle active',
+ en:'Active BMS hardware alarm',
+ de:'Aktiver BMS-Hardwarealarm'
+};
+for(const lang of ['fr','en','de']){
+ const ctx={b:simulated,dict:cellDict,lang};
+ const src="const spLanguage=lang; const TH={deltaWarn:20}; const f=(n,d)=>Number(n).toFixed(d);"+
+  "const dL=()=> 'warn';"+
+  "function spGlowCell(k,v={}){return (dict[spLanguage][k]||dict.fr[k]||k).replace(/\\{(\\w+)\\}/g,(_,k)=>String(v[k]??''))}"+
+  "function cellReport(b){"+reportCode+
+  "const out=cellReport(b);out;";
+ const res=vm.runInNewContext(src,ctx);
+ assert.ok(res.text.includes(reportTranslations[lang]),'wrong hardware alarm label in '+lang);
+ assert.ok(res.text.includes('MOS overtemperature'),'hardware alarm name lost in '+lang);
+ assert.ok(!res.text.includes('niveau de charge trop bas'),'unjustified SOC diagnosis in '+lang);
+ assert.ok(res.title.includes(lang==='fr'?'Cellule':lang==='en'?'Cell':'Zelle'),'cell report title not localized in '+lang);
+}
 // Translation must not modify communication and BMS command code.
 const idx=script.indexOf('function spGlowOverview(');
 const idx2=script.indexOf('function spGlowText(',idx);
