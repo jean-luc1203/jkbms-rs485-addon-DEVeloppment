@@ -44,7 +44,7 @@ for(const loc of ['fr','en','de']){
  language=loc;
  const page=ctx.pageJournal();
  for(const label of expected[loc])assert.ok(page.includes(label),loc+': missing '+label);
- assert.equal((page.match(/Pack 1 - RS485-1/g)||[]).length,2,'pack label must appear once per event in '+loc);
+ assert.equal((page.match(/<small>Pack 1 - RS485-1(?: ·|<\/small>)/g)||[]).length,2,'pack label must appear once in each event row, excluding the filter option in '+loc);
  assert.match(page,/\b02\/11 \d{2}:59\b/,'unambiguous date/time without locale punctuation');
  assert.match(page,/min-width:180px/);
  assert.match(page,/color:#edf4ff!important/);
