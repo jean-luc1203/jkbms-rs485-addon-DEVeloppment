@@ -64,6 +64,44 @@ function fetchJournal(force=false){
   if(viewerRoute())render();
  });
 }
+// DEV76.1: translate known event codes only at presentation time; MQTT remains untouched.
+const EVENT_WORDS={
+ fr:{active:'déclenchée',cleared:'terminée',delta:'Écart de tension des cellules',temp:'Température élevée',offline:'Pack hors ligne',command:'Commande BMS',hardwareOn:'Alarme matérielle JK-BMS déclenchée',hardwareOff:'Alarme matérielle JK-BMS terminée',current:'Sens du courant du pack',balance:'Équilibrage BMS',reached:'a atteint',internal:'présente un écart de tension interne de',stale:'est hors ligne ou ne transmet plus'},
+ en:{active:'active',cleared:'cleared',delta:'Cell voltage difference',temp:'High temperature',offline:'Pack offline',command:'BMS command',hardwareOn:'JK-BMS hardware alarm active',hardwareOff:'JK-BMS hardware alarm cleared',current:'Pack current direction',balance:'BMS balancing',reached:'reached',internal:'has an internal cell delta of',stale:'is offline or stale'},
+ de:{active:'ausgelöst',cleared:'beendet',delta:'Zellspannungsdifferenz',temp:'Hohe Temperatur',offline:'Pack offline',command:'BMS-Befehl',hardwareOn:'JK-BMS-Hardwarealarm ausgelöst',hardwareOff:'JK-BMS-Hardwarealarm beendet',current:'Stromrichtung des Packs',balance:'BMS-Zellenausgleich',reached:'hat erreicht',internal:'hat eine interne Zellspannungsdifferenz von',stale:'ist offline oder liefert keine aktuellen Daten'}
+};
+function eventWords(){return EVENT_WORDS[spLanguage]||EVENT_WORDS.fr;}
+function eventTitle(event){
+ const raw=String(event.txt||''),w=eventWords();
+ const known=/^(CELL_DELTA_HIGH|TEMPERATURE_HIGH|PACK_OFFLINE) (active|cleared)$/i.exec(raw);
+ if(known){
+  const code={CELL_DELTA_HIGH:w.delta,TEMPERATURE_HIGH:w.temp,PACK_OFFLINE:w.offline}[known[1].toUpperCase()];
+  return code+' — '+w[known[2].toLowerCase()];
+ }
+ if(raw.startsWith('BMS command: '))return w.command+': '+raw.slice(13);
+ if(raw==='JK-BMS hardware alarm active')return w.hardwareOn;
+ if(raw==='JK-BMS hardware alarm cleared')return w.hardwareOff;
+ if(raw==='Pack current direction')return w.current;
+ if(raw==='BMS balancing')return w.balance;
+ return raw; // Preserve unknown codes, never invent a translation.
+}
+function eventDetail(event,packName){
+ let detail=String(event.det||'').trim();
+ if(packName && detail.startsWith(packName+' '))detail=detail.slice(packName.length+1);
+ const w=eventWords();
+ detail=detail.replace(/has an internal cell delta of/g,w.internal)
+  .replace(/reached (\d+(?:[.,]\d+)?\s*°C)/g,(_,v)=>w.reached+' '+v)
+  .replace(/is offline or stale\.?/g,w.stale+'.');
+ return detail;
+}
+function eventTime(ms){
+ const d=new Date(ms);
+ if(!Number.isFinite(d.getTime()))return '';
+ const two=n=>String(n).padStart(2,'0');
+ return two(d.getDate())+'/'+two(d.getMonth()+1)+' '+two(d.getHours())+':'+two(d.getMinutes());
+}
+const filterStyle='color:#edf4ff!important;background-color:#152743!important;border:1px solid #405a81!important;min-height:36px!important;font-size:13px!important;';
+const optionStyle='color:#edf4ff;background-color:#152743;';
 function renderRows(rows){
  if(!rows.length)return '<div class="alert info">'+safe(lang().none)+'</div>';
  let output='<div class="card events">';
@@ -71,8 +109,9 @@ function renderRows(rows){
   const time=new Date(event.t);
   if(!Number.isFinite(time.getTime()))continue;
   const name=PACKS.find(p=>'pack_'+p.id===event.pack);
-  const details=[name?name.name:event.pack,event.bms!=null?'BMS '+event.bms:null,event.det].filter(Boolean).map(safe).join(' · ');
-  output+='<div class="ev"><time>'+safe(time.toLocaleString(spLocale(),{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))+'</time><span class="dot '+(event.lvl==='crit'?'crit':event.lvl==='warn'?'warn':'')+'"></span><div><b>'+safe(event.txt)+'</b><small>'+details+'</small></div></div>';
+  const packName=name?name.name:event.pack;
+  const details=[packName,event.bms!=null?'BMS '+event.bms:null,eventDetail(event,name?.name)].filter(Boolean).map(safe).join(' · ');
+  output+='<div class="ev"><time>'+safe(eventTime(event.t))+'</time><span class="dot '+(event.lvl==='crit'?'crit':event.lvl==='warn'?'warn':'')+'"></span><div><b>'+safe(eventTitle(event))+'</b><small>'+details+'</small></div></div>';
  }
  return output+'</div>';
 }
@@ -87,9 +126,9 @@ pageJournal=function(){
  const packs=Array.from(new Set(journal.events.map(e=>e.pack).filter(Boolean))).sort();
  const bmses=Array.from(new Set(journal.events.map(e=>e.bms).filter(v=>v!=null).map(String))).sort();
  out+='<div class="row" style="flex-wrap:wrap;gap:8px;margin-bottom:12px">';
- out+='<select class="inp" data-dev76-filter="pack"><option value="all">'+safe(l.sites)+'</option>'+packs.map(p=>'<option value="'+safe(p)+'" '+(journal.pack===p?'selected':'')+'>'+safe(PACKS.find(x=>'pack_'+x.id===p)?.name||p)+'</option>').join('')+'</select>';
- out+='<select class="inp" data-dev76-filter="bms"><option value="all">'+safe(l.bms)+'</option>'+bmses.map(v=>'<option value="'+safe(v)+'" '+(journal.bms===v?'selected':'')+'>BMS '+safe(v)+'</option>').join('')+'</select>';
- out+='<label>'+safe(l.since)+' <input class="inp" type="date" data-dev76-filter="since" value="'+safe(journal.since)+'"></label>';
+ out+='<select class="inp" style="'+filterStyle+'min-width:180px;max-width:100%;" data-dev76-filter="pack"><option style="'+optionStyle+'" value="all">'+safe(l.sites)+'</option>'+packs.map(p=>'<option style="'+optionStyle+'" value="'+safe(p)+'" '+(journal.pack===p?'selected':'')+'>'+safe(PACKS.find(x=>'pack_'+x.id===p)?.name||p)+'</option>').join('')+'</select>';
+ out+='<select class="inp" style="'+filterStyle+'min-width:145px;max-width:100%;" data-dev76-filter="bms"><option style="'+optionStyle+'" value="all">'+safe(l.bms)+'</option>'+bmses.map(v=>'<option style="'+optionStyle+'" value="'+safe(v)+'" '+(journal.bms===v?'selected':'')+'>BMS '+safe(v)+'</option>').join('')+'</select>';
+ out+='<label style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap">'+safe(l.since)+' <input class="inp" style="'+filterStyle+'min-width:175px;width:175px;color-scheme:dark;" type="date" data-dev76-filter="since" value="'+safe(journal.since)+'"></label>';
  out+='<button class="btn" data-dev76-refresh="1">'+safe(l.refresh)+'</button></div>';
  const categories=[['all',l.all],['alarm',l.alarms],['bal',l.bal],['flow',l.flow],['param',l.settings]];
  out+='<div class="seg" style="margin-bottom:12px">'+categories.map(([k,v])=>'<button data-dev76-category="'+k+'" class="'+(journal.cat===k?'on':'')+'">'+safe(v)+'</button>').join('')+'</div>';
