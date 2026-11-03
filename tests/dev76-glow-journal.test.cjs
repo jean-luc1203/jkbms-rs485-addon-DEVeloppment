@@ -58,9 +58,6 @@ hardware('ON',true);
 assert.equal(state.get(KEY).events.length,5,'retained ON must not fabricate transition');
 run({topic:'irrelevant/topic',payload:'bad'});
 assert.equal(state.get(KEY).events.length,5);
-const many=Array.from({length:280},(_,i)=>({id:'m'+i,pack_id:'pack_1',bms:'0',status:'confirmed',started_at:t+i*10,control_label:'test'}));
-for(let i=0;i<280;i+=60)publish({source:'node_red',command_audit:{history:many.slice(i,i+60)},alarm_lifecycle:{active:[],history:[]}});
-assert.ok(state.get(KEY).events.length<=250,'retention bound');
 // Retained aggregate only establishes baselines. Transient current noise must not log.
 const aggregate=(current,balancing,retained=false)=>run({
  topic:'jkbms/pack_1/aggregate',retain:retained,
@@ -85,5 +82,10 @@ clockMs+=11000;aggregate(-8,false);
 assert.equal(state.get(KEY).events.length,baseline+4,'charge to discharge and balancing stop transitions logged');
 assert.equal(state.get(KEY).events.filter(x=>x.cat==='bal').length,2);
 assert.equal(state.get(KEY).events.filter(x=>x.cat==='flow').length,2);
+// Check capacity only after lifecycle assertions: saturation evicts oldest entries by design.
+const many=Array.from({length:280},(_,i)=>({id:'m'+i,pack_id:'pack_1',bms:'0',status:'confirmed',started_at:t+i*10,control_label:'test'}));
+for(let i=0;i<280;i+=60)publish({source:'node_red',command_audit:{history:many.slice(i,i+60)},alarm_lifecycle:{active:[],history:[]}});
+assert.ok(state.get(KEY).events.length<=250,'retention bound');
+assert.equal(state.get(KEY).events.length,250,'retention should cap at exactly 250 events');
 assert.ok(!JSON.stringify(state.get(KEY)).includes('password'));
 console.log('PASS dev76-glow-journal.test.cjs');
