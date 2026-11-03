@@ -89,5 +89,7 @@ document.addEventListener('change',e=>{
 });
 window.addEventListener('hashchange',()=>{if(viewerRoute())fetchJournal()});
 setInterval(()=>{if(viewerRoute())fetchJournal()},30000);
+// The HA iframe session may connect after this script loads: retry first read promptly.
+setInterval(()=>{if(viewerRoute()&&!journal.checked&&!journal.loading)fetchJournal()},2000);
 if(viewerRoute())fetchJournal();
 })();
