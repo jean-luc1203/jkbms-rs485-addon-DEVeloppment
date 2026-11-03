@@ -9,7 +9,7 @@ const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert.ok(script,'Glow inline script missing');
 new vm.Script(script,{filename:'glow/index.html'});
 
-for(const name of ['SP_GLOW_OVERVIEW_I18N','SP_GLOW_CARD_I18N','SP_GLOW_TIME_UNITS']){
+for(const name of ['SP_GLOW_OVERVIEW_I18N','SP_GLOW_CARD_I18N','SP_GLOW_TIME_UNITS','SP_GLOW_VIEWS_I18N','SP_GLOW_BMS_UI']){
  const line=script.match(new RegExp('^const '+name+'=(.+);$','m'));
  assert.ok(line,name+' missing');
  const dict=JSON.parse(line[1]);
@@ -35,6 +35,16 @@ for(const text of [
 const relTime=script.match(/function relTime\(ts\)\{[^\n]+/);
 assert.ok(relTime&&relTime[0].includes('SP_GLOW_TIME_UNITS'),'relative time not localized');
 
+// Explicit route-level translation: no raw French for the main view headings.
+for(const key of ['independent','comparison','extremes','activeIssues','noIssue','thresholds','bySite','events','eventCount']){
+ assert.ok(script.includes("spGlowView('"+key+"' ),'missing route translation: '+key);
+}
+for(const key of ['packView','compareBms','packBms','totalPower','worstBms','cellVoltage','controlSwitches','energy','stale','lastMeasure']){
+ assert.ok(script.includes("spGlowBmsUi('"+key+"'"),'missing BMS translation: '+key);
+}
+assert.ok(script.includes("spGlowBmsUi(E?'editMode':'readOnly')"));
+assert.ok(script.includes("spGlowBmsUi('save')"));
+assert.ok(script.includes("spGlowBmsUi('cancel')"));
 // Translation must not modify communication and BMS command code.
 const idx=script.indexOf('function spGlowOverview(');
 const idx2=script.indexOf('function spGlowText(',idx);
