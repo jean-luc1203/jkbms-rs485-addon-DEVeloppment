@@ -70,16 +70,17 @@ const DEBOUNCE_MS=10000;
 function observeTransition(key,desired,meta,retained){
  let item=store.motion[key];
  if(!item){
-  store.motion[key]={value:desired,since:now,candidate:null,candidate_since:null};
+  store.motion[key]={value:desired,since:now,last_seen:now,candidate:null,candidate_since:null};
   return;
  }
  if(retained){
   // MQTT retained replay is not an actual newly observed transition.
-  if(item.value!==desired)store.motion[key]={value:desired,since:now,candidate:null,candidate_since:null};
+  if(item.value!==desired)store.motion[key]={value:desired,since:now,last_seen:now,candidate:null,candidate_since:null};
   return;
  }
  if(item.value===desired){
   if(item.candidate!==null){item.candidate=null;item.candidate_since=null;}
+  if(now-Number(item.last_seen||0)>=3600000)item.last_seen=now;
   return;
  }
  if(item.candidate!==desired){
@@ -88,7 +89,7 @@ function observeTransition(key,desired,meta,retained){
  }
  if(now-Number(item.candidate_since||now)<DEBOUNCE_MS)return;
  const old=item.value;
- item.value=desired;item.since=now;item.candidate=null;item.candidate_since=null;
+ item.value=desired;item.since=now;item.last_seen=now;item.candidate=null;item.candidate_since=null;
  add({id:'motion:'+key+':'+now+':'+desired,t:now,cat:meta.category,lvl:'info',
    pack:meta.pack,bms:meta.bms,txt:meta.title,det:old+' → '+desired});
 }
@@ -123,7 +124,7 @@ if(topic==='jkbms/scada/audit/snapshot'){
 }else hardware(topic,payload,msg.retain===true);
 store.events=store.events.filter(x=>stamp(x?.t)&&x.t>=now-AGE).sort((a,b)=>b.t-a.t||a.id.localeCompare(b.id)).slice(0,LIMIT);
 for(const [key,v] of Object.entries(store.hardware))if(!v||now-Number(v.seen||0)>AGE)delete store.hardware[key];
-for(const [key,v] of Object.entries(store.motion))if(!v||now-Number(v.since||0)>AGE)delete store.motion[key];
+for(const [key,v] of Object.entries(store.motion))if(!v||now-Number(v.last_seen||v.since||0)>AGE)delete store.motion[key];
 if(JSON.stringify(store)!==original)global.set(KEY,store);
 node.status({fill:'green',shape:'dot',text:'private journal '+store.events.length+' events'});
 return null;
