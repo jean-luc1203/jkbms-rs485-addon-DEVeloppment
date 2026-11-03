@@ -37,7 +37,7 @@ assert.ok(relTime&&relTime[0].includes('SP_GLOW_TIME_UNITS'),'relative time not 
 
 // Explicit route-level translation: no raw French for the main view headings.
 for(const key of ['independent','comparison','extremes','activeIssues','noIssue','thresholds','bySite','events','eventCount']){
- assert.ok(script.includes("spGlowView('"+key+"' ),'missing route translation: '+key);
+ assert.ok(script.includes("spGlowView('"+key+"'"),'missing route translation: '+key);
 }
 for(const key of ['packView','compareBms','packBms','totalPower','worstBms','cellVoltage','controlSwitches','energy','stale','lastMeasure']){
  assert.ok(script.includes("spGlowBmsUi('"+key+"'"),'missing BMS translation: '+key);
