@@ -48,6 +48,17 @@ config.contextStorage = {
       dir: "/config/smartphoton_jkbms_multipack/global-variables",
       flushInterval: "5"
     }
+  },
+  // DEV76: isolated journal store. Only the bounded event journal is written
+  // here; HA's admin-only integration reads this file without inspecting other
+  // Node-RED global context (which may contain secrets).
+  glowJournal: {
+    module: "localfilesystem",
+    config: {
+      dir: "/config/smartphoton_jkbms_multipack",
+      base: "glow-journal-store",
+      flushInterval: "5"
+    }
   }
 };
 

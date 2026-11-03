@@ -129,8 +129,8 @@ function main() {
     ];
     const ids = flows.map(n => n.id);
     assert.equal(new Set(ids).size, ids.length, 'Duplicate Node-RED node ID');
-    assert.equal(flows.length, 441 + glowIds.length, 'Unexpected Node-RED node count');
-    assert.equal(flows.filter(n => n.type === 'function').length, 103 + 1);
+    assert.equal(flows.length, 441 + glowIds.length + 4, 'Unexpected Node-RED node count (4 DEV76 journal nodes)');
+    assert.equal(flows.filter(n => n.type === 'function').length, 103 + 1 + 1, 'DEV76 adds one journal Function node');
     for (const id of glowIds) {
         assert.equal(flows.filter(n => n.id === id).length, 1, 'Missing or duplicate Glow node: ' + id);
     }

@@ -40,8 +40,8 @@ assert(!match[1].includes('b.params[x.k]=x.v'));
 assert(!match[1].includes('b.switches[x.k]=x.v'));
 
 const flows=JSON.parse(fs.readFileSync(path.join(root,'rootfs/etc/node-red/flows.json'),'utf8'));
-assert.equal(flows.length,445);
-assert.equal(flows.filter(n=>n.type==='function').length,104);
+assert.equal(flows.length,449);
+assert.equal(flows.filter(n=>n.type==='function').length,105);
 const inject=flows.find(n=>n.id==='13b6b22d1a8e5d01');
 assert(inject.wires[0].includes('34cada0000000002'));
 assert(inject.wires[0].includes('74a0000000000002'));
