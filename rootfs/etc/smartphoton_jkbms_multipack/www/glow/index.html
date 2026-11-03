@@ -974,7 +974,7 @@ function pageAggregation(){
   }));
   const rows=PACKS.map(p=>{const a=agg(p.bms);return {p,a,au:autonomy(a.capRem,a.capNom,a.current)}});
   const best=(fn,lowGood)=>{const v=rows.map(fn);return lowGood?Math.min(...v):Math.max(...v)};
-  const cell=(v,txt,isBest,l='')=>`<td class="num" style="${l?`color:${COL[l]}`:''}">${txt}${isBest?' <span title="${spGlowView('best')}">★</span>':''}</td>`;
+  const cell=(v,txt,isBest,l='')=>`<td class="num" style="${l?`color:${COL[l]}`:''}">${txt}${isBest?'<span title="'+spGlowView('best')+'">★</span>':''}</td>`;
   let h=header(spGlowLabel('Parc'),spGlowLabel('Comparatif des sites'));
   h+=`<div class="alert info"><span class="ic">📍</span><div><b>${spGlowView('independent')}</b><small>${spGlowView('independentHelp')}</small></div></div>
   <h2>${spGlowView('comparison')}</h2><div class="card tblwrap"><table class="tbl"><tr><th>${spGlowView('site')}</th><th class="num">SOC</th><th class="num">${spGlowView('power')}</th><th class="num">${spGlowView('autonomy')}</th><th class="num">${spGlowView('delta')}</th><th class="num">${spGlowView('tempMax')}</th><th class="num">${spGlowView('soh')}</th><th class="num">${spGlowView('cycles')}</th><th class="num">${spGlowView('data')}</th></tr>
