@@ -506,6 +506,8 @@ Object.assign(SP_GLOW_MESSAGES.en,{"confirmSend":"Confirm sending","sensitive":"
 Object.assign(SP_GLOW_MESSAGES.de,{"confirmSend":"Senden bestätigen","sensitive":"Sicherheitsrelevante Einstellung","sensitiveNote":"Diese Einstellungen betreffen MOS-Schalter oder Schutzfunktionen. Ein Fehler kann das Batteriepack abschalten.","commandSent":"Befehl gesendet","commandRejected":"Befehl abgelehnt","readback":"BMS-Rückmeldung prüfen","sendChanges":"{count} Änderung(en) an {bms} senden?"});
 const SP_GLOW_DYNAMIC={"fr":{"watch":"{n} point(s) à surveiller","alarm":"{n} alarme(s) active(s)","inRange":"{sites} sites · {bms} BMS dans les seuils","before":"avant {pct} %","idle":"au repos","reached":"Atteint","bmsDelta":"Écart cellules {delta} mV","notDetected":"{n} BMS non détecté(s)"},"en":{"watch":"{n} point(s) to monitor","alarm":"{n} active alarm(s)","inRange":"{sites} sites · {bms} BMS within limits","before":"until {pct}%","idle":"idle","reached":"Reached","bmsDelta":"Cell imbalance {delta} mV","notDetected":"{n} BMS not detected"},"de":{"watch":"{n} Punkt(e) zu überwachen","alarm":"{n} aktive(r) Alarm(e)","inRange":"{sites} Standorte · {bms} BMS innerhalb der Grenzwerte","before":"bis {pct} %","idle":"im Ruhezustand","reached":"Erreicht","bmsDelta":"Zellabweichung {delta} mV","notDetected":"{n} BMS nicht erkannt"}};
 const SP_GLOW_OVERVIEW_I18N={"fr":{"stale":"un site ne remonte plus de données récentes","allConnected":"tous les sites communiquent","minBms":"BMS le plus bas","noDischarge":"aucun site en décharge","sites":"sites","justNow":"à l’instant","ago":"il y a {n} {unit}","flowCharge":"Charge","flowDischarge":"Décharge","flowIdle":"Repos","normal":"Normal","watch":"À surveiller","critical":"Critique","balance":"Équilibrage","offline":"Hors ligne"},"en":{"stale":"a site has stopped reporting recent data","allConnected":"all sites connected","minBms":"Lowest BMS","noDischarge":"no sites discharging","sites":"sites","justNow":"just now","ago":"{n} {unit} ago","flowCharge":"Charging","flowDischarge":"Discharging","flowIdle":"Idle","normal":"Normal","watch":"Watch","critical":"Critical","balance":"Balancing","offline":"Offline"},"de":{"stale":"ein Standort meldet keine aktuellen Daten","allConnected":"alle Standorte melden Daten","minBms":"Niedrigster BMS","noDischarge":"kein Standort entlädt","sites":"Standorte","justNow":"gerade eben","ago":"vor {n} {unit}","flowCharge":"Laden","flowDischarge":"Entladen","flowIdle":"Ruhezustand","normal":"Normal","watch":"Überwachen","critical":"Kritisch","balance":"Balancierung","offline":"Offline"}};
+const SP_GLOW_VIEWS_I18N={"fr":{"independent":"Sites indépendants","independentHelp":"Chaque pack est sur un site distinct : les valeurs ne s’additionnent pas, on les compare.","comparison":"Tableau comparatif","extremes":"Valeurs extrêmes du parc","minCell":"Cellule minimale","maxCell":"Cellule maximale","worstDelta":"Pire écart interne","maxTemperature":"Température maximale","best":"meilleur du parc","activeIssues":"Problèmes actifs & actions recommandées","open":"Ouvrir ›","noIssue":"Aucun problème","allInRange":"Tous les packs sont dans les seuils.","thresholds":"Seuils du diagnostic","bySite":"Détail par site","warningCritical":"alerte / critique","lowCritical":"bas / critique","olderThan":"au-delà : données anciennes","freshness":"Fraîcheur données","none":"Aucun événement","nothing":"Rien à signaler sur la période.","all":"Tous","chargeDischarge":"Charge / décharge","events":"Journal des événements","settings":"Réglages","eventCount":"{n} événements · 48 h","site":"Site","power":"Puissance","autonomy":"Autonomie","delta":"Écart cellules","tempMax":"Temp. max","soh":"SOH moy.","cycles":"Cycles max","data":"Données","socSites":"SOC des sites"},"en":{"independent":"Independent sites","independentHelp":"Each pack is at a separate site: values are compared, not added.","comparison":"Site comparison table","extremes":"Fleet extremes","minCell":"Lowest cell voltage","maxCell":"Highest cell voltage","worstDelta":"Largest cell imbalance","maxTemperature":"Maximum temperature","best":"best in fleet","activeIssues":"Active issues & recommended actions","open":"Open ›","noIssue":"No issues","allInRange":"All packs are within limits.","thresholds":"Diagnostic thresholds","bySite":"Details by site","warningCritical":"warning / critical","lowCritical":"low / critical","olderThan":"above limit: stale data","freshness":"Data age","none":"No events","nothing":"Nothing to report for this period.","all":"All","chargeDischarge":"Charging / discharging","events":"Event log","settings":"Settings","eventCount":"{n} events · 48 h","site":"Site","power":"Power","autonomy":"Runtime","delta":"Cell imbalance","tempMax":"Max. temp.","soh":"Avg. SOH","cycles":"Max. cycles","data":"Data","socSites":"Site SOC"},"de":{"independent":"Unabhängige Standorte","independentHelp":"Jedes Pack gehört zu einem eigenen Standort: Werte werden verglichen, nicht addiert.","comparison":"Standortvergleich","extremes":"Extremwerte der Standorte","minCell":"Niedrigste Zellspannung","maxCell":"Höchste Zellspannung","worstDelta":"Größte Zellabweichung","maxTemperature":"Höchste Temperatur","best":"bester Wert im Verbund","activeIssues":"Aktive Probleme und empfohlene Maßnahmen","open":"Öffnen ›","noIssue":"Keine Probleme","allInRange":"Alle Packs liegen innerhalb der Grenzwerte.","thresholds":"Diagnoseschwellen","bySite":"Details je Standort","warningCritical":"Warnung / kritisch","lowCritical":"niedrig / kritisch","olderThan":"Grenzwert überschritten: veraltete Daten","freshness":"Datenalter","none":"Keine Ereignisse","nothing":"Keine Ereignisse im Zeitraum.","all":"Alle","chargeDischarge":"Laden / Entladen","events":"Ereignisprotokoll","settings":"Einstellungen","eventCount":"{n} Ereignisse · 48 Std.","site":"Standort","power":"Leistung","autonomy":"Restlaufzeit","delta":"Zellabweichung","tempMax":"Max. Temp.","soh":"Mittl. SOH","cycles":"Max. Zyklen","data":"Daten","socSites":"SOC der Standorte"}};
+function spGlowView(key,vars={}){return (SP_GLOW_VIEWS_I18N[spLanguage]?.[key]||SP_GLOW_VIEWS_I18N.fr[key]||key).replace(/\{(\w+)\}/g,(_,k)=>String(vars[k]??''))}
 const SP_GLOW_CARD_I18N={"fr":{"historyLoading":"Chargement de l’historique…","historyNone":"Pas d’historique sur la période","more":"Détails ▾","less":"Moins ▴","active":"Actif","inactive":"Inactif","detail":"Détail des sites"},"en":{"historyLoading":"Loading history…","historyNone":"No history for this period","more":"Details ▾","less":"Less ▴","active":"Active","inactive":"Inactive","detail":"Site details"},"de":{"historyLoading":"Verlauf wird geladen…","historyNone":"Kein Verlauf für diesen Zeitraum","more":"Details ▾","less":"Weniger ▴","active":"Aktiv","inactive":"Inaktiv","detail":"Standortdetails"}};
 function spGlowCard(key){return SP_GLOW_CARD_I18N[spLanguage]?.[key]||SP_GLOW_CARD_I18N.fr[key]||key}
 const SP_GLOW_TIME_UNITS={"fr":{"s":"s","min":"min","h":"h"},"en":{"s":"s","min":"min","h":"h"},"de":{"s":"s","min":"min","h":"Std."}};
@@ -970,21 +972,21 @@ function pageAggregation(){
   }));
   const rows=PACKS.map(p=>{const a=agg(p.bms);return {p,a,au:autonomy(a.capRem,a.capNom,a.current)}});
   const best=(fn,lowGood)=>{const v=rows.map(fn);return lowGood?Math.min(...v):Math.max(...v)};
-  const cell=(v,txt,isBest,l='')=>`<td class="num" style="${l?`color:${COL[l]}`:''}">${txt}${isBest?' <span title="meilleur du parc">★</span>':''}</td>`;
-  let h=header('Parc','Comparatif des sites');
-  h+=`<div class="alert info"><span class="ic">📍</span><div><b>Sites indépendants</b><small>Chaque pack est sur un site distinct : les valeurs ne s’additionnent pas, on les compare.</small></div></div>
-  <h2>Tableau comparatif</h2><div class="card tblwrap"><table class="tbl"><tr><th>Site</th><th class="num">SOC</th><th class="num">Puissance</th><th class="num">Autonomie</th><th class="num">Écart cellules</th><th class="num">Temp. max</th><th class="num">SOH moy.</th><th class="num">Cycles max</th><th class="num">Données</th></tr>
+  const cell=(v,txt,isBest,l='')=>`<td class="num" style="${l?`color:${COL[l]}`:''}">${txt}${isBest?' <span title="${spGlowView('best')}">★</span>':''}</td>`;
+  let h=header(spGlowLabel('Parc'),spGlowLabel('Comparatif des sites'));
+  h+=`<div class="alert info"><span class="ic">📍</span><div><b>${spGlowView('independent')}</b><small>${spGlowView('independentHelp')}</small></div></div>
+  <h2>${spGlowView('comparison')}</h2><div class="card tblwrap"><table class="tbl"><tr><th>${spGlowView('site')}</th><th class="num">SOC</th><th class="num">${spGlowView('power')}</th><th class="num">${spGlowView('autonomy')}</th><th class="num">${spGlowView('delta')}</th><th class="num">${spGlowView('tempMax')}</th><th class="num">${spGlowView('soh')}</th><th class="num">${spGlowView('cycles')}</th><th class="num">${spGlowView('data')}</th></tr>
   ${rows.map(({p,a,au})=>{const bs=p.bms;const soh=bs.reduce((x,b)=>x+b.soh,0)/bs.length, cyc=Math.max(...bs.map(b=>b.cycles));
     return `<tr data-href="#/pack/${p.id}" style="cursor:pointer"><td><span class="dot ${stateL(a)}"></span> <a href="#/pack/${p.id}" style="color:var(--txt);font-weight:600">${esc(p.name)}</a></td>
     ${cell(a.soc,f(a.soc,0)+' %',a.soc===best(r=>r.a.soc),socL(a.soc))}<td class="num">${pw(a.power).replace(/<\/?small>/g,' ')}</td><td class="num">${au.v}</td>
     ${cell(a.delta,f(a.delta,0)+' mV',a.delta===best(r=>r.a.delta,true),dL(a.delta))}${cell(a.temp,f(a.temp,1)+' °C',false,tL(a.temp))}
     <td class="num">${f(soh,0)} %</td><td class="num">${cyc}</td><td class="num">${fresh(a.ts)}</td></tr>`}).join('')}</table></div>
-  <h2>Valeurs extrêmes du parc</h2><div class="grid g4">
-    ${kpi('Cellule minimale',f(cmin.v,3)+'<small>V</small>',cmin.w)}${kpi('Cellule maximale',f(cmax.v,3)+'<small>V</small>',cmax.w)}
-    ${kpi('Pire écart interne',f(worst.d,0)+'<small>mV</small>',worst.w,dL(worst.d))}${kpi('Température maximale',f(hot.t,1)+'<small>°C</small>',hot.w,tL(hot.t))}
+  <h2>${spGlowView('extremes')}</h2><div class="grid g4">
+    ${kpi(spGlowView('minCell'),f(cmin.v,3)+'<small>V</small>',cmin.w)}${kpi(spGlowView('maxCell'),f(cmax.v,3)+'<small>V</small>',cmax.w)}
+    ${kpi(spGlowView('worstDelta'),f(worst.d,0)+'<small>mV</small>',worst.w,dL(worst.d))}${kpi(spGlowView('maxTemperature'),f(hot.t,1)+'<small>°C</small>',hot.w,tL(hot.t))}
   </div>
-  <h2>SOC des sites ${rangeSeg()}</h2>
-  ${chart('agg-soc','SOC des sites',PACKS.map((p,i)=>({name:p.name,color:['var(--s-soc)','var(--flow)','var(--s-cur)','var(--s-temp)'][i%4],data:packSeries(p,'soc')})),'%',0,[{v:TH.socCrit,label:`${TH.socCrit} %`,color:'var(--crit)'}])}`;
+  <h2>${spGlowView('socSites')} ${rangeSeg()}</h2>
+  ${chart('agg-soc',spGlowView('socSites'),PACKS.map((p,i)=>({name:p.name,color:['var(--s-soc)','var(--flow)','var(--s-cur)','var(--s-temp)'][i%4],data:packSeries(p,'soc')})),'%',0,[{v:TH.socCrit,label:`${TH.socCrit} %`,color:'var(--crit)'}])}`;
   return h;
 }
 function packSeries(p,key,range=S.range){ // SOC : moyenne · puissance : somme · écart/temp : pire BMS
@@ -996,23 +998,23 @@ function packSeries(p,key,range=S.range){ // SOC : moyenne · puissance : somme 
 
 function pageDiagnostics(){
   const iss=issues(), l=iss.some(i=>i.lvl==='crit')?'crit':iss.length?'warn':'ok';
-  let h=header('Parc','Diagnostics');
-  h+=statusBanner(true)+`<h2>Problèmes actifs & actions recommandées</h2><div class="grid">`;
-  h+= iss.length ? iss.map(i=>`<div class="alert ${i.lvl}"><span class="ic">${i.lvl==='crit'?'⛔':'⚠️'}</span><div><b>${i.txt}</b><small>${i.where} — ${i.act}</small></div><a class="btn act" href="${i.href}">Ouvrir ›</a></div>`).join('')
-                 : `<div class="alert ok"><span class="ic">✅</span><div><b>Aucun problème</b><small>Tous les packs sont dans les seuils.</small></div></div>`;
-  h+=`</div><h2>Seuils du diagnostic</h2><div class="grid g4">
-    ${kpi('Écart cellules',`${TH.deltaWarn}<small>/ ${TH.deltaCrit} mV</small>`,'alerte / critique')}
-    ${kpi('Température',`${TH.tempWarn}<small>/ ${TH.tempCrit} °C</small>`,'alerte / critique')}
-    ${kpi('SOC',`${TH.socWarn}<small>/ ${TH.socCrit} %</small>`,'bas / critique')}
-    ${kpi('Fraîcheur données',`${TH.staleSec}<small>s</small>`,'au-delà : données anciennes')}
-  </div><h2>Détail par site</h2><div class="grid g4">`;
+  let h=header(spGlowLabel('Parc'),spGlowLabel('Diagnostics'));
+  h+=statusBanner(true)+`<h2>${spGlowView('activeIssues')}</h2><div class="grid">`;
+  h+= iss.length ? iss.map(i=>`<div class="alert ${i.lvl}"><span class="ic">${i.lvl==='crit'?'⛔':'⚠️'}</span><div><b>${i.txt}</b><small>${i.where} — ${i.act}</small></div><a class="btn act" href="${i.href}">${spGlowView('open')}</a></div>`).join('')
+                 : `<div class="alert ok"><span class="ic">✅</span><div><b>${spGlowView('noIssue')}</b><small>${spGlowView('allInRange')}</small></div></div>`;
+  h+=`</div><h2>${spGlowView('thresholds')}</h2><div class="grid g4">
+    ${kpi('Écart cellules',`${TH.deltaWarn}<small>/ ${TH.deltaCrit} mV</small>`,spGlowView('warningCritical'))}
+    ${kpi('Température',`${TH.tempWarn}<small>/ ${TH.tempCrit} °C</small>`,spGlowView('warningCritical'))}
+    ${kpi('SOC',`${TH.socWarn}<small>/ ${TH.socCrit} %</small>`,spGlowView('lowCritical'))}
+    ${kpi(spGlowView('freshness'),`${TH.staleSec}<small>s</small>`,spGlowView('olderThan'))}
+  </div><h2>${spGlowView('bySite')}</h2><div class="grid g4">`;
   PACKS.forEach(p=>{const a=agg(p.bms);h+=`<a class="card link" href="#/pack/${p.id}"><b style="display:flex;gap:8px;align-items:center"><span class="dot ${stateL(a)}"></span>${esc(p.name)}</b><table class="tbl">
     <tr><td>Écart cellules</td><td class="num" style="color:${COL[dL(a.delta)]}">${f(a.delta,0)} mV</td></tr><tr><td>Temp. max</td><td class="num" style="color:${COL[tL(a.temp)]}">${f(a.temp,1)} °C</td></tr><tr><td>SOC</td><td class="num">${f(a.soc,0)} %</td></tr></table></a>`});
   return h+'</div>';
 }
 
 function eventsList(list, max=200){
-  if(!list.length) return `<div class="alert ok"><span class="ic">✅</span><div><b>Aucun événement</b><small>Rien à signaler sur la période.</small></div></div>`;
+  if(!list.length) return `<div class="alert ok"><span class="ic">✅</span><div><b>${spGlowView('none')}</b><small>${spGlowView('nothing')}</small></div></div>`;
   let h='', day='';
   list.slice(0,max).forEach(e=>{
     const d=new Date(e.t), dl=d.toLocaleDateString(spLocale(),{weekday:'long',day:'numeric',month:'long'});
@@ -1024,9 +1026,9 @@ function eventsList(list, max=200){
   return `<div class="card events">${h}</div>`;
 }
 function pageJournal(){
-  const cats={all:'Tous',alarm:'Alarmes',bal:'Équilibrage',flow:'Charge / décharge',param:'Réglages'};
+  const cats={all:spGlowView('all'),alarm:spGlowLabel('Alarmes'),bal:spGlowLabel('Équilibrage'),flow:spGlowView('chargeDischarge'),param:spGlowView('settings')};
   const list=EVENTS.filter(e=>S.logFilter==='all'||e.cat===S.logFilter);
-  return header('Parc','Journal des événements',`<span class="pill">${EVENTS.length} événements · 48 h</span>`)+
+  return header(spGlowLabel('Parc'),spGlowView('events'),`<span class="pill">${spGlowView('eventCount',{n:EVENTS.length})}</span>`)+
     `<div class="seg" style="margin-bottom:12px">${Object.entries(cats).map(([k,l])=>`<button data-act="filter" data-v="${k}" class="${S.logFilter===k?'on':''}">${l}</button>`).join('')}</div>`+eventsList(list);
 }
 
