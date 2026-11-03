@@ -64,7 +64,8 @@ const snap=events=>({topic:'jkbms/glow/journal/snapshot',payload:JSON.stringify(
  periodic.cb();
  await tick();
  assert.equal(second.callbacks.length,1,'new HA connection resubscribes');
- assertUnavail();
+ assert.match(ctx.pageJournal(),/Chargement du journal/,'new HA connection must wait for retained replay');
+ assert.doesNotMatch(ctx.pageJournal(),/Real alarm/,'new HA session must clear old events');
  // A retained broker snapshot is delivered on subscription, without Node-RED republishing.
  second.callbacks[0]({...snap([{id:'two',t:Date.now(),txt:'Fresh event'}]),retain:true});
  assert.match(ctx.pageJournal(),/Fresh event/);
