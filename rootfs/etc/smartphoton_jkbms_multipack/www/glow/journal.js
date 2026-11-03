@@ -90,8 +90,8 @@ function eventDetail(event,packName){
  if(packName && detail.startsWith(packName+' '))detail=detail.slice(packName.length+1);
  const w=eventWords();
  detail=detail.replace(/has an internal cell delta of/g,w.internal)
-  .replace(/reached (\\d+(?:[.,]\\d+)?\\s*°C)/g,(_,v)=>w.reached+' '+v)
-  .replace(/is offline or stale\\.?/g,w.stale+'.');
+  .replace(/reached (\d+(?:[.,]\d+)?\s*°C)/g,(_,v)=>w.reached+' '+v)
+  .replace(/is offline or stale\.?/g,w.stale+'.');
  return detail;
 }
 function eventTime(ms){
