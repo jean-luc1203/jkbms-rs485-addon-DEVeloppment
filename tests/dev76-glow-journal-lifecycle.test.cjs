@@ -33,7 +33,7 @@ const ctx={
 };
 vm.runInNewContext(source,ctx,{filename:'journal.js'});
 const tick=async()=>{await Promise.resolve();await Promise.resolve()};
-const assertUnavail=()=>assert.match(ctx.pageJournal(),'Journal indisponible');
+const assertUnavail=()=>assert.match(ctx.pageJournal(),/Journal indisponible/);
 const snap=events=>({topic:'jkbms/glow/journal/snapshot',payload:JSON.stringify({
  schema_version:1,source:'node_red',events
 })});
@@ -41,7 +41,7 @@ const snap=events=>({topic:'jkbms/glow/journal/snapshot',payload:JSON.stringify(
  await tick();
  assert.equal(first.callbacks.length,1,'initial journal subscription');
  assert.equal(first.subscriptions[0].type,'mqtt/subscribe');
- assert.match(ctx.pageJournal(),'Chargement du journal');
+ assert.match(ctx.pageJournal(),/Chargement du journal/);
  const timer=[...timeouts.values()][0];
  assert.equal(timer.ms,12000);
  timer.cb();timeouts.clear();
@@ -65,8 +65,10 @@ const snap=events=>({topic:'jkbms/glow/journal/snapshot',payload:JSON.stringify(
  await tick();
  assert.equal(second.callbacks.length,1,'new HA connection resubscribes');
  assertUnavail();
- second.callbacks[0](snap([{id:'two',t:Date.now(),txt:'Fresh event'}]));
+ // A retained broker snapshot is delivered on subscription, without Node-RED republishing.
+ second.callbacks[0]({...snap([{id:'two',t:Date.now(),txt:'Fresh event'}]),retain:true});
  assert.match(ctx.pageJournal(),/Fresh event/);
+ assert.equal(timeouts.size,0,'retained snapshot must complete startup without timeout');
  first.callbacks[1](snap([{id:'old2',t:Date.now(),txt:'Expired session'}]));
  assert.doesNotMatch(ctx.pageJournal(),/Expired session/);
  assert.ok(first.closed.length>=1,'previous subscription is released');
