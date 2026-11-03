@@ -1,7 +1,7 @@
 // DEV76: persistent private GLOW journal collector.
 // Node-RED Function node. Reads existing SCADA audit snapshots and BMS alarm state.
-// Storage: global context localfilesystem, bounded. Does NOT publish to MQTT/HA/HTTP.
-// The UI will need a separately authorized read path in a later DEV76 step.
+// Private bounded persistence plus sanitized MQTT retained snapshot for SCADA-style
+// HA WebSocket subscription. MQTT broker ACLs, not HA admin permissions, govern reads.
 const KEY='jkbms_glow_journal_v1', LIMIT=250, AGE=30*86400000, now=Date.now();
 let store=global.get(KEY,'glowJournal');
 if(!store || typeof store!=='object' || Array.isArray(store))store={};
@@ -125,6 +125,34 @@ if(topic==='jkbms/scada/audit/snapshot'){
 store.events=store.events.filter(x=>stamp(x?.t)&&x.t>=now-AGE).sort((a,b)=>b.t-a.t||a.id.localeCompare(b.id)).slice(0,LIMIT);
 for(const [key,v] of Object.entries(store.hardware))if(!v||now-Number(v.seen||0)>AGE)delete store.hardware[key];
 for(const [key,v] of Object.entries(store.motion))if(!v||now-Number(v.last_seen||v.since||0)>AGE)delete store.motion[key];
-if(JSON.stringify(store)!==original)global.set(KEY,store,'glowJournal');
-node.status({fill:'green',shape:'dot',text:'private journal '+store.events.length+' events'});
+const changed=JSON.stringify(store)!==original;
+if(changed)global.set(KEY,store,'glowJournal');
+// Only a bounded subset goes to the MQTT broker. Never publish raw audit records,
+// credentials, operator IDs, internal baselines or unrelated Node-RED context.
+const TOPIC='jkbms/glow/journal/snapshot';
+const MAX_EXPOSED=100, MAX_BYTES=64000;
+const lastPublished=Number(flow.get('dev76_glow_journal_last_publish')||0);
+const shouldPublish=changed&&JSON.stringify(store.events)!==JSON.stringify(
+  Array.isArray(JSON.parse(original).events)?JSON.parse(original).events:[]
+) || !lastPublished || now-lastPublished>=60000;
+if(shouldPublish){
+ const safeEvents=store.events.slice(0,MAX_EXPOSED).map(e=>({
+  id:brief(e.id,180),t:Number(e.t),cat:brief(e.cat,24),
+  lvl:brief(e.lvl,16),pack:pack(e.pack),bms:e.bms==null?null:bms(e.bms),
+  txt:brief(e.txt,140),det:brief(e.det,220)
+ }));
+ // Ensure valid bound even when individual event strings use multibyte UTF-8.
+ let payload;
+ while(true){
+  payload=JSON.stringify({schema_version:1,source:'node_red',generated_at:now,
+   event_count:store.events.length,window_count:safeEvents.length,
+   truncated:store.events.length>safeEvents.length,events:safeEvents});
+  if(Buffer.byteLength(payload,'utf8')<=MAX_BYTES||safeEvents.length===0)break;
+  safeEvents.pop();
+ }
+ flow.set('dev76_glow_journal_last_publish',now);
+ node.status({fill:'green',shape:'dot',text:'journal '+store.events.length+' stored / '+safeEvents.length+' MQTT'});
+ return {topic:TOPIC,payload,retain:true,qos:'1'};
+}
+node.status({fill:'green',shape:'dot',text:'journal '+store.events.length+' stored'});
 return null;
