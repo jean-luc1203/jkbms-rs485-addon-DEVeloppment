@@ -1,8 +1,0 @@
-{
-  "domain": "smartphoton_glow_journal",
-  "name": "SmartPhoton GLOW Journal Reader",
-  "version": "0.1.0",
-  "documentation": "https://github.com/jean-luc1203/jkbms-rs485-addon-DEVeloppment",
-  "codeowners": [],
-  "iot_class": "local_polling"
-}
