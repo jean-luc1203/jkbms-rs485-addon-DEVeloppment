@@ -1,12 +1,12 @@
-/* DEV76 — GLOW journal viewer; read-only, admin-only Home Assistant WebSocket.
- * Loads after Glow's main inline script. No access to broker passwords or Node-RED HTTP.
+/* DEV76 — GLOW journal viewer; read-only Home Assistant MQTT WebSocket subscription.
+ * Loads after Glow's main inline script. Same subscription method as SCADA; broker MQTT permissions apply. No browser MQTT credentials.
  */
 (function(){
 'use strict';
 const labels={
- fr:{title:'Journal des événements',unavailable:'Journal indisponible',help:'Installez et activez le lecteur sécurisé SmartPhoton dans Home Assistant. Aucun événement fictif.',loading:'Chargement du journal…',refresh:'Actualiser',all:'Tous',sites:'Tous les packs',bms:'Tous les BMS',since:'À partir du',none:'Aucun événement pour ces filtres.',count:' événements enregistrés',alarms:'Alarmes',bal:'Équilibrage',flow:'Charge / décharge',settings:'Réglages'},
- en:{title:'Event log',unavailable:'Journal unavailable',help:'Install and enable the SmartPhoton secure reader in Home Assistant. No simulated events.',loading:'Loading journal…',refresh:'Refresh',all:'All',sites:'All packs',bms:'All BMS',since:'Since',none:'No events match these filters.',count:' recorded events',alarms:'Alarms',bal:'Balancing',flow:'Charging / discharging',settings:'Settings'},
- de:{title:'Ereignisprotokoll',unavailable:'Protokoll nicht verfügbar',help:'Installieren und aktivieren Sie den sicheren SmartPhoton-Leser in Home Assistant. Keine simulierten Ereignisse.',loading:'Ereignisprotokoll wird geladen…',refresh:'Aktualisieren',all:'Alle',sites:'Alle Packs',bms:'Alle BMS',since:'Ab',none:'Keine Ereignisse für diese Filter.',count:' aufgezeichnete Ereignisse',alarms:'Alarme',bal:'Balancing',flow:'Laden / Entladen',settings:'Einstellungen'}
+ fr:{title:'Journal des événements',unavailable:'Journal indisponible',help:'Vérifiez l’intégration MQTT et les droits de lecture du topic du journal. Aucun événement fictif.',loading:'Chargement du journal…',refresh:'Actualiser',all:'Tous',sites:'Tous les packs',bms:'Tous les BMS',since:'À partir du',none:'Aucun événement pour ces filtres.',count:' événements enregistrés',alarms:'Alarmes',bal:'Équilibrage',flow:'Charge / décharge',settings:'Réglages'},
+ en:{title:'Event log',unavailable:'Journal unavailable',help:'Check Home Assistant MQTT integration and journal topic read permissions. No simulated events.',loading:'Loading journal…',refresh:'Refresh',all:'All',sites:'All packs',bms:'All BMS',since:'Since',none:'No events match these filters.',count:' recorded events',alarms:'Alarms',bal:'Balancing',flow:'Charging / discharging',settings:'Settings'},
+ de:{title:'Ereignisprotokoll',unavailable:'Protokoll nicht verfügbar',help:'Prüfen Sie die MQTT-Integration und Leserechte für das Journal-Topic. Keine simulierten Ereignisse.',loading:'Ereignisprotokoll wird geladen…',refresh:'Aktualisieren',all:'Alle',sites:'Alle Packs',bms:'Alle BMS',since:'Ab',none:'Keine Ereignisse für diese Filter.',count:' aufgezeichnete Ereignisse',alarms:'Alarme',bal:'Balancing',flow:'Laden / Entladen',settings:'Einstellungen'}
 };
 const journal={available:false,loading:false,events:[],pack:'all',bms:'all',cat:'all',since:'',checked:false};
 const lang=()=>labels[spLanguage]||labels.fr;
@@ -16,13 +16,33 @@ const alarmRoute=()=>/\/alarms$/.test(location.hash||'');
 const viewerRoute=()=>journalRoute()||alarmRoute();
 const originalPageJournal=pageJournal;
 const originalPageBms=pageBms;
-function fetchJournal(){
- if(S.mode!=='ha'||journal.loading||!haReady())return;
+const JOURNAL_TOPIC='jkbms/glow/journal/snapshot';
+let journalConnection=null, journalUnsubscribe=null, journalPending=false;
+function fetchJournal(force=false){
+ if(S.mode!=='ha')return;
+ const conn=S.hass?.connection;
+ if(!conn||typeof conn.subscribeMessage!=='function')return;
+ if(conn===journalConnection && !force && (journalUnsubscribe||journalPending))return;
+ if(journalUnsubscribe){try{journalUnsubscribe()}catch(_){}}
+ journalConnection=conn;journalUnsubscribe=null;journalPending=true;
  journal.loading=true;
- wsSend({type:'smartphoton_glow_journal/list',limit:250},(value)=>{
-  journal.loading=false;journal.checked=true;
-  journal.available=!!(value&&value.available===true&&Array.isArray(value.events));
-  journal.events=journal.available?value.events.filter(e=>e&&typeof e.t==='number'):[];
+ conn.subscribeMessage(event=>{
+  if(journalConnection!==conn||event?.topic!==JOURNAL_TOPIC)return;
+  try{
+   const snap=typeof event.payload==='string'?JSON.parse(event.payload):event.payload;
+   if(snap?.schema_version!==1||snap?.source!=='node_red'||!Array.isArray(snap.events))return;
+   journal.available=true;journal.loading=false;journal.checked=true;
+   journal.events=snap.events.slice(0,100).filter(e=>e&&typeof e.t==='number');
+   if(viewerRoute())render();
+  }catch(err){console.warn('GLOW journal: invalid MQTT snapshot',err)}
+ },{type:'mqtt/subscribe',topic:JOURNAL_TOPIC}).then(unsub=>{
+  if(journalConnection===conn){journalUnsubscribe=unsub;journalPending=false;journal.loading=false;}
+  else if(typeof unsub==='function')unsub();
+ }).catch(err=>{
+  if(journalConnection!==conn)return;
+  journalPending=false;journal.loading=false;journal.checked=true;
+  journal.available=false;journal.events=[];
+  console.warn('GLOW journal MQTT subscription unavailable (check HA MQTT permissions)',err);
   if(viewerRoute())render();
  });
 }
@@ -77,7 +97,7 @@ pageBms=function(pack,b,tab){
 };
 document.addEventListener('click',e=>{
  const refresh=e.target.closest('[data-dev76-refresh]');
- if(refresh){fetchJournal();return}
+ if(refresh){fetchJournal(true);return}
  const category=e.target.closest('[data-dev76-category]');
  if(category){journal.cat=category.dataset.dev76Category;render()}
 });
