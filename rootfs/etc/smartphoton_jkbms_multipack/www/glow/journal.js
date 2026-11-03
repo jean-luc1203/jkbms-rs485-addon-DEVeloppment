@@ -12,7 +12,10 @@ const journal={available:false,loading:false,events:[],pack:'all',bms:'all',cat:
 const lang=()=>labels[spLanguage]||labels.fr;
 const safe=x=>esc(String(x==null?'':x));
 const journalRoute=()=>((location.hash||'').slice(1)==='/journal');
+const alarmRoute=()=>/\/alarms$/.test(location.hash||'');
+const viewerRoute=()=>journalRoute()||alarmRoute();
 const originalPageJournal=pageJournal;
+const originalPageBms=pageBms;
 function fetchJournal(){
  if(S.mode!=='ha'||journal.loading||!haReady())return;
  journal.loading=true;
@@ -20,7 +23,7 @@ function fetchJournal(){
   journal.loading=false;journal.checked=true;
   journal.available=!!(value&&value.available===true&&Array.isArray(value.events));
   journal.events=journal.available?value.events.filter(e=>e&&typeof e.t==='number'):[];
-  if(journalRoute())render();
+  if(viewerRoute())render();
  });
 }
 function renderRows(rows){
@@ -59,6 +62,19 @@ pageJournal=function(){
  }
  return out+renderRows(filtered);
 };
+// Add the same authorized journal to the per-BMS Alarms page.
+pageBms=function(pack,b,tab){
+ const rendered=originalPageBms(pack,b,tab);
+ if(S.mode!=='ha'||tab!=='alarms')return rendered;
+ const heading='<h2>'+spGlowView('events')+'</h2>';
+ const index=rendered.lastIndexOf(heading);
+ if(index<0)return rendered;
+ const key=String(bmsKey(b));
+ const rows=journal.events.filter(e=>e.pack==='pack_'+pack.id&&(e.bms==null||String(e.bms)===key));
+ const detail=journal.available?renderRows(rows):
+  '<div class="alert info"><b>'+safe(lang().unavailable)+'</b><small>'+safe(lang().help)+'</small></div>';
+ return rendered.slice(0,index)+heading+detail;
+};
 document.addEventListener('click',e=>{
  const refresh=e.target.closest('[data-dev76-refresh]');
  if(refresh){fetchJournal();return}
@@ -71,7 +87,7 @@ document.addEventListener('change',e=>{
  journal[key]=e.target.value;
  render();
 });
-window.addEventListener('hashchange',()=>{if(journalRoute())fetchJournal()});
-setInterval(()=>{if(journalRoute())fetchJournal()},30000);
-if(journalRoute())fetchJournal();
+window.addEventListener('hashchange',()=>{if(viewerRoute())fetchJournal()});
+setInterval(()=>{if(viewerRoute())fetchJournal()},30000);
+if(viewerRoute())fetchJournal();
 })();
