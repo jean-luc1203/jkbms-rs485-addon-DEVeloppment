@@ -10,13 +10,15 @@ const node=flows.find(n=>n.id==='76a0000000000003');
 assert.ok(node,'private journal Function missing');
 assert.equal(node.func,collector,'Node-RED Function source must equal audited source');
 const inputs=flows.filter(n=>n.type==='mqtt in'&&n.wires?.[0]?.includes(node.id));
-assert.deepEqual(inputs.map(x=>x.topic).sort(),['jkbms/+/+/alarm/active','jkbms/scada/audit/snapshot']);
+assert.deepEqual(inputs.map(x=>x.topic).sort(),['jkbms/+/+/alarm/active','jkbms/+/aggregate','jkbms/scada/audit/snapshot']);
 assert.equal(node.outputs,1);
 assert.deepEqual(node.wires,[[]],'journal collector must not expose data to MQTT or HA');
 const state=new Map(),status={};
 const global={get:key=>state.get(key),set:(key,value)=>state.set(key,structuredClone(value))};
 const executable='(function(){\n'+collector+'\n})()';
-const run=(msg)=>vm.runInNewContext(executable,{msg,global,node:{status:x=>{status.current=x}},Buffer,Date,JSON,Number,String,Array,Object,Math,RegExp});
+let clockMs=Date.now();
+class ClockDate extends Date {static now(){return clockMs;}}
+const run=(msg)=>vm.runInNewContext(executable,{msg,global,node:{status:x=>{status.current=x}},Buffer,Date:ClockDate,JSON,Number,String,Array,Object,Math,RegExp});
 const KEY='jkbms_glow_journal_v1';
 const t=Date.now()-120000;
 const audit={
@@ -59,5 +61,29 @@ assert.equal(state.get(KEY).events.length,5);
 const many=Array.from({length:280},(_,i)=>({id:'m'+i,pack_id:'pack_1',bms:'0',status:'confirmed',started_at:t+i*10,control_label:'test'}));
 for(let i=0;i<280;i+=60)publish({source:'node_red',command_audit:{history:many.slice(i,i+60)},alarm_lifecycle:{active:[],history:[]}});
 assert.ok(state.get(KEY).events.length<=250,'retention bound');
+// Retained aggregate only establishes baselines. Transient current noise must not log.
+const aggregate=(current,balancing,retained=false)=>run({
+ topic:'jkbms/pack_1/aggregate',retain:retained,
+ payload:JSON.stringify({step:'13E',pack_id:'pack_1',current_total_a:current,
+  balancing_details:[{bms:'0',active:balancing}]})
+});
+let baseline=state.get(KEY).events.length;
+aggregate(0,false,true);
+assert.equal(state.get(KEY).events.length,baseline);
+clockMs+=1000;aggregate(7,true);
+clockMs+=1000;aggregate(0,false);
+assert.equal(state.get(KEY).events.length,baseline,'short transient should not be recorded');
+clockMs+=1000;aggregate(7,true);
+clockMs+=9000;aggregate(7,true);
+assert.equal(state.get(KEY).events.length,baseline,'debounce requires full 10 seconds');
+clockMs+=1500;aggregate(7,true);
+assert.equal(state.get(KEY).events.length,baseline+2,'balancing and charging transitions should be logged once each');
+aggregate(7,true);
+assert.equal(state.get(KEY).events.length,baseline+2,'steady aggregate must not produce duplicate events');
+clockMs+=1000;aggregate(-8,false);
+clockMs+=11000;aggregate(-8,false);
+assert.equal(state.get(KEY).events.length,baseline+4,'charge to discharge and balancing stop transitions logged');
+assert.equal(state.get(KEY).events.filter(x=>x.cat==='bal').length,2);
+assert.equal(state.get(KEY).events.filter(x=>x.cat==='flow').length,2);
 assert.ok(!JSON.stringify(state.get(KEY)).includes('password'));
 console.log('PASS dev76-glow-journal.test.cjs');
