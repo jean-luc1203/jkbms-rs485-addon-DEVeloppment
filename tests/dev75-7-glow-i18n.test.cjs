@@ -76,7 +76,10 @@ for(const needle of [
  "spGlowCell('cellTooltip'",
  "spGlowDetail('res30',{cell:b.weak.cell})",
  "spGlowDetail('paramDiff',{n:nd})",
- "spGlowDetail('historyDelta')"
+ "spGlowDetail('socHistory')",
+ "spGlowDetail('powerHistory')",
+ "spGlowDetail('deltaHistory')",
+ "spGlowDetail('tempHistory')"
 ])assert.ok(script.includes(needle),'Glow view not translated: '+needle);
 
 // Exercise the cell report with a temperature alarm in each language.
