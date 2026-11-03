@@ -505,6 +505,9 @@ Object.assign(SP_GLOW_MESSAGES.fr,{"confirmSend":"Confirmer l’envoi","sensitiv
 Object.assign(SP_GLOW_MESSAGES.en,{"confirmSend":"Confirm sending","sensitive":"Sensitive setting","sensitiveNote":"These settings affect MOS switches or protections: an error may disconnect the battery pack.","commandSent":"Command sent","commandRejected":"Command rejected","readback":"verify BMS readback","sendChanges":"Send {count} change(s) to {bms}?"});
 Object.assign(SP_GLOW_MESSAGES.de,{"confirmSend":"Senden bestätigen","sensitive":"Sicherheitsrelevante Einstellung","sensitiveNote":"Diese Einstellungen betreffen MOS-Schalter oder Schutzfunktionen. Ein Fehler kann das Batteriepack abschalten.","commandSent":"Befehl gesendet","commandRejected":"Befehl abgelehnt","readback":"BMS-Rückmeldung prüfen","sendChanges":"{count} Änderung(en) an {bms} senden?"});
 const SP_GLOW_DYNAMIC={"fr":{"watch":"{n} point(s) à surveiller","alarm":"{n} alarme(s) active(s)","inRange":"{sites} sites · {bms} BMS dans les seuils","before":"avant {pct} %","idle":"au repos","reached":"Atteint","bmsDelta":"Écart cellules {delta} mV","notDetected":"{n} BMS non détecté(s)"},"en":{"watch":"{n} point(s) to monitor","alarm":"{n} active alarm(s)","inRange":"{sites} sites · {bms} BMS within limits","before":"until {pct}%","idle":"idle","reached":"Reached","bmsDelta":"Cell imbalance {delta} mV","notDetected":"{n} BMS not detected"},"de":{"watch":"{n} Punkt(e) zu überwachen","alarm":"{n} aktive(r) Alarm(e)","inRange":"{sites} Standorte · {bms} BMS innerhalb der Grenzwerte","before":"bis {pct} %","idle":"im Ruhezustand","reached":"Erreicht","bmsDelta":"Zellabweichung {delta} mV","notDetected":"{n} BMS nicht erkannt"}};
+const SP_GLOW_OVERVIEW_I18N={"fr":{"stale":"un site ne remonte plus de données récentes","allConnected":"tous les sites communiquent","minBms":"BMS le plus bas","noDischarge":"aucun site en décharge","sites":"sites","justNow":"à l’instant","ago":"il y a {n} {unit}","flowCharge":"Charge","flowDischarge":"Décharge","flowIdle":"Repos","normal":"Normal","watch":"À surveiller","critical":"Critique","balance":"Équilibrage","offline":"Hors ligne"},"en":{"stale":"a site has stopped reporting recent data","allConnected":"all sites connected","minBms":"Lowest BMS","noDischarge":"no sites discharging","sites":"sites","justNow":"just now","ago":"{n} {unit} ago","flowCharge":"Charging","flowDischarge":"Discharging","flowIdle":"Idle","normal":"Normal","watch":"Watch","critical":"Critical","balance":"Balancing","offline":"Offline"},"de":{"stale":"ein Standort meldet keine aktuellen Daten","allConnected":"alle Standorte melden Daten","minBms":"Niedrigster BMS","noDischarge":"kein Standort entlädt","sites":"Standorte","justNow":"gerade eben","ago":"vor {n} {unit}","flowCharge":"Laden","flowDischarge":"Entladen","flowIdle":"Ruhezustand","normal":"Normal","watch":"Überwachen","critical":"Kritisch","balance":"Balancierung","offline":"Offline"}};
+const SP_GLOW_TIME_UNITS={"fr":{"s":"s","min":"min","h":"h"},"en":{"s":"s","min":"min","h":"h"},"de":{"s":"s","min":"min","h":"Std."}};
+function spGlowOverview(key,vars={}){return (SP_GLOW_OVERVIEW_I18N[spLanguage]?.[key]||SP_GLOW_OVERVIEW_I18N.fr[key]||key).replace(/\{(\w+)\}/g,(_,k)=>String(vars[k]??''))}
 function spGlowText(key,vars={}){return (SP_GLOW_DYNAMIC[spLanguage]?.[key]||SP_GLOW_DYNAMIC.fr[key]||key).replace(/\{(\w+)\}/g,(_,key)=>String(vars[key]??''))}
 function spTranslateGlow(){
  if(!document.createTreeWalker||!document.body||typeof NodeFilter==='undefined')return;
@@ -776,11 +779,11 @@ function sparkData(list, key){
 const f = (v,d=1) => Number(v).toLocaleString(spLocale(),{minimumFractionDigits:d,maximumFractionDigits:d});
 const pw = w => Math.abs(w)>=1000 ? `${f(w/1000,2)}<small>kW</small>` : `${f(w,0)}<small>W</small>`;
 const COL = {ok:'var(--ok)',warn:'var(--warn)',crit:'var(--crit)',bal:'var(--bal)',off:'var(--off)'};
-const flowTxt = c => c>0.3 ? ['↑ Charge','flow'] : c<-0.3 ? ['↓ Décharge','flow'] : ['• Repos',''];
-const stTxt = {ok:'Normal',warn:'À surveiller',crit:'Critique',bal:'Équilibrage',off:'Hors ligne'};
+const flowTxt = c => c>0.3 ? ['↑ '+spGlowOverview('flowCharge'),'flow'] : c<-0.3 ? ['↓ '+spGlowOverview('flowDischarge'),'flow'] : ['• '+spGlowOverview('flowIdle'),''];
+const stTxt = new Proxy({},{get:(_,k)=>spGlowOverview({ok:'normal',warn:'watch',crit:'critical',bal:'balance',off:'offline'}[k]||String(k))});
 const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fresh = ts => `<span class="fresh" data-ts="${ts}"></span>`;
-function relTime(ts){ const s=Math.max(0,Math.round((Date.now()-ts)/1000)); return s<3?'à l’instant':s<60?`il y a ${s} s`:s<3600?`il y a ${Math.round(s/60)} min`:`il y a ${Math.round(s/3600)} h`; }
+function relTime(ts){const s=Math.max(0,Math.round((Date.now()-ts)/1000));if(s<3)return spGlowOverview('justNow');const unit=s<60?'s':s<3600?'min':'h';const n=unit==='s'?s:unit==='min'?Math.round(s/60):Math.round(s/3600);return spGlowOverview('ago',{n,unit:SP_GLOW_TIME_UNITS[spLanguage]?.[unit]||unit})}
 
 function trendHtml(now, before, unit, dec, badWhenUp, perHour=true){
   if (before==null) return '';
@@ -860,9 +863,9 @@ function sidebar(route){
     if(route.startsWith('/pack/'+p.id)) h+=`<div class="sub">${p.bms.map(b=>L(`/pack/${p.id}/bms/${b.id}`,bn(b),stateL(agg([b])))).join('')}</div>`;
   });
   h+=`</nav><div class="side-foot nav">
-    <button data-act="theme">${document.documentElement.dataset.theme==='dark'?'☀️ Thème clair':'🌙 Thème sombre'}</button>
-    <a href="#/wall">🖥️ Mode écran mural</a>${L('/settings','🔌 Connexion Home Assistant')}
-    <div class="mode"><span class="dot ${S.mode==='ha'?'ok pulse':'warn'}"></span>${S.mode==='ha'?'Connecté à Home Assistant':S.mode==='demo'?'Données de démonstration':'En attente de Home Assistant'}</div></div>`;
+    <button data-act="theme">${document.documentElement.dataset.theme==='dark'?'☀️ '+spGlowLabel('Thème clair'):'🌙 '+spGlowLabel('Thème sombre')}</button>
+    <a href="#/wall">🖥️ ${spGlowLabel('Mode écran mural')}</a>${L('/settings','🔌 '+spGlowLabel('Connexion Home Assistant'))}
+    <div class="mode"><span class="dot ${S.mode==='ha'?'ok pulse':'warn'}"></span>${S.mode==='ha'?spGlowLabel('Connecté à Home Assistant'):S.mode==='demo'?spGlowLabel('Données de démonstration'):spGlowLabel('En attente de Home Assistant')}</div></div>`;
   return h;
 }
 function bottomNav(route){
@@ -898,10 +901,10 @@ function fleetStats(){
 function fleetKpis(){
   const F=fleetStats(), cap=agg(allBms());
   return `<div class="fleet-kpis">
-    ${kpi('📡 Sites à jour',`${F.live} / ${PACKS.length}`,F.live<PACKS.length?'un site ne remonte plus de données récentes':'tous les sites communiquent',F.live<PACKS.length?'warn':'ok')}
-    ${kpi('🔋 SOC le plus bas',`${f(F.low.a.soc,0)}<small>%</small>`,`${esc(F.low.p.name)} · BMS le plus bas : ${f(F.minBms.soc,0)} %`,socL(F.low.a.soc))}
-    ${kpi('⏳ Autonomie la plus courte',F.short.h===Infinity?'—':F.short.au.v,F.short.h===Infinity?'aucun site en décharge':`${esc(F.short.p.name)} · ${F.short.au.sub}`,F.short.h<6?'warn':'')}
-    ${kpi('🏭 Capacité du parc',`${f(cap.capRem,0)}<small>/ ${f(cap.capNom,0)} Ah</small>`,`${PACKS.length} sites · ${allBms().length} BMS`)}
+    ${kpi('📡 '+spGlowLabel('Sites à jour'),`${F.live} / ${PACKS.length}`,spGlowOverview(F.live<PACKS.length?'stale':'allConnected'),F.live<PACKS.length?'warn':'ok')}
+    ${kpi('🔋 '+spGlowLabel('SOC le plus bas'),`${f(F.low.a.soc,0)}<small>%</small>`,`${esc(F.low.p.name)} · ${spGlowOverview('minBms')} : ${f(F.minBms.soc,0)} %`,socL(F.low.a.soc))}
+    ${kpi('⏳ '+spGlowLabel('Autonomie la plus courte'),F.short.h===Infinity?'—':F.short.au.v,F.short.h===Infinity?spGlowOverview('noDischarge'):`${esc(F.short.p.name)} · ${F.short.au.sub}`,F.short.h<6?'warn':'')}
+    ${kpi('🏭 '+spGlowLabel('Capacité du parc'),`${f(cap.capRem,0)}<small>/ ${f(cap.capNom,0)} Ah</small>`,`${PACKS.length} ${spGlowOverview('sites')} · ${allBms().length} BMS`)}
   </div>`;
 }
 function fleetStrip(){
@@ -1235,9 +1238,9 @@ function pageWall(){
   let h=`<div class="wall-top"><div class="wall-clock" id="wallclock">${new Date().toLocaleTimeString(spLocale(),{hour:'2-digit',minute:'2-digit'})}</div>
     <div class="pills"><button class="btn" data-act="fs">⛶ Plein écran</button><a class="btn" href="#/">✕ Quitter</a></div></div>`;
   h+=statusBanner(true)+`<div class="wall-kpis">
-    <div class="card kpi ${F.live<PACKS.length?'warn':'ok'}"><div class="lbl">📡 Sites à jour</div><div class="val">${F.live}<small>/ ${PACKS.length}</small></div></div>
-    <div class="card kpi"><div class="lbl">🔋 SOC le plus bas · ${esc(F.low.p.name)}</div><div class="val" style="color:${COL[socL(F.low.a.soc)]}">${f(F.low.a.soc,0)}<small>%</small></div></div>
-    <div class="card kpi"><div class="lbl">⏳ Autonomie la plus courte${F.short.h===Infinity?'':' · '+esc(F.short.p.name)}</div><div class="val">${F.short.h===Infinity?'—':F.short.au.v}</div></div></div>
+    <div class="card kpi ${F.live<PACKS.length?'warn':'ok'}"><div class="lbl">📡 ${spGlowLabel('Sites à jour')}</div><div class="val">${F.live}<small>/ ${PACKS.length}</small></div></div>
+    <div class="card kpi"><div class="lbl">🔋 ${spGlowLabel('SOC le plus bas')} · ${esc(F.low.p.name)}</div><div class="val" style="color:${COL[socL(F.low.a.soc)]}">${f(F.low.a.soc,0)}<small>%</small></div></div>
+    <div class="card kpi"><div class="lbl">⏳ ${spGlowLabel('Autonomie la plus courte')}${F.short.h===Infinity?'':' · '+esc(F.short.p.name)}</div><div class="val">${F.short.h===Infinity?'—':F.short.au.v}</div></div></div>
     <div class="wall-packs">${PACKS.map(p=>{const a=agg(p.bms),s=stateL(a);return `<div class="card"><h3><span class="dot ${s}" style="width:14px;height:14px"></span>${esc(p.name)}</h3>
       <div class="soc" style="color:${COL[socL(a.soc)]}">${f(a.soc,0)}<small>%</small></div>
       <div class="row"><span>${flowTxt(a.current)[0].split(' ')[0]} ${Math.abs(a.power)>=1000?f(a.power/1000,2)+' kW':f(a.power,0)+' W'}</span><span>⏳ ${autonomy(a.capRem,a.capNom,a.current).v}</span></div><div class="row"><span style="color:${COL[dL(a.delta)]}">Δ ${f(a.delta,0)} mV</span><span style="color:${COL[tL(a.temp)]}">${f(a.temp,0)} °C</span></div></div>`}).join('')}</div>`;
