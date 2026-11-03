@@ -125,6 +125,10 @@ assert.ok(script.includes("spGlowText('alarm',{n:crit.length})"));
 assert.ok(script.includes("spGlowText('watch',{n:warn.length})"));
 assert.ok(script.includes("n===1?'1 Punkt zur Überwachung'"));
 assert.ok(script.includes("n===1?'1 point to monitor'"));
+// Screenshots QA: diagnostic threshold headings must resolve in EN/DE.
+assert.ok(script.includes("kpi(spGlowLabel('Température')"));
+assert.ok(script.includes("kpi(spGlowLabel('Écart cellules')"));
+assert.ok(script.includes('Object.assign(SP_GLOW_LABELS,{"Température":{"en":"Temperature","de":"Temperatur"}})'));
 // Translation must not modify communication and BMS command code.
 const idx=script.indexOf('function spGlowOverview(');
 const idx2=script.indexOf('function spGlowText(',idx);
