@@ -82,7 +82,7 @@ def _read_journal(hass: HomeAssistant) -> dict[str, Any]:
             vol.Coerce(int), vol.Range(min=1, max=250)
         ),
         vol.Optional("pack"): vol.Match(r"^pack_[1-5]$"),
-        vol.Optional("bms"): vol.Match(r"^(master|\\d{1,2})$"),
+        vol.Optional("bms"): vol.Match(r"^(master|[0-9]{1,2})$"),
         vol.Optional("category"): vol.In(["alarm", "param", "flow", "bal"]),
         vol.Optional("since"): vol.All(vol.Coerce(int), vol.Range(min=0)),
     }
