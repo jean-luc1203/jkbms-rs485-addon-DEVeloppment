@@ -1,8 +1,8 @@
 ---
-name: "SmartPhoton JK-BMS Multi-Pack DEV76 TEST JOURNAL"
-version: 1.0.0-dev76.0
+name: "SmartPhoton JK-BMS Multi-Pack DEV76.1 TEST JOURNAL"
+version: 1.0.0-dev76.1
 slug: "smartphoton_jkbms_multipack"
-description: DEV76.0 experimental GLOW event journal with isolated persistence and SCADA-style HA MQTT WebSocket subscription; HAOS TEST ONLY
+description: DEV76.1 journal UI fixes; GLOW event journal with isolated persistence and SCADA-style HA MQTT WebSocket subscription; HAOS TEST ONLY
 url: https://domosimple.eu/forum/thread-917.html
 ingress: false
 ingress_stream: false
