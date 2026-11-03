@@ -12,13 +12,16 @@ assert.equal(node.func,collector,'Node-RED Function source must equal audited so
 const inputs=flows.filter(n=>n.type==='mqtt in'&&n.wires?.[0]?.includes(node.id));
 assert.deepEqual(inputs.map(x=>x.topic).sort(),['jkbms/+/+/alarm/active','jkbms/+/aggregate','jkbms/scada/audit/snapshot']);
 assert.equal(node.outputs,1);
-assert.deepEqual(node.wires,[[]],'journal collector must not expose data to MQTT or HA');
-const state=new Map(),status={};
+assert.deepEqual(node.wires,[['f6234946e90cf735']],'collector should publish only through existing MQTT output');
+const mqttOut=flows.find(x=>x.id==='f6234946e90cf735');
+assert.equal(mqttOut.type,'mqtt out');
+const state=new Map(),status={},flowState=new Map();
+const flow={get:key=>flowState.get(key),set:(key,value)=>flowState.set(key,value)};
 const global={get:key=>state.get(key),set:(key,value)=>state.set(key,structuredClone(value))};
 const executable='(function(){\n'+collector+'\n})()';
 let clockMs=Date.now();
 class ClockDate extends Date {static now(){return clockMs;}}
-const run=(msg)=>vm.runInNewContext(executable,{msg,global,node:{status:x=>{status.current=x}},Buffer,Date:ClockDate,JSON,Number,String,Array,Object,Math,RegExp});
+const run=(msg)=>vm.runInNewContext(executable,{msg,global,flow,node:{status:x=>{status.current=x}},Buffer,Date:ClockDate,JSON,Number,String,Array,Object,Math,RegExp});
 const KEY='jkbms_glow_journal_v1';
 const t=Date.now()-120000;
 const audit={
@@ -30,7 +33,16 @@ const audit={
  ],history:[]}
 };
 const publish=x=>run({topic:'jkbms/scada/audit/snapshot',payload:JSON.stringify(x),retain:true});
-publish(audit);
+const first=publish(audit);
+assert.equal(first.topic,'jkbms/glow/journal/snapshot');
+assert.equal(first.retain,true);
+assert.equal(first.qos,'1');
+let sent=JSON.parse(first.payload);
+assert.equal(sent.schema_version,1);
+assert.equal(sent.source,'node_red');
+assert.equal(sent.events.length,2);
+assert.ok(Buffer.byteLength(first.payload,'utf8')<=64000);
+assert.ok(!first.payload.includes('operator_id'));
 let s=state.get(KEY);
 assert.equal(s.events.length,2,'audit imports command and active alarm');
 assert.ok(s.events.every(x=>typeof x.t==='number' && x.pack==='pack_1'));
@@ -87,12 +99,24 @@ const many=Array.from({length:280},(_,i)=>({id:'m'+i,pack_id:'pack_1',bms:'0',st
 for(let i=0;i<280;i+=60)publish({source:'node_red',command_audit:{history:many.slice(i,i+60)},alarm_lifecycle:{active:[],history:[]}});
 assert.ok(state.get(KEY).events.length<=250,'retention bound');
 assert.equal(state.get(KEY).events.length,250,'retention should cap at exactly 250 events');
+// Retained export is separately bounded to 100 records and 64 KiB, while storage remains 250.
+clockMs+=60001;
+const bounded=run({topic:'irrelevant/topic',payload:'heartbeat'});
+const exported=JSON.parse(bounded.payload);
+assert.equal(exported.event_count,250);
+assert.equal(exported.events.length,100);
+assert.equal(exported.truncated,true);
+assert.ok(Buffer.byteLength(bounded.payload,'utf8')<=64000);
+assert.ok(!bounded.payload.includes('operator_name'));
 // Simulate a fresh Node-RED Function runtime after restart with persisted localfilesystem context.
 const persisted=structuredClone(state.get(KEY));
 const recovered=new Map([[KEY,persisted]]);
 const ctx={get:k=>recovered.get(k),set:(k,v)=>recovered.set(k,structuredClone(v))};
+const restartFlowState=new Map(),restartFlow={
+ get:key=>restartFlowState.get(key),set:(key,value)=>restartFlowState.set(key,value)
+};
 const restarted=msg=>vm.runInNewContext(executable,{
- msg,global:ctx,node:{status:()=>{}},Buffer,Date:ClockDate,JSON,Number,String,Array,Object,Math,RegExp
+ msg,global:ctx,flow:restartFlow,node:{status:()=>{}},Buffer,Date:ClockDate,JSON,Number,String,Array,Object,Math,RegExp
 });
 const restoredCount=persisted.events.length;
 restarted({topic:'jkbms/pack_1/BMS_0/alarm/active',payload:'OFF',retain:true});
