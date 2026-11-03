@@ -1180,7 +1180,7 @@ function pageBms(p,b,tab){
   let h=header(`<a href="#/">Parc</a> › <a href="#/pack/${p.id}">${esc(p.name)}</a>`,bn(b),
     `<span class="pill ${st}"><span class="dot ${st}"></span>${stTxt[st]}</span><span class="pill ${flowTxt(b.current)[1]}">${flowTxt(b.current)[0]}</span><span class="pill ${stale?'warn':''}">⏱ ${fresh(b.ts)}</span>`);
   h+=`<div class="bmssel">${p.bms.map(x=>`<a href="#/pack/${p.id}/bms/${x.id}/${tab}" class="${x===b?'on':''}"><span class="dot ${stateL(agg([x]))}"></span>${bn(x)}</a>`).join('')}</div>
-  <div class="tabs">${[['live','📊 Live'],['params','⚙️ Paramètres'+(nd?` <span class="pill warn" style="padding:0 6px">${nd}≠</span>`:'')],['diag','🩺 Diagnostic'],['alarms','🚨 Alarmes'+(b.alarms.length?` <span class="pill crit" style="padding:0 6px">${b.alarms.length}</span>`:'')]].map(([k,l])=>`<a href="${base}${k}" class="${tab===k?'on':''}">${l}</a>`).join('')}</div>`;
+  <div class="tabs">${[['live','📊 Live'],['params','⚙️ '+spGlowView('settings')+(nd?` <span class="pill warn" style="padding:0 6px">${nd}≠</span>`:'')],['diag','🩺 '+spGlowLabel('Diagnostic')],['alarms','🚨 '+spGlowLabel('Alarmes')+(b.alarms.length?` <span class="pill crit" style="padding:0 6px">${b.alarms.length}</span>`:'')]].map(([k,l])=>`<a href="${base}${k}" class="${tab===k?'on':''}">${l}</a>`).join('')}</div>`;
   if(stale) h+=`<div class="alert warn" style="margin-top:14px"><span class="ic">⏱</span><div><b>${spGlowBmsUi('stale')}</b><small>${spGlowBmsUi('lastMeasure',{time:relTime(b.ts)})}</small></div></div>`;
   const one=b=>[b];
 
