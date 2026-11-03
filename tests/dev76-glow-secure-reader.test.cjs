@@ -39,6 +39,11 @@ assert.match(viewer,/pageBms=function/);
 assert.match(viewer,/const safe=x=>esc/);
 assert.ok(!/fetch\s*\(|XMLHttpRequest|localStorage\.setItem|mqtt:\/\//.test(viewer),'viewer must not bypass HA websocket or persist private records in browser storage');
 for(const locale of ['fr','en','de'])assert.match(viewer,new RegExp(' '+locale+':\\{'));
+// The packaged browser script must actually be copied into HAOS /local.
+const initScript=get('rootfs/etc/s6-overlay/s6-rc.d/init-nodered/run');
+assert.match(initScript,/GLOW_FILES=\("index\\.html" "journal\\.js"\)/);
+assert.match(initScript,/GLOW_TARGET_DIR="\/config\/www\/smartphoton_jkbms_multipack\/glow"/);
+assert.match(initScript,/cmp -s "\\$\\{source_file\\}" "\\$\\{target_file\\}"/);
 const html=get('rootfs/etc/smartphoton_jkbms_multipack/www/glow/index.html');
 assert.ok(html.includes('<script src="/local/smartphoton_jkbms_multipack/glow/journal.js"></script>'));
 console.log('PASS dev76-glow-secure-reader.test.cjs');
