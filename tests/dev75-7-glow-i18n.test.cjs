@@ -111,6 +111,56 @@ for(const lang of ['fr','en','de']){
  assert.ok(!res.text.includes('niveau de charge trop bas'),'unjustified SOC diagnosis in '+lang);
  assert.ok(res.title.includes(lang==='fr'?'Cellule':lang==='en'?'Cell':'Zelle'),'cell report title not localized in '+lang);
 }
+// Visual QA: overview translations, correctly inflected status counts and chart time axis.
+const overviewDict=JSON.parse(script.match(/^const SP_GLOW_OVERVIEW_I18N=(.+);$/m)[1]);
+const cardDict=JSON.parse(script.match(/^const SP_GLOW_CARD_I18N=(.+);$/m)[1]);
+for(const lang of ['fr','en','de']){
+ assert.ok(overviewDict[lang].footerRecorder,'missing footer translation '+lang);
+ assert.ok(overviewDict[lang].nowShort&&overviewDict[lang].now,'missing chart time translation '+lang);
+}
+assert.equal(cardDict.de.more,'Mehr ▾');
+assert.ok(script.includes("spGlowOverview('footerRecorder')"));
+assert.ok(script.includes("spGlowOverview(cp?'nowShort':'now')"));
+assert.ok(script.includes("spGlowText('alarm',{n:crit.length})"));
+assert.ok(script.includes("spGlowText('watch',{n:warn.length})"));
+assert.ok(script.includes("n===1?'1 Punkt zur Überwachung'"));
+assert.ok(script.includes("n===1?'1 point to monitor'"));
+// Screenshots QA: diagnostic threshold headings must resolve in EN/DE.
+assert.ok(script.includes("kpi(spGlowLabel('Température')"));
+assert.ok(script.includes("kpi(spGlowLabel('Écart cellules')"));
+assert.ok(script.includes('Object.assign(SP_GLOW_LABELS,{"Température":{"en":"Temperature","de":"Temperatur"}})'));
+// BMS navigation tabs: FR/EN/DE labels, preserving existing route identities.
+const bmsUi=JSON.parse(script.match(/^const SP_GLOW_BMS_UI=(.+);$/m)[1]);
+assert.equal(bmsUi.fr.paramsTab,'Paramètres');
+assert.equal(bmsUi.en.paramsTab,'Parameters');
+assert.equal(bmsUi.de.paramsTab,'Parameter');
+assert.ok(script.includes("spGlowBmsUi('paramsTab')"));
+assert.ok(script.includes("spGlowLabel('Diagnostic')"));
+assert.ok(script.includes("spGlowLabel('Alarmes')"));
+// Display-only duration parsing must preserve raw JK BMS strings and unknown formats.
+const durationCode=script.match(/function spGlowRuntime\(value\)\{[\s\S]*?\n\}/)?.[0];
+assert.ok(durationCode,'display runtime formatter missing');
+const durationDict=JSON.parse(script.match(/^const SP_GLOW_DETAIL_I18N=(.+);$/m)[1]);
+const runtimeFormatter=new Function('value','spGlowDetail',durationCode+';return spGlowRuntime(value)');
+for(const [lang,expected] of [['fr','673 j 14 h 34 min'],['en','673 d 14 h 34 min'],['de','673 T 14 h 34 min']]){
+ const display=runtimeFormatter('673D14H34M',key=>durationDict[lang][key]);
+ assert.equal(display,expected,'incorrect runtime display in '+lang);
+ assert.notEqual(durationDict[lang].noCell,'No suspect cells','misleading long-term cell status');
+}
+assert.equal(runtimeFormatter('—',key=>durationDict.en[key]),'—');
+assert.ok(script.includes("kpi(spGlowDetail('runtime'),spGlowRuntime(b.runtime))"));
+// HA live mode has no event persistence implementation: do not claim a clean 48-hour journal.
+const viewTexts=JSON.parse(script.match(/^const SP_GLOW_VIEWS_I18N=(.+);$/m)[1]);
+for(const lang of ['fr','en','de']){
+ for(const key of ['journalNotRecording','journalUnavailable','supervisionDelta','supervisionTemp','supervisionBoth']){
+  assert.ok(viewTexts[lang][key],lang+' missing '+key);
+ }
+}
+assert.ok(script.includes("if(S.mode==='ha')return header(spGlowLabel('Parc'),spGlowView('events')"));
+assert.ok(script.includes("S.mode==='ha'?'<div class=\"alert info\""),'live BMS alarms journal must be marked unavailable');
+assert.ok(script.includes("spGlowView(d>=TH.deltaWarn&&t>=TH.tempWarn?'supervisionBoth':d>=TH.deltaWarn?'supervisionDelta':'supervisionTemp')"));
+const haLoader=script.slice(script.indexOf('function buildFromStates('),script.indexOf('function applyState('));
+assert.ok(haLoader.includes('EVENTS=[]'),'live HA mode must not fabricate event history');
 // Translation must not modify communication and BMS command code.
 const idx=script.indexOf('function spGlowOverview(');
 const idx2=script.indexOf('function spGlowText(',idx);

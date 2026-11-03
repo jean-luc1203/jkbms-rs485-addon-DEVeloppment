@@ -1,3 +1,11 @@
+## 1.0.0-dev75.7.1 — 2026-11-03 — GLOW visual qualification follow-up (HAOS Test only)
+
+- Correct FR/EN/DE alert and warning plural forms; translate Recorder notice, graph time axis, German expand button, and diagnostic temperature threshold label.
+- Localize BMS navigation tabs (Parameters, Diagnostics, Alarms), clarify persistent-weak-cell detection, and format BMS operating time only at presentation time.
+- In BMS Alarms, explicitly distinguish cell imbalance and temperature warnings instead of always suggesting both.
+- **HA journal limitation:** live HA mode currently initializes an empty in-memory EVENTS list; do not present zero events as a verified 48-hour history. Display a localized history-unavailable notice in global log and BMS alarms. Event recording is not implemented by this patch; demo events remain available in demo mode.
+- No changes to RS485/Active Polling, MQTT, BMS writes/readback, licensing, SCADA, or Premium. Candidate for HAOS Test .184 only; production .217 unchanged.
+
 ## 1.0.0-dev75.7 — 2026-11-03 — GLOW FR/EN/DE qualification (HAOS Test only)
 
 - Complete FR/EN/DE coverage for GLOW fleet KPIs, freshness indicators, comparisons, diagnostics, events, pack and BMS views, cell-map tooltips, trends and history titles.

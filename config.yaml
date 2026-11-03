@@ -1,8 +1,8 @@
 ---
-name: "SmartPhoton JK-BMS Multi-Pack DEV75.7 GLOW I18N QUALIFICATION"
-version: 1.0.0-dev75.7
+name: "SmartPhoton JK-BMS Multi-Pack DEV75.7.1 GLOW VISUAL QA"
+version: 1.0.0-dev75.7.1
 slug: "smartphoton_jkbms_multipack"
-description: DEV75.7 qualification - GLOW FR EN DE overview, diagnostics, BMS parameters and cell reports; retains Multi-Pack, SCADA and Premium
+description: DEV75.7.1 test qualification - GLOW FR EN DE visual corrections, accurate alarm messages and honest HA journal status; retains Multi-Pack SCADA and Premium
 url: https://domosimple.eu/forum/thread-917.html
 ingress: false
 ingress_stream: false
