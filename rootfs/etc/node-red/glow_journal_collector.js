@@ -3,7 +3,7 @@
 // Storage: global context localfilesystem, bounded. Does NOT publish to MQTT/HA/HTTP.
 // The UI will need a separately authorized read path in a later DEV76 step.
 const KEY='jkbms_glow_journal_v1', LIMIT=250, AGE=30*86400000, now=Date.now();
-let store=global.get(KEY);
+let store=global.get(KEY,'glowJournal');
 if(!store || typeof store!=='object' || Array.isArray(store))store={};
 if(!Array.isArray(store.events))store.events=[];
 if(!store.hardware || typeof store.hardware!=='object'||Array.isArray(store.hardware))store.hardware={};
@@ -125,6 +125,6 @@ if(topic==='jkbms/scada/audit/snapshot'){
 store.events=store.events.filter(x=>stamp(x?.t)&&x.t>=now-AGE).sort((a,b)=>b.t-a.t||a.id.localeCompare(b.id)).slice(0,LIMIT);
 for(const [key,v] of Object.entries(store.hardware))if(!v||now-Number(v.seen||0)>AGE)delete store.hardware[key];
 for(const [key,v] of Object.entries(store.motion))if(!v||now-Number(v.last_seen||v.since||0)>AGE)delete store.motion[key];
-if(JSON.stringify(store)!==original)global.set(KEY,store);
+if(JSON.stringify(store)!==original)global.set(KEY,store,'glowJournal');
 node.status({fill:'green',shape:'dot',text:'private journal '+store.events.length+' events'});
 return null;
