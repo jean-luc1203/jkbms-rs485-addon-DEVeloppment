@@ -21,6 +21,23 @@
 5. Balancing and charge/discharge transitions now have source mapping and a 10-second debounce; thresholds and edge cases still require HAOS validation, including retained replay and stale-pack recovery.
 6. No claims of event-history completeness across power loss, long disconnection or a newly installed collector.
 
+## GLOW authorization boundary — assessed 2026-11-03
+
+The current add-on has `ingress: false`, `host_network: true`, and Node-RED port 1891 exposed. Therefore an `http in` Node-RED endpoint at port 1891, even if linked only inside GLOW, is **not** an authenticated journal endpoint. It would leak the private audit to anyone with network access to that port. Neither hiding an URL, relying on Origin/Referer, nor matching an X-Ingress header secures the endpoint. Do **not** create such an endpoint.
+
+The current GLOW iframe is served from Home Assistant `/local/` and receives the authenticated HA frontend session via `hass.connection`; however, the HA frontend WebSocket API has no automatically provided command for reading Node-RED's private context. An authorization-aware bridge is required.
+
+Candidate approaches requiring engineering and tests:
+
+1. Prefer a dedicated Home Assistant integration with a custom **read-only WebSocket command**, using the user's HA session and HA permission checks. It can request bounded journal results from the add-on through an internal authenticated channel, without putting full audit records into entity attributes or the public web directory. This adds an integration packaging and maintenance requirement that must be evaluated.
+2. Alternatively, redesign GLOW to be served through Home Assistant **Ingress** and move its private journal API behind that same ingress boundary. This requires proving that the underlying API is not reachable directly via the existing host-network Node-RED port; merely setting `ingress: true` while leaving a public API on 1891 does not achieve this.
+
+No option is implemented yet, so the GLOW Journal continues to display the honest unavailable notice until a secure backend is qualified. We must not pass a Home Assistant access token or broker password to the public JavaScript bundle.
+
+## Restart and replay testing
+
+`tests/dev76-glow-journal.test.cjs` now simulates a fresh Function context supplied with previously persisted data and replays retained hardware/aggregate state and audit snapshots. It checks history preservation, deduplication and lack of invented startup transitions. This is a unit simulation: real Node-RED localfilesystem flush, HAOS filesystem persistence, and backup/restore must still be exercised on HAOS Test.
+
 ## Next steps before DEV76 qualification
 
 - Determine an **authenticated and read-only** route from GLOW to the private server-side journal (do not expose command/audit history via publicly served `/local/`).
