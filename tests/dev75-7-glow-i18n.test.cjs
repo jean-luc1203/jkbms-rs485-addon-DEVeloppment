@@ -149,6 +149,18 @@ for(const [lang,expected] of [['fr','673 j 14 h 34 min'],['en','673 d 14 h 34 mi
 }
 assert.equal(runtimeFormatter('—',key=>durationDict.en[key]),'—');
 assert.ok(script.includes("kpi(spGlowDetail('runtime'),spGlowRuntime(b.runtime))"));
+// HA live mode has no event persistence implementation: do not claim a clean 48-hour journal.
+const viewTexts=JSON.parse(script.match(/^const SP_GLOW_VIEWS_I18N=(.+);$/m)[1]);
+for(const lang of ['fr','en','de']){
+ for(const key of ['journalNotRecording','journalUnavailable','supervisionDelta','supervisionTemp','supervisionBoth']){
+  assert.ok(viewTexts[lang][key],lang+' missing '+key);
+ }
+}
+assert.ok(script.includes("if(S.mode==='ha')return header(spGlowLabel('Parc'),spGlowView('events')"));
+assert.ok(script.includes("S.mode==='ha'?'<div class=\"alert info\""),'live BMS alarms journal must be marked unavailable');
+assert.ok(script.includes("spGlowView(d>=TH.deltaWarn&&t>=TH.tempWarn?'supervisionBoth':d>=TH.deltaWarn?'supervisionDelta':'supervisionTemp')"));
+const haLoader=script.slice(script.indexOf('function buildFromStates('),script.indexOf('function applyState('));
+assert.ok(haLoader.includes('EVENTS=[]'),'live HA mode must not fabricate event history');
 // Translation must not modify communication and BMS command code.
 const idx=script.indexOf('function spGlowOverview(');
 const idx2=script.indexOf('function spGlowText(',idx);
