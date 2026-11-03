@@ -1049,7 +1049,7 @@ function heatmap(p){
     h+=`<div class="row"><a class="lb" href="#/pack/${p.id}/bms/${b.id}">${bn(b)}</a>`+b.cells.map((v,i)=>{
       const dev=(v-avg)*1000, t=Math.max(-1,Math.min(1,dev/span)), rgb=t<0?'var(--heat-lo)':'var(--heat-hi)';
       const weak = b.weak.resRise>=15||b.weak.lowestDays>=5 ? b.weak.cell===i+1 : false;
-      return `<span class="hc ${weak?'weak':''}" style="background:rgba(${rgb},${(Math.abs(t)*0.85).toFixed(2)})" title="${bn(b)} · cellule ${i+1} : ${f(v,3)} V (${dev>0?'+':''}${f(dev,0)} mV vs moyenne)">${dev>0?'+':''}${f(dev,0)}</span>`;
+      return `<span class="hc ${weak?'weak':''}" style="background:rgba(${rgb},${(Math.abs(t)*0.85).toFixed(2)})" title="${bn(b)} · ${spGlowCell('cellTooltip',{cell:i+1,v:f(v,3),unit:'V'})} (${dev>0?'+':''}${f(dev,0)} mV ${spGlowCell('vsAverage')})">${dev>0?'+':''}${f(dev,0)}</span>`;
     }).join('')+`</div>`;
   });
   return h+`</div><div class="heatlegend">−${span} mV <i></i> +${span} mV · ${spGlowCell('mapLegend',{avg:f(avg,3)})} · <span style="outline:2px dashed var(--warn);padding:0 4px;border-radius:4px">${spGlowCell('watchCell')}</span></div>`;
@@ -1081,7 +1081,7 @@ function cellMap(p){
         <span class="cm-y" style="top:0">+${scale} mV</span><span class="cm-y" style="top:50%">${spGlowCell('average')}<br><b>${f(r.avg,3)} V</b></span><span class="cm-y" style="top:100%">−${scale} mV</span>
         <i class="cm-zone" style="top:${50-8/scale*50}%;height:${16/scale*50}%"></i><i class="cm-mid"></i>
         <div class="cm-bars">${r.devs.map((d,i)=>{ const h=Math.max(1.5,Math.min(1,Math.abs(d)/scale)*50);
-          return `<div class="cm-col ${devCls(d,i,r)}" title="Cellule ${i+1} : ${f(b.cells[i],3)} V — ${Math.abs(d)<1?'pile dans la moyenne':`${f(Math.abs(d),0)} mV ${d<0?'sous':'au-dessus de'} la moyenne`}${r.suspect===i+1?' · à surveiller':''}">
+          return `<div class="cm-col ${devCls(d,i,r)}" title="${spGlowCell('cellDeltaTooltip',{cell:i+1,v:f(b.cells[i],3),delta:f(Math.abs(d),0),direction:spGlowCell(d<0?'below':'above')})}${r.suspect===i+1?' · '+spGlowCell('watchCell'):''}">
             <i style="${d>=0?`bottom:50%`:`top:50%`};height:${h}%"></i>${r.suspect===i+1?'<em>🔎</em>':''}</div>`; }).join('')}</div>
       </div>
       <div class="cm-x">${b.cells.map((_,i)=>`<span>${i+1}</span>`).join('')}</div>
@@ -1156,7 +1156,7 @@ function compareView(p){
 function cellsBlock(vals, unit, dec, scaleMin, balIdx=-1, highBad=false){
   const mn=Math.min(...vals), mx=Math.max(...vals), lo=scaleMin??(mn-((mx-mn)||.01)*1.5), rg=(mx-lo)||1;
   const iMin=vals.indexOf(mn), iMax=vals.indexOf(mx);
-  return `<div class="cells">${vals.map((v,i)=>`<div class="cell ${i===iMin?(highBad?'max':'min'):i===iMax?(highBad?'min':'max'):''} ${i===balIdx?'balc':''}" title="Cellule ${i+1} : ${f(v,dec)} ${unit}">
+  return `<div class="cells">${vals.map((v,i)=>`<div class="cell ${i===iMin?(highBad?'max':'min'):i===iMax?(highBad?'min':'max'):''} ${i===balIdx?'balc':''}" title="${spGlowCell('cellTooltip',{cell:i+1,v:f(v,dec),unit})}">
     <span class="v">${f(v,dec)}</span><div class="col" style="height:${Math.max(6,(v-lo)/rg*100)}%"></div><span class="n">${i+1}</span></div>`).join('')}</div>`;
 }
 
