@@ -54,7 +54,7 @@ This is a file in the shared HA `/config` tree, NOT in `/config/www` and NOT ser
 
 A packaged custom integration is present in `homeassistant/custom_components/smartphoton_glow_journal/`. It registers one read-only `smartphoton_glow_journal/list` WebSocket command. `require_admin` enforces access to authenticated Home Assistant administrators. Its server-side reader loads only the fixed isolated JSON file in an executor, checks a 1 MiB file limit, returns a whitelist of event fields, and applies bounded filters and a maximum 250-event response. It is not an HTTP endpoint, does not use 1891, and does not write to disk.
 
-The `glow/journal.js` frontend uses GLOW's existing `wsSend` authenticated HA session to request this command; it adds date, pack, BMS, and category filters in FR/EN/DE and a filtered history in the per-BMS Alarms page. If the integration is missing, unauthorized, or the journal file has not yet been created, the frontend displays an explicit unavailable notice. No fake events are generated.
+The add-on startup installer copies both `glow/index.html` and `glow/journal.js` to `/config/www/smartphoton_jkbms_multipack/glow/`, with staged atomic moves. The `glow/journal.js` frontend uses GLOW's existing `wsSend` authenticated HA session to request this command; it adds date, pack, BMS, and category filters in FR/EN/DE and a filtered history in the per-BMS Alarms page. If the integration is missing, unauthorized, or the journal file has not yet been created, the frontend displays an explicit unavailable notice. No fake events are generated.
 
 ### Test-only manual installation on HAOS Test (later, after local tests)
 
