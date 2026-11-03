@@ -15,7 +15,8 @@ assert.equal(node.outputs,1);
 assert.deepEqual(node.wires,[[]],'journal collector must not expose data to MQTT or HA');
 const state=new Map(),status={};
 const global={get:key=>state.get(key),set:(key,value)=>state.set(key,structuredClone(value))};
-const run=(msg)=>vm.runInNewContext(collector,{msg,global,node:{status:x=>{status.current=x}},Buffer,Date,JSON,Number,String,Array,Object,Math,RegExp});
+const executable='(function(){\n'+collector+'\n})()';
+const run=(msg)=>vm.runInNewContext(executable,{msg,global,node:{status:x=>{status.current=x}},Buffer,Date,JSON,Number,String,Array,Object,Math,RegExp});
 const KEY='jkbms_glow_journal_v1';
 const t=Date.now()-120000;
 const audit={
