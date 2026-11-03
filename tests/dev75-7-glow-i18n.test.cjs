@@ -137,6 +137,18 @@ assert.equal(bmsUi.de.paramsTab,'Parameter');
 assert.ok(script.includes("spGlowBmsUi('paramsTab')"));
 assert.ok(script.includes("spGlowLabel('Diagnostic')"));
 assert.ok(script.includes("spGlowLabel('Alarmes')"));
+// Display-only duration parsing must preserve raw JK BMS strings and unknown formats.
+const durationCode=script.match(/function spGlowRuntime\(value\)\{[\s\S]*?\n\}/)?.[0];
+assert.ok(durationCode,'display runtime formatter missing');
+const durationDict=JSON.parse(script.match(/^const SP_GLOW_DETAIL_I18N=(.+);$/m)[1]);
+const runtimeFormatter=new Function('value','spGlowDetail',durationCode+';return spGlowRuntime(value)');
+for(const [lang,expected] of [['fr','673 j 14 h 34 min'],['en','673 d 14 h 34 min'],['de','673 T 14 h 34 min']]){
+ const display=runtimeFormatter('673D14H34M',key=>durationDict[lang][key]);
+ assert.equal(display,expected,'incorrect runtime display in '+lang);
+ assert.notEqual(durationDict[lang].noCell,'No suspect cells','misleading long-term cell status');
+}
+assert.equal(runtimeFormatter('—',key=>durationDict.en[key]),'—');
+assert.ok(script.includes("kpi(spGlowDetail('runtime'),spGlowRuntime(b.runtime))"));
 // Translation must not modify communication and BMS command code.
 const idx=script.indexOf('function spGlowOverview(');
 const idx2=script.indexOf('function spGlowText(',idx);
