@@ -18,28 +18,46 @@ const originalPageJournal=pageJournal;
 const originalPageBms=pageBms;
 const JOURNAL_TOPIC='jkbms/glow/journal/snapshot';
 let journalConnection=null, journalUnsubscribe=null, journalPending=false;
+let journalGeneration=0, journalTimeout=null;
+const JOURNAL_WAIT_MS=12000;
+function clearJournalWait(){
+ if(journalTimeout!==null){clearTimeout(journalTimeout);journalTimeout=null;}
+}
 function fetchJournal(force=false){
  if(S.mode!=='ha')return;
  const conn=S.hass?.connection;
  if(!conn||typeof conn.subscribeMessage!=='function')return;
  if(conn===journalConnection && !force && (journalUnsubscribe||journalPending))return;
+ // A refresh or new HA session invalidates old callbacks and old retained data.
+ const generation=++journalGeneration;
+ clearJournalWait();
  if(journalUnsubscribe){try{journalUnsubscribe()}catch(_){}}
  journalConnection=conn;journalUnsubscribe=null;journalPending=true;
- journal.loading=true;
+ journal.available=false;journal.checked=false;journal.events=[];journal.loading=true;
+ journalTimeout=setTimeout(()=>{
+  if(generation!==journalGeneration||journal.checked)return;
+  journalTimeout=null;journal.loading=false;journal.checked=true;
+  // Do not unsubscribe: a valid delayed retained snapshot may still arrive.
+  if(viewerRoute())render();
+ },JOURNAL_WAIT_MS);
+ if(viewerRoute())render();
  conn.subscribeMessage(event=>{
-  if(journalConnection!==conn||event?.topic!==JOURNAL_TOPIC)return;
+  if(generation!==journalGeneration||journalConnection!==conn||event?.topic!==JOURNAL_TOPIC)return;
   try{
    const snap=typeof event.payload==='string'?JSON.parse(event.payload):event.payload;
    if(snap?.schema_version!==1||snap?.source!=='node_red'||!Array.isArray(snap.events))return;
+   clearJournalWait();
    journal.available=true;journal.loading=false;journal.checked=true;
    journal.events=snap.events.slice(0,100).filter(e=>e&&typeof e.t==='number');
    if(viewerRoute())render();
   }catch(err){console.warn('GLOW journal: invalid MQTT snapshot',err)}
  },{type:'mqtt/subscribe',topic:JOURNAL_TOPIC}).then(unsub=>{
-  if(journalConnection===conn){journalUnsubscribe=unsub;journalPending=false;journal.loading=false;}
-  else if(typeof unsub==='function')unsub();
+  if(generation===journalGeneration && journalConnection===conn){
+   journalUnsubscribe=unsub;journalPending=false;
+  }else if(typeof unsub==='function')unsub();
  }).catch(err=>{
-  if(journalConnection!==conn)return;
+  if(generation!==journalGeneration||journalConnection!==conn)return;
+  clearJournalWait();
   journalPending=false;journal.loading=false;journal.checked=true;
   journal.available=false;journal.events=[];
   console.warn('GLOW journal MQTT subscription unavailable (check HA MQTT permissions)',err);
