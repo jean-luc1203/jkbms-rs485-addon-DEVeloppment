@@ -1,3 +1,11 @@
+## 1.0.0-dev75.7 — 2026-11-03 — GLOW FR/EN/DE qualification (HAOS Test only)
+
+- Complete FR/EN/DE coverage for GLOW fleet KPIs, freshness indicators, comparisons, diagnostics, events, pack and BMS views, cell-map tooltips, trends and history titles.
+- Translate computed diagnostic messages and recommended actions at display time. Preserve raw hardware alarm codes and avoid falsely attributing any hardware alarm to low SOC.
+- Localize labels for all 30 BMS parameters and the comparison/edit confirmation screens without changing parameter suffixes, Home Assistant entity IDs or writes.
+- Add regression coverage in `tests/dev75-7-glow-i18n.test.cjs`; preserve existing SCADA, Premium, MQTT, Legacy and Active Polling behavior.
+- Qualification candidate only: merge into HAOS Test installation branch after validation; production .217 remains untouched.
+
 ## 1.0.0-dev74.3.1 — 2026-10-31 — HA existing dashboard titles sync hotfix
 
 - Fix `dashboard_sync.js` existing-dashboard metadata update: resolve stored `dashboard_id` using `lovelace/dashboards/list`, then update title/icon/sidebar flags through `lovelace/dashboards/update` without unsupported `url_path` or `mode` fields.
