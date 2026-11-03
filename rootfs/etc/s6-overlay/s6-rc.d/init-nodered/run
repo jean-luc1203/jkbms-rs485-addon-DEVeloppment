@@ -47,22 +47,34 @@ fi
 # Install Glow independently from SCADA so a missing optional interface cannot
 # block the other. Keep the user's old /config/www/jkbms-dashboard-glow.html
 # untouched; this is a versioned, Multi-Pack-specific web asset.
-GLOW_SOURCE="/etc/smartphoton_jkbms_multipack/www/glow/index.html"
-GLOW_TARGET="/config/www/smartphoton_jkbms_multipack/glow/index.html"
-if [[ -f "${GLOW_SOURCE}" ]]; then
-    mkdir -p "/config/www/smartphoton_jkbms_multipack/glow" \
-        || bashio::exit.nok "Failed to create Glow /config/www directory"
-    if ! cmp -s "${GLOW_SOURCE}" "${GLOW_TARGET}"; then
-        cp -f "${GLOW_SOURCE}" "${GLOW_TARGET}.tmp" \
-            || bashio::exit.nok "Failed to stage Glow HTML"
-        chmod 0644 "${GLOW_TARGET}.tmp" \
-            || bashio::exit.nok "Failed to chmod Glow HTML"
-        mv -f "${GLOW_TARGET}.tmp" "${GLOW_TARGET}" \
-            || bashio::exit.nok "Failed to install Glow HTML"
+GLOW_SOURCE_DIR="/etc/smartphoton_jkbms_multipack/www/glow"
+GLOW_TARGET_DIR="/config/www/smartphoton_jkbms_multipack/glow"
+GLOW_FILES=("index.html" "journal.js")
+GLOW_READY=true
+for relative_path in "${GLOW_FILES[@]}"; do
+    if [[ ! -f "${GLOW_SOURCE_DIR}/${relative_path}" ]]; then
+        GLOW_READY=false
+        bashio::log.warning "Glow packaged asset missing: ${relative_path}"
     fi
+done
+if [[ "${GLOW_READY}" == true ]]; then
+    mkdir -p "${GLOW_TARGET_DIR}" \
+        || bashio::exit.nok "Failed to create Glow /config/www directory"
+    for relative_path in "${GLOW_FILES[@]}"; do
+        source_file="${GLOW_SOURCE_DIR}/${relative_path}"
+        target_file="${GLOW_TARGET_DIR}/${relative_path}"
+        if ! cmp -s "${source_file}" "${target_file}"; then
+            cp -f "${source_file}" "${target_file}.tmp" \
+                || bashio::exit.nok "Failed to stage Glow asset: ${relative_path}"
+            chmod 0644 "${target_file}.tmp" \
+                || bashio::exit.nok "Failed to chmod Glow asset: ${relative_path}"
+            mv -f "${target_file}.tmp" "${target_file}" \
+                || bashio::exit.nok "Failed to install Glow asset: ${relative_path}"
+        fi
+    done
     bashio::log.info "SmartPhoton Glow available under /local/smartphoton_jkbms_multipack/glow/"
 else
-    bashio::log.warning "Glow packaged asset missing; Glow /local page may return 404."
+    bashio::log.warning "Glow assets incomplete; /local Glow may return 404."
 fi
 
 # Assure que la configuration existe
