@@ -1052,7 +1052,7 @@ function heatmap(p){
       return `<span class="hc ${weak?'weak':''}" style="background:rgba(${rgb},${(Math.abs(t)*0.85).toFixed(2)})" title="${bn(b)} · cellule ${i+1} : ${f(v,3)} V (${dev>0?'+':''}${f(dev,0)} mV vs moyenne)">${dev>0?'+':''}${f(dev,0)}</span>`;
     }).join('')+`</div>`;
   });
-  return h+`</div><div class="heatlegend">−${span} mV <i></i> +${span} mV · écart à la moyenne du pack (${f(avg,3)} V) · <span style="outline:2px dashed var(--warn);padding:0 4px;border-radius:4px">cellule à surveiller</span></div>`;
+  return h+`</div><div class="heatlegend">−${span} mV <i></i> +${span} mV · ${spGlowCell('mapLegend',{avg:f(avg,3)})} · <span style="outline:2px dashed var(--warn);padding:0 4px;border-radius:4px">${spGlowCell('watchCell')}</span></div>`;
 }
 
 function cellReport(b){
@@ -1060,25 +1060,25 @@ function cellReport(b){
   const wi=devs.reduce((w,d,i)=>Math.abs(d)>Math.abs(devs[w])?i:w,0), wd=devs[wi], spread=b.deltaMv;
   const suspect = (b.weak.lowestDays>=5||b.weak.resRise>=15) ? b.weak.cell : null;
   let lvl, title, text;
-  if (spread < 10){ lvl='ok'; title='Cellules bien équilibrées'; text=`Toutes les cellules ont quasiment la même tension (écart ${f(spread,0)} mV).`; }
-  else if (spread < TH.deltaWarn){ lvl='ok'; title='Léger écart, rien d’anormal'; text=`Écart de ${f(spread,0)} mV : normal, l’équilibrage s’en charge.`; }
+  if (spread < 10){ lvl='ok'; title=spGlowCell('balanced'); text=spGlowCell('balancedText',{delta:f(spread,0)}); }
+  else if (spread < TH.deltaWarn){ lvl='ok'; title=spGlowCell('slight'); text=spGlowCell('slightText',{delta:f(spread,0)}); }
   else { lvl=dL(spread); const c=suspect?suspect-1:wi, d=devs[c];
-    title=`Cellule ${c+1} ${d<0?'plus basse':'plus haute'} que les autres`;
-    text=`Elle est ${f(Math.abs(d),0)} mV ${d<0?'en dessous':'au-dessus'} de la moyenne. Écart entre la plus haute et la plus basse : ${f(spread,0)} mV (alerte à ${TH.deltaWarn} mV).`; }
-  if (suspect) text += ` 🔎 Cellule ${suspect} à surveiller : ${b.weak.lowestDays>=5?`c’est la plus basse depuis ${b.weak.lowestDays} jours`:`sa résistance a augmenté de ${b.weak.resRise} % en 30 jours`}.`;
-  if (b.alarms.length) text += ` ⛔ Alarme en cours : ${b.alarms.join(', ').toLowerCase()} (niveau de charge trop bas).`;
+    title=spGlowCell(d<0?'cellLow':'cellHigh',{cell:c+1});
+    text=spGlowCell('spreadText',{diff:f(Math.abs(d),0),side:spGlowCell(d<0?'below':'above'),delta:f(spread,0),threshold:TH.deltaWarn}); }
+  if (suspect) text += ' 🔎 '+(b.weak.lowestDays>=5?spGlowCell('weakDays',{cell:suspect,days:b.weak.lowestDays}):spGlowCell('weakResistance',{cell:suspect,rise:b.weak.resRise}));
+  if (b.alarms.length) text += ' ⛔ '+spGlowCell('hardwareAlarm',{alarms:b.alarms.join(', ')});
   return {avg,devs,lvl,title,text,suspect,wi};
 }
 function cellMap(p){
   const reps=p.bms.map(cellReport), maxAbs=Math.max(...reps.flatMap(r=>r.devs.map(Math.abs)));
   const scale=Math.max(20, Math.ceil(maxAbs/10)*10);
   const devCls=(d,i,r)=> r.suspect===i+1 ? 'sus' : Math.abs(d)>=15 ? 'big' : Math.abs(d)>=8 ? 'mid' : 'ok';
-  return `<div class="cm-intro">Les 16 cellules d’un BMS doivent avoir <b>la même tension</b>. Chaque barre montre l’écart d’une cellule par rapport à la moyenne : <b>plus les barres sont courtes, mieux c’est.</b></div>
+  return `<div class="cm-intro">${spGlowCell('mapIntro')}</div>
   <div class="grid ${p.bms.length>1?'g2':''}">${p.bms.map((b,k)=>{ const r=reps[k];
     return `<div class="cm">
       <div class="cm-head"><span class="ic">${r.lvl==='ok'?'✅':r.lvl==='warn'?'⚠️':'⛔'}</span><div><b>${bn(b)} · ${r.title}</b><small>${r.text}</small></div></div>
       <div class="cm-plot">
-        <span class="cm-y" style="top:0">+${scale} mV</span><span class="cm-y" style="top:50%">moyenne<br><b>${f(r.avg,3)} V</b></span><span class="cm-y" style="top:100%">−${scale} mV</span>
+        <span class="cm-y" style="top:0">+${scale} mV</span><span class="cm-y" style="top:50%">${spGlowCell('average')}<br><b>${f(r.avg,3)} V</b></span><span class="cm-y" style="top:100%">−${scale} mV</span>
         <i class="cm-zone" style="top:${50-8/scale*50}%;height:${16/scale*50}%"></i><i class="cm-mid"></i>
         <div class="cm-bars">${r.devs.map((d,i)=>{ const h=Math.max(1.5,Math.min(1,Math.abs(d)/scale)*50);
           return `<div class="cm-col ${devCls(d,i,r)}" title="Cellule ${i+1} : ${f(b.cells[i],3)} V — ${Math.abs(d)<1?'pile dans la moyenne':`${f(Math.abs(d),0)} mV ${d<0?'sous':'au-dessus de'} la moyenne`}${r.suspect===i+1?' · à surveiller':''}">
@@ -1086,7 +1086,7 @@ function cellMap(p){
       </div>
       <div class="cm-x">${b.cells.map((_,i)=>`<span>${i+1}</span>`).join('')}</div>
     </div>`; }).join('')}</div>
-  <div class="cm-legend"><span style="--c:var(--ok)">Normal (moins de 8 mV)</span><span style="--c:var(--warn)">Léger écart (8–15 mV)</span><span style="--c:var(--crit)">Écart important (plus de 15 mV)</span><span style="--c:var(--flow)">🔎 Cellule à surveiller dans le temps</span><span class="cm-z">Zone grisée = plage normale</span></div>`;
+  <div class="cm-legend"><span style="--c:var(--ok)">${spGlowCell('normalRange')}</span><span style="--c:var(--warn)">${spGlowCell('smallGap')}</span><span style="--c:var(--crit)">${spGlowCell('largeGap')}</span><span style="--c:var(--flow)">🔎 ${spGlowCell('watchOverTime')}</span><span class="cm-z">${spGlowCell('zone')}</span></div>`;
 }
 
 function pagePack(p, tab){
