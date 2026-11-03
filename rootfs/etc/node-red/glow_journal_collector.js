@@ -61,7 +61,7 @@ function hardware(topic,value,retained){
    lvl:v==='ON'?'crit':'info',pack:p,bms:b,
    txt:v==='ON'?'JK-BMS hardware alarm active':'JK-BMS hardware alarm cleared',det:v});
  }
- store.hardware[key]={value:v,seen:now};
+ if(!previous||previous.value!==v||now-Number(previous.seen||0)>3600000)store.hardware[key]={value:v,seen:now};
 }
 let payload=msg.payload;
 if(Buffer.isBuffer(payload))payload=payload.toString('utf8');
