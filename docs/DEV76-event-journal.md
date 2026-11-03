@@ -8,14 +8,14 @@
 - Imports SCADA lifecycle entries for `PACK_OFFLINE`, `TEMPERATURE_HIGH` and `CELL_DELTA_HIGH`; active and cleared transitions have different stable event IDs.
 - Hardware MQTT state is treated as baseline on first observation and for retained messages, not a historical incident. A subsequent non-retained ON/OFF change creates an event.
 - Per-BMS balancing ON/OFF and per-pack charge/idle/discharge state changes are derived from Step 13E aggregates after 10 seconds of stable readings. The initial/retained snapshot is only a baseline; absolute current threshold is 3 A. This cannot recover transitions lost while the collector was stopped.
-- Private Node-RED `global` context key `jkbms_glow_journal_v1` (default localfilesystem context store; verify on HAOS Test). Maximum 250 events or 30 days; oldest pruned. Minimal event fields only.
+- Private isolated Node-RED `glowJournal` context store key `jkbms_glow_journal_v1` (localfilesystem; verify on HAOS Test). Maximum 250 events or 30 days; oldest pruned. Minimal event fields only.
 - No new MQTT Discovery entity, no retained journal topic, no public `/local/` JSON, no HTTP endpoint, no BMS command write.
 - Repeated hardware telemetry doesn't rewrite the context on every 3-second poll; same-state baseline refresh is limited to once an hour.
 
 ## Important limitations
 
-1. **The GLOW browser is not yet connected to the private journal.** The DEV75.7.1 'History unavailable' message remains correct.
-2. No own persistent event-log database yet; durability depends on Node-RED's configured `localfilesystem` context store and its flush behavior.
+1. **GLOW's journal viewer is implemented but not yet installed or tested on HAOS.** It requires the additional custom HA integration; DEV75.7.1 still displays its original history-unavailable notice.
+2. Durability depends on the separate Node-RED `localfilesystem` store and its flush behavior; power loss may lose the last few seconds.
 3. The SCADA snapshot exposes a bounded window (up to 60 recent commands, 40 cleared alarms and 20 active alarms); the collector cannot reconstruct older missing events from a snapshot. Its own store retains events after ingestion.
 4. Source events are per-pack for SCADA diagnostic lifecycle; the individual BMS identity is available only for SCADA commands and hardware alarm topics.
 5. Balancing and charge/discharge transitions now have source mapping and a 10-second debounce; thresholds and edge cases still require HAOS validation, including retained replay and stale-pack recovery.
@@ -38,9 +38,47 @@ No option is implemented yet, so the GLOW Journal continues to display the hones
 
 `tests/dev76-glow-journal.test.cjs` now simulates a fresh Function context supplied with previously persisted data and replays retained hardware/aggregate state and audit snapshots. It checks history preservation, deduplication and lack of invented startup transitions. This is a unit simulation: real Node-RED localfilesystem flush, HAOS filesystem persistence, and backup/restore must still be exercised on HAOS Test.
 
+## DEV76 secure reader prototype (not deployed)
+
+The chosen proof of concept uses an isolated Node-RED `localfilesystem` context store named `glowJournal` instead of the default global context (which may include unrelated private data). The Node-RED configuration is:
+
+- `dir: /config/smartphoton_jkbms_multipack`
+- `base: glow-journal-store`
+- `flushInterval: 5` (seconds)
+
+Node-RED's documented localfilesystem layout places its global file at:
+
+`/config/smartphoton_jkbms_multipack/glow-journal-store/global/global.json`
+
+This is a file in the shared HA `/config` tree, NOT in `/config/www` and NOT served by Node-RED. It should contain only the bounded journal context key `jkbms_glow_journal_v1`, isolated from other Node-RED variables.
+
+A packaged custom integration is present in `homeassistant/custom_components/smartphoton_glow_journal/`. It registers one read-only `smartphoton_glow_journal/list` WebSocket command. `require_admin` enforces access to authenticated Home Assistant administrators. Its server-side reader loads only the fixed isolated JSON file in an executor, checks a 1 MiB file limit, returns a whitelist of event fields, and applies bounded filters and a maximum 250-event response. It is not an HTTP endpoint, does not use 1891, and does not write to disk.
+
+The `glow/journal.js` frontend uses GLOW's existing `wsSend` authenticated HA session to request this command; it adds date, pack, BMS, and category filters in FR/EN/DE and a filtered history in the per-BMS Alarms page. If the integration is missing, unauthorized, or the journal file has not yet been created, the frontend displays an explicit unavailable notice. No fake events are generated.
+
+### Test-only manual installation on HAOS Test (later, after local tests)
+
+1. Copy the entire directory `homeassistant/custom_components/smartphoton_glow_journal` from the checked-out DEV76 branch into HAOS Test's `/config/custom_components/smartphoton_glow_journal` (outside of `www`). Do not perform these steps on production.
+2. Add this separate key to HAOS Test's `/config/configuration.yaml`:
+
+   ```yaml
+   smartphoton_glow_journal:
+   ```
+
+3. Run a Home Assistant configuration check and restart **Home Assistant Core** on HAOS Test to register the custom WebSocket command. The integration is not installed by simply updating the add-on.
+4. Deploy the DEV76 add-on candidate only after full unit regression and safety review. At startup the named Node-RED store will create its own isolated context file after the first event or baseline write. Note that the backend file may lag in-memory data by about five seconds.
+5. Open the GLOW journal as an HA administrator. Confirm read-only access, missing-file display, event filters, per-BMS history, and that an ordinary non-admin account cannot read the journal.
+6. Check restart and restore on HAOS Test: recorder remains unaffected, retained MQTT replay creates no false transition, and events persist.
+
+Do not attempt to expose the isolated JSON via `/local` or create an unauthenticated Node-RED HTTP route.
+
+### Release limitation
+
+A separate custom integration is a **new deployment dependency**. Before any production release, decide whether it will be included in the installer/upgrade process (with safe rollback) or clearly documented as an optional GLOW Premium feature. The existing addon must not silently modify an administrator's `configuration.yaml`.
+
 ## Next steps before DEV76 qualification
 
-- Determine an **authenticated and read-only** route from GLOW to the private server-side journal (do not expose command/audit history via publicly served `/local/`).
+- Verify the **admin-only** HA WebSocket reader on HAOS Test; confirm authenticated access and non-admin denial. Keep the isolated context file outside `/local/`.
 - Build journal pages and filters in FR/EN/DE: time, site, BMS, category, status; include source and recording coverage.
 - Qualify balancing and charge/discharge transitions on real and simulated BMS; extend hardware alarm details and acknowledgement semantics without guessing causes.
 - Test persistence over Node-RED restart and HAOS restart, retained-state replays, data restoration and limits.
