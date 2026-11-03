@@ -111,6 +111,20 @@ for(const lang of ['fr','en','de']){
  assert.ok(!res.text.includes('niveau de charge trop bas'),'unjustified SOC diagnosis in '+lang);
  assert.ok(res.title.includes(lang==='fr'?'Cellule':lang==='en'?'Cell':'Zelle'),'cell report title not localized in '+lang);
 }
+// Visual QA: overview translations, correctly inflected status counts and chart time axis.
+const overviewDict=JSON.parse(script.match(/^const SP_GLOW_OVERVIEW_I18N=(.+);$/m)[1]);
+const cardDict=JSON.parse(script.match(/^const SP_GLOW_CARD_I18N=(.+);$/m)[1]);
+for(const lang of ['fr','en','de']){
+ assert.ok(overviewDict[lang].footerRecorder,'missing footer translation '+lang);
+ assert.ok(overviewDict[lang].nowShort&&overviewDict[lang].now,'missing chart time translation '+lang);
+}
+assert.equal(cardDict.de.more,'Mehr ▾');
+assert.ok(script.includes("spGlowOverview('footerRecorder')"));
+assert.ok(script.includes("spGlowOverview(cp?'nowShort':'now')"));
+assert.ok(script.includes("spGlowText('alarm',{n:crit.length})"));
+assert.ok(script.includes("spGlowText('watch',{n:warn.length})"));
+assert.ok(script.includes("n===1?'1 Punkt zur Überwachung'"));
+assert.ok(script.includes("n===1?'1 point to monitor'"));
 // Translation must not modify communication and BMS command code.
 const idx=script.indexOf('function spGlowOverview(');
 const idx2=script.indexOf('function spGlowText(',idx);
