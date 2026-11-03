@@ -9,7 +9,7 @@ const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert.ok(script,'Glow inline script missing');
 new vm.Script(script,{filename:'glow/index.html'});
 
-for(const name of ['SP_GLOW_OVERVIEW_I18N','SP_GLOW_CARD_I18N','SP_GLOW_TIME_UNITS','SP_GLOW_VIEWS_I18N','SP_GLOW_BMS_UI']){
+for(const name of ['SP_GLOW_OVERVIEW_I18N','SP_GLOW_CARD_I18N','SP_GLOW_TIME_UNITS','SP_GLOW_VIEWS_I18N','SP_GLOW_BMS_UI','SP_GLOW_DIAG_I18N']){
  const line=script.match(new RegExp('^const '+name+'=(.+);$','m'));
  assert.ok(line,name+' missing');
  const dict=JSON.parse(line[1]);
@@ -45,6 +45,24 @@ for(const key of ['packView','compareBms','packBms','totalPower','worstBms','cel
 assert.ok(script.includes("spGlowBmsUi(E?'editMode':'readOnly')"));
 assert.ok(script.includes("spGlowBmsUi('save')"));
 assert.ok(script.includes("spGlowBmsUi('cancel')"));
+// Diagnostics: translated operator messages in all three languages.
+for(const key of ['missing','missingHelp','offline','offlineHelp','alarmHelp','delta','deltaHelp','temp','tempHelp','lowSoc','lowSocHelp','stale','staleHelp','weakLow','weakLowHelp','weakResistance','weakResistanceHelp']){
+ assert.ok(script.includes("spGlowDiag('"+key+"'"),'missing diagnostic display translation: '+key);
+}
+// Preserve exact BMS entity keys; use separate labels only in the view.
+const translatedParams=script.match(/^const SP_GLOW_PARAM_LABELS=(.+);$/m);
+assert.ok(translatedParams,'technical parameter dictionary missing');
+const paramDict=JSON.parse(translatedParams[1]);
+const definitionSource=script.split('const PARAM_DEF = {')[1]?.split('const SW_DEF =')[0];
+assert.ok(definitionSource,'technical parameter definitions missing');
+const paramKeys=[...definitionSource.matchAll(/'(bms_[a-z0-9_]+)',/g)].map(m=>m[1]);
+assert.equal(paramKeys.length,30);
+for(const lang of ['en','de']){
+ assert.deepEqual(Object.keys(paramDict[lang]).sort(),paramKeys.slice().sort(),'parameter identity mismatch: '+lang);
+ for(const key of paramKeys)assert.ok(paramDict[lang][key],lang+' missing '+key);
+}
+for(const needle of ['spGlowParamLabel(k,l)','label:spGlowParamLabel(k,d.label)','label:spGlowLabel(SW_DEF.find(s=>s[0]===k)[1])','spGlowParamGroup(g)'])
+ assert.ok(script.includes(needle),'missing presentation localization: '+needle);
 // Translation must not modify communication and BMS command code.
 const idx=script.indexOf('function spGlowOverview(');
 const idx2=script.indexOf('function spGlowText(',idx);
