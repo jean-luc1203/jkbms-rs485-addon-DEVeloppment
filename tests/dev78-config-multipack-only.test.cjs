@@ -38,7 +38,7 @@ for (const key of [
 ]) {
   assert.ok(optionKeys.includes(key), 'required option missing: ' + key);
 }
-assert.match(config, /^version: 1\.0\.0-dev78\.0$/m);
+assert.match(config, /^version: 1\.0\.0-dev78\.1$/m);
 assert.match(optionBlock, /^  multi_pack_active_polling: true$/m);
 assert.match(optionBlock, /^  bms_broadcasting: false$/m);
 assert.match(optionBlock, /^  non_broadcasting_data_interval_s: 3$/m);
@@ -67,4 +67,21 @@ for (const lang of ['fr', 'en', 'de', 'ru']) {
     assert.ok(optionKeys.includes(key), lang + ': obsolete configuration label ' + key);
   }
 }
+// Removing schema entries alone does not remove saved Supervisor options.
+// Ensure startup cleanup is exact, idempotent and does not touch nested pack settings.
+const initScript = fs.readFileSync(
+  path.join(root, 'rootfs/etc/s6-overlay/s6-rc.d/init-nodered/run'), 'utf8'
+);
+const obsoleteListMatch = initScript.match(/DEV78_OBSOLETE_OPTIONS=\(\s*([\s\S]*?)\s*\)/);
+assert.ok(obsoleteListMatch, 'DEV78.1 cleanup list missing');
+const obsolete = obsoleteListMatch[1].trim().split(/\s+/);
+assert.deepEqual(obsolete, [
+  'multi_pack_enabled', 'legacy_section', 'jkbms_path', 'jkbms_count',
+  'use_gateway', 'gateway_ip_port', 'dashboard_mode'
+]);
+assert.match(initScript, /bashio::jq\.exists "\$\(bashio::app\.options\)" "\.\$\{option_name\}"/);
+assert.match(initScript, /bashio::app\.option "\$\{option_name\}"/);
+assert.ok(!obsolete.includes('multi_pack_packs'));
+assert.ok(!obsolete.includes('premium_key'));
+assert.ok(!obsolete.includes('mqttpass'));
 console.log('PASS dev78-config-multipack-only.test.cjs');
