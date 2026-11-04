@@ -12,7 +12,7 @@ const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert(style && script, 'SCADA must retain its CSS and JS');
 new vm.Script(script, { filename: 'scada/index.html inline script' });
 
-assert.match(config, /version: 1\.0\.0-dev(?:74\.(?:2|3(?:\.1|\.2)?)|75\.(?:[0-6]|7(?:\.1)?)|76\.[01])/);
+assert.match(config, /version: 1\.0\.0-dev(?:74\.(?:2|3(?:\.1|\.2)?)|75\.(?:[0-6]|7(?:\.1)?)|76\.[01]|77(?:\.[0-9]+)?)/);
 assert.match(html, /const SCADA_UI='v0\.39'/);
 const bms = html.slice(html.indexOf('function openBms(packId,bms){'), html.indexOf('function openBmsOverview(){'));
 assert.match(bms, /class="detail-hero bms-operator-hero"/);
