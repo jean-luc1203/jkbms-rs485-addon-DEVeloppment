@@ -56,4 +56,15 @@ assert.match(configNode.func, /processedData\.CAN_bus_usage !== true/);
 assert.match(activeNode.func, /global\.get\("non_broadcasting_data_interval_s"\)/);
 assert.match(configNode.func, /const activePollingRequested = processedData\.multi_pack_active_polling === true/);
 assert.match(configNode.func, /global\.set\("jkbms_pack_defs", runtimePackDefs\)/);
+for (const lang of ['fr', 'en', 'de', 'ru']) {
+  const translation = fs.readFileSync(path.join(root, 'translations', lang + '.yaml'), 'utf8');
+  const translatedKeys = [...translation.matchAll(/^  ([A-Za-z_][\w]*):\s*$/gm)].map(m => m[1]);
+  assert.equal(new Set(translatedKeys).size, translatedKeys.length, lang + ': duplicate translation keys');
+  for (const key of optionKeys) {
+    assert.ok(translatedKeys.includes(key), lang + ': missing translation of ' + key);
+  }
+  for (const key of translatedKeys) {
+    assert.ok(optionKeys.includes(key), lang + ': obsolete configuration label ' + key);
+  }
+}
 console.log('PASS dev78-config-multipack-only.test.cjs');
