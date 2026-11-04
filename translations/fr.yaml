@@ -9,9 +9,6 @@ configuration:
   multi_pack_section:
     name: ────────── MULTI-PACK ──────────
     description: "Configuration de plusieurs packs JK-BMS indépendants, en Broadcasting ou Active Polling. Guide de configuration : https://github.com/jean-luc1203/jkbms-rs485-addon-DEVeloppment/blob/main/Documentation/MULTI-PACK-CONFIG.md"
-  multi_pack_enabled:
-    name: 🔷 Multi-Pack → Activer
-    description: Activer l'architecture Multi-Pack. Recommandé pour les nouvelles installations, même avec un seul pack. Chaque pack possède une identité technique stable et son propre transport.
   multi_pack_active_polling:
     name: 🔷 Multi-Pack → Active Polling
     description: Activer Active Polling en Multi-Pack lorsque le Broadcasting est désactivé. Compatible TCP/IP et USB/RS485 direct.
@@ -37,21 +34,6 @@ configuration:
       bms_addresses:
         name: Adresses BMS
         description: Active Polling uniquement. Utiliser auto (recommandé) pour scanner automatiquement les adresses 1 à 15, ou saisir une liste manuelle séparée par des virgules, par exemple 1,3,7.
-  legacy_section:
-    name: ────────── LEGACY / MONO-BUS ──────────
-    description: Configuration de compatibilité pour l'ancien bus RS485 unique.
-  jkbms_path:
-    name: 🟪 JK-BMS → Chemin du port série
-    description: Chemin USB/RS485 persistant utilisé en Legacy et comme repli de compatibilité pour un pack série Multi-Pack.
-  jkbms_count:
-    name: 🟪 JK-BMS → Nombre de modules BMS
-    description: Nombre total de modules JK-BMS sur le bus RS485 Legacy (1 à 15).
-  use_gateway:
-    name: 🟨 JK-BMS → Utiliser une passerelle TCP
-    description: Utiliser une passerelle TCP/IP au lieu de l'interface USB/RS485 locale en mode Legacy.
-  gateway_ip_port:
-    name: 🟨 JK-BMS → Adresse IP de la passerelle + port
-    description: "Adresse IP et port TCP de la passerelle JK-BMS Legacy, par exemple 192.168.1.100:5000."
   non_broadcasting_data_interval_s:
     name: ⏱️ JK-BMS → Intervalle Active Polling (s)
     description: "Délai entre les cycles LIVE lorsque le Broadcasting est désactivé. Plage autorisée : 1 à 30 secondes."
@@ -88,6 +70,3 @@ configuration:
   dashboard_language:
     name: 🎨 Dashboard → Langue
     description: Langue utilisée par les dashboards SmartPhoton Premium.
-  dashboard_mode:
-    name: 🎨 Dashboard → Mode
-    description: "Mode Legacy uniquement : legacy = Home Assistant/Lovelace, html = dashboard HTML, both = les deux. En Multi-Pack Premium, le dashboard Multi-Pack dédié est utilisé."
