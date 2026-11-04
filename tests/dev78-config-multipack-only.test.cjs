@@ -38,7 +38,7 @@ for (const key of [
 ]) {
   assert.ok(optionKeys.includes(key), 'required option missing: ' + key);
 }
-assert.match(config, /^version: 1\.0\.0-dev78\.2$/m);
+assert.match(config, /^version: 1\.0\.0-dev78\.3$/m);
 assert.match(optionBlock, /^  multi_pack_active_polling: true$/m);
 assert.match(optionBlock, /^  bms_broadcasting: false$/m);
 assert.match(optionBlock, /^  non_broadcasting_data_interval_s: 3$/m);
