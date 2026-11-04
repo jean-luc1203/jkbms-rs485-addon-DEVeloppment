@@ -5,6 +5,28 @@
 # Configure Node-RED avant exécution
 # ==============================================================================
 
+# DEV78.1: remove deprecated *root* options from the installed Multi-Pack add-on.
+# The Supervisor preserves stored keys even after they disappear from schema.
+# This is not a Legacy-to-Multi-Pack migration; no current pack settings change.
+# bashio::app.option with no value removes only the named top-level option.
+# Never remove multi_pack_packs[].gateway_ip_port or any Premium/MQTT settings.
+DEV78_OBSOLETE_OPTIONS=(
+    multi_pack_enabled
+    legacy_section
+    jkbms_path
+    jkbms_count
+    use_gateway
+    gateway_ip_port
+    dashboard_mode
+)
+for option_name in "${DEV78_OBSOLETE_OPTIONS[@]}"; do
+    if bashio::jq.exists "$(bashio::app.options)" ".${option_name}"; then
+        bashio::log.info "DEV78.1: removing obsolete saved option ${option_name}"
+        bashio::app.option "${option_name}" \
+            || bashio::exit.nok "Failed to remove obsolete option ${option_name}"
+    fi
+done
+
 # Install the versioned SCADA interface and image assets into HAOS /local.
 # Keep this independent of the persistent Node-RED userDir and never delete
 # unrelated files or directories under /config/www.
