@@ -9,9 +9,6 @@ configuration:
   multi_pack_section:
     name: ────────── MULTI-PACK ──────────
     description: "Konfiguration unabhängiger JK-BMS-Packs mit Broadcasting oder Active Polling. Konfigurationsanleitung: https://github.com/jean-luc1203/jkbms-rs485-addon-DEVeloppment/blob/main/Documentation/MULTI-PACK-CONFIG.md"
-  multi_pack_enabled:
-    name: 🔷 Multi-Pack → Aktivieren
-    description: Multi-Pack aktivieren. Für neue Installationen empfohlen, auch mit nur einem Pack. Jeder Pack besitzt eine stabile technische ID und einen eigenen Transport.
   multi_pack_active_polling:
     name: 🔷 Multi-Pack → Active Polling
     description: Multi-Pack Active Polling bei deaktiviertem Broadcasting aktivieren. Unterstützt TCP/IP und direktes USB/RS485.
@@ -37,21 +34,6 @@ configuration:
       bms_addresses:
         name: BMS-Adressen
         description: Nur Active Polling. auto (empfohlen) scannt die Adressen 1 bis 15 automatisch. Alternativ kann eine manuelle, kommagetrennte Liste wie 1,3,7 angegeben werden.
-  legacy_section:
-    name: ────────── LEGACY / EINZELBUS ──────────
-    description: Kompatibilitätskonfiguration für den bisherigen einzelnen RS485-Bus.
-  jkbms_path:
-    name: 🟪 JK-BMS → Serieller Port
-    description: Persistenter USB/RS485-Pfad für Legacy und als Kompatibilitäts-Fallback für einen seriellen Multi-Pack.
-  jkbms_count:
-    name: 🟪 JK-BMS → Anzahl der BMS-Module
-    description: Gesamtzahl der JK-BMS-Module auf dem Legacy-RS485-Bus (1 bis 15).
-  use_gateway:
-    name: 🟨 JK-BMS → TCP-Gateway verwenden
-    description: TCP/IP-Gateway anstelle der lokalen USB/RS485-Schnittstelle im Legacy-Modus verwenden.
-  gateway_ip_port:
-    name: 🟨 JK-BMS → Gateway-IP + Port
-    description: "IP-Adresse und TCP-Port des Legacy-JK-BMS-Gateways, z. B. 192.168.1.100:5000."
   non_broadcasting_data_interval_s:
     name: ⏱️ JK-BMS → Active-Polling-Intervall (s)
     description: "Zeit zwischen LIVE-Abfragezyklen bei deaktiviertem Broadcasting. Zulässiger Bereich: 1 bis 30 Sekunden."
@@ -88,6 +70,3 @@ configuration:
   dashboard_language:
     name: 🎨 Dashboard → Sprache
     description: Sprache der SmartPhoton-Premium-Dashboards.
-  dashboard_mode:
-    name: 🎨 Dashboard → Modus
-    description: "Nur im Legacy-Runtime: legacy = Home Assistant/Lovelace, html = HTML-Dashboard, both = beide. Multi-Pack Premium verwendet das eigene Multi-Pack-Dashboard."
