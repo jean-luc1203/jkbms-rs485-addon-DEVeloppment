@@ -28,6 +28,27 @@ function run(states,hash=''){
   return ctx.location.hash;
 }
 assert.equal(run([state(1,0),state(1,2)]),'#/pack/1/bms/0/live');
+const topology=(ids)=>({entity_id:'sensor.smartphoton_jk_bms_multi_pack_global_summary',state:'47',attributes:{configured_pack_ids:ids}});
+const stale={...state(2,1),state:'unavailable'};
+assert.equal(run([state(1,0),state(1,2),state(2,1),state(3,1),state(4,1),topology(['pack_1'])]),
+  '#/pack/1/bms/0/live','removed packs must not block mono-pack routing');
+assert.equal(vm.runInContext('PACKS.map(p=>p.id).join(",")',ctx),'1');
+assert.equal(run([state(1,0),stale,topology(['pack_1','pack_2'])]),'',
+  'configured offline pack must remain present on fleet overview');
+assert.equal(vm.runInContext('PACKS.map(p=>p.id).join(",")',ctx),'1,2');
+assert.equal(run([state(1,0),state(2,1),state(3,1),topology(['pack_1'])],'#/pack/1/bms/2/params'),
+  '#/pack/1/bms/2/params','explicit navigation must stay untouched');
+assert.equal(run([state(1,0),state(2,1),state(3,1)],''),'',
+  'without topology, wait rather than redirect when several HA packs exist');
+vm.runInContext("applyHaEventState({entity_id:GLOBAL_SUMMARY_ID,state:'47',attributes:{configured_pack_ids:['pack_1']}})",ctx);
+assert.equal(ctx.location.hash,'#/pack/1/bms/0/live',
+  'topology received after initial HA state list must activate mono-pack route');
+assert.equal(vm.runInContext('PACKS.length',ctx),1);
+assert.equal(run([state(1,0),state(2,1),topology(['pack_1','pack_2'])]),'');
+vm.runInContext("applyHaEventState({entity_id:GLOBAL_SUMMARY_ID,state:'47',attributes:{configured_pack_ids:['pack_1']}})",ctx);
+assert.equal(ctx.location.hash,'#/pack/1/bms/0/live',
+  'replaced stale topology must reroute the initial overview to BMS 0');
+
 assert.equal(run([state(1,2),state(1,0)]),'#/pack/1/bms/0/live'); // BMS triés par adresse
 assert.equal(run([state(1,2),state(1,3)],'#/pack/1'),'#/pack/1'); // navigation explicite préservée
 assert.equal(run([state(1,0),state(1,2)],'#/pack/1/bms/2/params'),'#/pack/1/bms/2/params'); // BMS et onglet explicites
@@ -49,6 +70,11 @@ assert.equal(flows.filter(n=>n.type==='function').length,105);
 const inject=flows.find(n=>n.id==='13b6b22d1a8e5d01');
 assert(inject.wires[0].includes('34cada0000000002'));
 assert(inject.wires[0].includes('74a0000000000002'));
+const topologyBridge=flows.find(n=>n.id==='13b6b22d1a8e5c40');
+assert(topologyBridge?.func.includes('configured_pack_ids: packIds.slice()'),
+  'HA global summary must expose configured runtime pack topology');
+assert(topologyBridge.func.includes('data.offline_packs || [],\\n        packIds'.replace('\\n','\n')),
+  'topology changes must bypass aggregate publish throttle');
 const glow=flows.find(n=>n.id==='74a0000000000002');
 assert(glow.func.includes('premium.multi_pack_premium_available'));
 const runMenu=(get)=>vm.runInNewContext(`(function(msg){${glow.func}})(msg)`,{

@@ -1331,7 +1331,7 @@ function tryParentHass(){
     if(!hass||!hass.connection) return false;
     S.hass=hass; S.haStatus='Connecté automatiquement (page intégrée à Home Assistant)';
     buildFromStates(Object.values(hass.states));
-    hass.connection.subscribeEvents(ev=>{ if(ev.data&&ev.data.new_state&&applyState(ev.data.new_state)) S.dirty=true; },'state_changed');
+    hass.connection.subscribeEvents(ev=>{ if(ev.data&&ev.data.new_state) applyHaEventState(ev.data.new_state); },'state_changed');
     return S.mode==='ha';
   }catch(e){ return false; }
 }
@@ -1349,12 +1349,43 @@ function connectHA(url, token){
       wsSend({type:'get_states'}, res=>{ buildFromStates(res); wsSend({type:'subscribe_events',event_type:'state_changed'}); });
     }
     else if(m.type==='result' && S.pending[m.id]){ const cb=S.pending[m.id]; delete S.pending[m.id]; cb(m.success?m.result:null, m); }
-    else if(m.type==='event' && m.event && m.event.data && m.event.data.new_state){ if(applyState(m.event.data.new_state)) S.dirty=true; }
+    else if(m.type==='event' && m.event && m.event.data && m.event.data.new_state){ applyHaEventState(m.event.data.new_state); }
   };
   ws.onerror = () => { S.haStatus='Erreur de connexion'; render(); };
   ws.onclose = () => { if(S.mode==='ha'){ S.haStatus='Connexion perdue'; render(); } };
 }
 const ENT_RE = /^(sensor|binary_sensor|number|switch)\.pack_(\d+)_bms_(\d+|master)_(.+)$/i;
+const GLOBAL_SUMMARY_ID = 'sensor.smartphoton_jk_bms_multi_pack_global_summary';
+function configuredPackIdsFromStates(states){
+  const summary=states.find(s=>s.entity_id===GLOBAL_SUMMARY_ID);
+  const ids=summary?.attributes?.configured_pack_ids;
+  // Anciennes installations : aucun filtrage si l'attribut n'existe pas.
+  if(!Array.isArray(ids)||!ids.every(id=>typeof id==='string'&&/^pack_[1-5]$/.test(id))) return null;
+  return [...new Set(ids)].sort();
+}
+function applyHaEventState(s){
+  if(!s||!s.entity_id) return;
+  S.lastStateMap?.set(s.entity_id,s);
+  if(s.entity_id===GLOBAL_SUMMARY_ID){
+    const next=configuredPackIdsFromStates([s]);
+    if(next!==null && JSON.stringify(next)!==JSON.stringify(S.configuredPackIds)){
+      // Si HA avait encore l'ancienne topologie, réévaluer l'accueil seulement
+      // lorsque l'utilisateur est toujours sur la vue globale par défaut.
+      if((!location.hash||location.hash==='#/') && next.length===1) S.autoRouteApplied=false;
+      // La topologie peut arriver après les premières entités HA.
+      // Reconstruire alors la liste sans effacer les entités du registre HA.
+      buildFromStates([...S.lastStateMap.values()]);
+    }
+    return;
+  }
+  const m=s.entity_id.match(ENT_RE);
+  if(m && S.configuredPackIds?.includes(`pack_${m[2]}`) &&
+     !PACKS.some(p=>p.id===+m[2] && p.bms.some(b=>b.id===bmsId(m[3])))){
+    buildFromStates([...S.lastStateMap.values()]);
+    return;
+  }
+  if(applyState(s)) S.dirty=true;
+}
 const bmsId = k => /^master$/i.test(k) ? 1 : +k;          // BMS_master = BMS n°1
 const bmsKey = b => b.key || b.id;                          // morceau réel du nom d'entité
 function blankBms(pack,id){ const params={},switches={}; Object.values(PARAM_DEF).flat().forEach(p=>params[p[0]]=null); SW_DEF.forEach(s=>switches[s[0]]=null);
@@ -1363,8 +1394,12 @@ function blankBms(pack,id){ const params={},switches={}; Object.values(PARAM_DEF
 function buildFromStates(states){
   if(!states){ S.haStatus='Lecture impossible'; render(); return; }
   S.lastStates=states;
+  S.lastStateMap=new Map(states.filter(s=>s&&s.entity_id).map(s=>[s.entity_id,s]));
+  S.configuredPackIds=configuredPackIdsFromStates(states);
+  const configured = S.configuredPackIds && new Set(S.configuredPackIds.map(id=>+id.slice(5)));
   const packs={};
   states.forEach(s=>{ const m=s.entity_id.match(ENT_RE); if(!m) return; const pi=+m[2], bi=bmsId(m[3]);
+    if(configured && !configured.has(pi)) return;
     packs[pi] ||= {id:pi,name:`Pack ${pi}`,link:'HA',bms:{}}; if(!packs[pi].bms[bi]){ packs[pi].bms[bi]=blankBms(pi,bi); packs[pi].bms[bi].key=m[3].toLowerCase(); } });
   states.forEach(s=>{ const m=s.entity_id.match(/^sensor\.smartphoton_jk_bms_multi_pack_pack_(\d+)_summary$/); if(m&&packs[+m[1]]){ const a=s.attributes||{};
     packs[+m[1]].name = a.pack_name || a.name || (a.friendly_name||'').replace(/\s*summary$/i,'') || packs[+m[1]].name;
@@ -1376,7 +1411,7 @@ function buildFromStates(states){
   S.haStatus=`Connecté · ${list.length} packs, ${allBms().length} BMS`;
   // N'appliquer la navigation automatique qu'à la première connexion,
   // jamais lors d'une navigation volontaire de l'utilisateur.
-  if(!S.autoRouteApplied){
+  if(!S.autoRouteApplied && (S.configuredPackIds!==null || PACKS.length===1)){
     S.autoRouteApplied=true;
     if(!location.hash || location.hash==='#/' ){
       if(PACKS.length===1){
