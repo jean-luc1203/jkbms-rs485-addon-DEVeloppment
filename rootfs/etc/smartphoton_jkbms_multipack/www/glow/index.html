@@ -1381,7 +1381,10 @@ function buildFromStates(states){
     if(!location.hash || location.hash==='#/' ){
       if(PACKS.length===1){
         const p=PACKS[0];
-        location.hash=p.bms.length===1 ? `#/pack/${p.id}/bms/${p.bms[0].id}/live` : `#/pack/${p.id}`;
+        // En mono-pack, commencer sur le premier BMS, y compris si plusieurs
+        // BMS partagent ce pack. La page BMS propose déjà leur sélecteur.
+        // Les routes explicitement demandées restent prioritaires.
+        if(p.bms.length) location.hash=`#/pack/${p.id}/bms/${p.bms[0].id}/live`;
       }
     }
   }
