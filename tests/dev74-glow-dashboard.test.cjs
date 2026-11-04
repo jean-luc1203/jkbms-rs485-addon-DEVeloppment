@@ -28,6 +28,23 @@ function run(states,hash=''){
   return ctx.location.hash;
 }
 assert.equal(run([state(1,0),state(1,2)]),'#/pack/1/bms/0/live');
+const topology=(ids)=>({entity_id:'sensor.smartphoton_jk_bms_multi_pack_global_summary',state:'47',attributes:{configured_pack_ids:ids}});
+const stale={...state(2,1),state:'unavailable'};
+assert.equal(run([state(1,0),state(1,2),state(2,1),state(3,1),state(4,1),topology(['pack_1'])]),
+  '#/pack/1/bms/0/live','removed packs must not block mono-pack routing');
+assert.equal(vm.runInContext('PACKS.map(p=>p.id).join(",")',ctx),'1');
+assert.equal(run([state(1,0),stale,topology(['pack_1','pack_2'])]),'',
+  'configured offline pack must remain present on fleet overview');
+assert.equal(vm.runInContext('PACKS.map(p=>p.id).join(",")',ctx),'1,2');
+assert.equal(run([state(1,0),state(2,1),state(3,1),topology(['pack_1'])],'#/pack/1/bms/2/params'),
+  '#/pack/1/bms/2/params','explicit navigation must stay untouched');
+assert.equal(run([state(1,0),state(2,1),state(3,1)],''),'',
+  'without topology, wait rather than redirect when several HA packs exist');
+vm.runInContext("applyHaEventState({entity_id:GLOBAL_SUMMARY_ID,state:'47',attributes:{configured_pack_ids:['pack_1']}})",ctx);
+assert.equal(ctx.location.hash,'#/pack/1/bms/0/live',
+  'topology received after initial HA state list must activate mono-pack route');
+assert.equal(vm.runInContext('PACKS.length',ctx),1);
+
 assert.equal(run([state(1,2),state(1,0)]),'#/pack/1/bms/0/live'); // BMS triés par adresse
 assert.equal(run([state(1,2),state(1,3)],'#/pack/1'),'#/pack/1'); // navigation explicite préservée
 assert.equal(run([state(1,0),state(1,2)],'#/pack/1/bms/2/params'),'#/pack/1/bms/2/params'); // BMS et onglet explicites
