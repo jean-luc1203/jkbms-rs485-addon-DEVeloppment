@@ -1369,6 +1369,9 @@ function applyHaEventState(s){
   if(s.entity_id===GLOBAL_SUMMARY_ID){
     const next=configuredPackIdsFromStates([s]);
     if(next!==null && JSON.stringify(next)!==JSON.stringify(S.configuredPackIds)){
+      // Si HA avait encore l'ancienne topologie, réévaluer l'accueil seulement
+      // lorsque l'utilisateur est toujours sur la vue globale par défaut.
+      if((!location.hash||location.hash==='#/') && next.length===1) S.autoRouteApplied=false;
       // La topologie peut arriver après les premières entités HA.
       // Reconstruire alors la liste sans effacer les entités du registre HA.
       buildFromStates([...S.lastStateMap.values()]);
