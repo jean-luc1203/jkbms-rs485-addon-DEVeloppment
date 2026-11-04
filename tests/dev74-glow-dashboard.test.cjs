@@ -27,10 +27,14 @@ function run(states,hash=''){
   ctx.buildFromStates(states);
   return ctx.location.hash;
 }
-assert.equal(run([state(1,0),state(1,2)]),'#/pack/1');
+assert.equal(run([state(1,0),state(1,2)]),'#/pack/1/bms/0/live');
+assert.equal(run([state(1,2),state(1,0)]),'#/pack/1/bms/0/live'); // BMS triés par adresse
+assert.equal(run([state(1,2),state(1,3)],'#/pack/1'),'#/pack/1'); // navigation explicite préservée
+assert.equal(run([state(1,0),state(1,2)],'#/pack/1/bms/2/params'),'#/pack/1/bms/2/params'); // BMS et onglet explicites
 assert.equal(vm.runInContext('PACKS[0].bms.map(b=>b.id).join(",")',ctx),'0,2');
 assert.equal(run([state(1,0)]),'#/pack/1/bms/0/live');
 assert.equal(run([state(1,0),state(2,3)]),'');
+assert.equal(run([state(2,4),state(1,0)]),''); // multi-pack : vue générale conservée
 assert.equal(run([state(1,0)],'#/settings'),'#/settings');
 run([]);
 assert.equal(vm.runInContext('S.mode',ctx),'waiting');
@@ -60,4 +64,4 @@ assert.equal(JSON.parse(allowed[0].payload).dashboard_meta.url_path,'smart-jkbms
 const denied=runMenu(k=>({'premium.runtime_mode':'legacy','premium.features':{dashboard_premium:true}})[k]);
 assert.equal(denied[0],null);
 assert.equal(denied[1].filename,'/config/dashboards/smart_jkbms_glow.json');
-console.log('DEV74 Glow routing, BMS0/2, no demo, Premium gating and flow structure: PASS');
+console.log('DEV77 Glow single-pack BMS startup, explicit routes, multi-pack overview, Premium gating: PASS');
