@@ -953,25 +953,25 @@ function fleetStrip(){
     const dur=Math.max(0.5,2.5-Math.abs(a.power)/900);
     return `<div class="fl-row ${a.stale?'stale':''}" data-href="#/pack/${p.id}">
       <div class="fl-name"><b><span class="dot ${st}"></span>${esc(p.name)}</b><small>${stTxt[st]} · ${a.count} BMS${a.alarms.length?` · <span style="color:var(--crit)">${a.alarms.length} alarme</span>`:''}</small></div>
-      <div class="fl-soc"><span style="color:${COL[socL(a.soc)]};min-width:42px">${f(a.soc,0)} %</span><div class="bar"><i style="width:${a.soc}%;--c:${COL[socL(a.soc)]}"></i></div></div>
-      <div class="mflow fl-state">${moving?(a.current>0?'<span class="stb chg"><i class="arw">▲</i>Se recharge</span>':'<span class="stb dis"><i class="arw">▼</i>Alimente le site</span>'):'<span class="stb idle"><i class="arw">■</i>Au repos</span>'}</div>
-      <div class="fl-v fl-pw">${pw(Math.abs(a.power)).replace('<small>',' <small style="display:inline">')}<small>${moving?(a.current>0?'entrant':'sortant'):'—'}</small></div>
-      <div class="fl-v fl-au">${au.v}<small>${au.sub}</small></div>
-      <div class="fl-fresh">${fresh(a.ts)}</div></div>`;
+      <div class="fl-soc"><span style="color:${COL[socL(a.soc)]};min-width:42px">${a.online?f(a.soc,0)+' %':'—'}</span><div class="bar"><i style="width:${a.online?a.soc:0}%;--c:${COL[socL(a.soc)]}"></i></div></div>
+      <div class="mflow fl-state">${!a.online?'<span class="stb idle">HORS LIGNE</span>':moving?(a.current>0?'<span class="stb chg"><i class="arw">▲</i>Se recharge</span>':'<span class="stb dis"><i class="arw">▼</i>Alimente le site</span>'):'<span class="stb idle"><i class="arw">■</i>Au repos</span>'}</div>
+      <div class="fl-v fl-pw">${a.online?pw(Math.abs(a.power)).replace('<small>',' <small style="display:inline">'):'—'}<small>${!a.online?'OFFLINE':moving?(a.current>0?'entrant':'sortant'):'—'}</small></div>
+      <div class="fl-v fl-au">${a.online?au.v:'—'}<small>${a.online?au.sub:'Données figées'}</small></div>
+      <div class="fl-fresh">${!a.online?'<span class="pill crit">OFFLINE</span> ':''}${fresh(a.ts)}</div></div>`;
   }).join('')}</div>`;
 }
 
 function packCard(p){
   const a=agg(p.bms), st=stateL(a), au=autonomy(a.capRem,a.capNom,a.current), open=S.expanded.has(p.id);
-  const soc1=ago(p.bms,'soc',60), d1=ago(p.bms,'delta',60), t1=ago(p.bms,'temp',60), stale=a.stale;
-  return `<div class="card link ${stale?'stale':''}" data-href="#/pack/${p.id}">${stale?`<span class="pill warn stale-tag">⏱ Données anciennes</span>`:''}
+  const soc1=ago(p.bms,'soc',60), d1=ago(p.bms,'delta',60), t1=ago(p.bms,'temp',60), stale=a.stale||!a.online;
+  return `<div class="card link ${stale?'stale':''}" data-href="#/pack/${p.id}">${!a.online?'<span class="pill crit stale-tag">PACK OFFLINE · DONNÉES FIGÉES</span>':stale?'<span class="pill warn stale-tag">⏱ Données anciennes</span>':''}
     <div><div class="pack-head"><div><h3><span class="dot ${st}"></span>${esc(p.name)}</h3>
       <div class="st">${stTxt[st].toUpperCase()} · ${a.count} BMS · ${p.link}</div></div>
-      <span class="pill ${flowTxt(a.current)[1]}">${flowTxt(a.current)[0]}</span></div>
-    <div class="pack-body">${batt(a.soc)}<div class="big3">
-      <div><div class="l">${spGlowLabel('Puissance')}</div><div class="v">${pw(a.power)}</div>${trendHtml(a.soc,soc1,' %',1,null)}</div>
-      <div><div class="l">${spGlowLabel('Écart cellules')}</div><div class="v ${dL(a.delta)==='ok'?'':dL(a.delta)}">${f(a.delta,0)}<small>mV</small></div>${trendHtml(a.delta,d1,' mV',0,true)}</div>
-      <div><div class="l">${au.ic} ${spGlowLabel('Autonomie')}</div><div class="v">${au.v}</div><span class="trend">${au.sub}</span></div>
+      <span class="pill ${flowTxt(a.current)[1]}">${a.online?flowTxt(a.current)[0]:spGlowDiag('offline')}</span></div>
+    <div class="pack-body">${a.online?batt(a.soc):'<div class="pill crit">OFFLINE</div>'}<div class="big3">
+      <div><div class="l">${spGlowLabel('Puissance')}</div><div class="v">${a.online?pw(a.power):'—'}</div>${trendHtml(a.soc,soc1,' %',1,null)}</div>
+      <div><div class="l">${spGlowLabel('Écart cellules')}</div><div class="v ${dL(a.delta)==='ok'?'':dL(a.delta)}">${a.online?f(a.delta,0):'—'}<small>${a.online?'mV':''}</small></div>${trendHtml(a.delta,d1,' mV',0,true)}</div>
+      <div><div class="l">${au.ic} ${spGlowLabel('Autonomie')}</div><div class="v">${a.online?au.v:'—'}</div><span class="trend">${a.online?au.sub:'Données figées'}</span></div>
     </div></div>
     <div class="minicharts">
       ${chart(`pc${p.id}-soc`,spGlowLabel('SOC · 24 h'),[{name:'SOC',color:'var(--s-soc)',data:packSeries(p,'soc','24h')}],'%',0,[],{compact:true,range:'24h',yMin:0,yMax:100})}
