@@ -1356,6 +1356,46 @@ function connectHA(url, token){
 }
 const ENT_RE = /^(sensor|binary_sensor|number|switch)\.pack_(\d+)_bms_(\d+|master)_(.+)$/i;
 const GLOBAL_SUMMARY_ID = 'sensor.smartphoton_jk_bms_multi_pack_global_summary';
+const GLOW_DIAGNOSTICS_ID = 'sensor.smartphoton_jk_bms_multi_pack_diagnostics';
+// Step 13F / HA global summary is the authority on pack connectivity.
+// An available retained voltage value is NOT evidence of a live BMS.
+function glowResolvePackConnectivity(map){
+  if(!map) return null;
+  const state=map.get(GLOBAL_SUMMARY_ID);
+  const available=s=>s && !['unknown','unavailable','none',''].includes(String(s.state??'').toLowerCase());
+  if(available(state)){
+    const a=state.attributes||{};
+    if(Array.isArray(a.online_packs)&&Array.isArray(a.offline_packs)){
+      const result=new Map();
+      for(const id of a.online_packs) if(/^pack_[1-5]$/.test(String(id))) result.set(String(id),true);
+      for(const id of a.offline_packs) if(/^pack_[1-5]$/.test(String(id))) result.set(String(id),false);
+      return result;
+    }
+  }
+  // Older summaries: Premium diagnostics may still expose PACK_OFFLINE.
+  const diag=map.get(GLOW_DIAGNOSTICS_ID);
+  if(!available(diag)) return null;
+  const issues=Array.isArray(diag.attributes?.active_issues)?diag.attributes.active_issues:[];
+  const result=new Map();
+  for(const issue of issues){
+    if(issue?.code!=='PACK_OFFLINE') continue;
+    const ids=[...(Array.isArray(issue.packs)?issue.packs:[]),issue.pack_id];
+    for(const id of ids) if(/^pack_[1-5]$/.test(String(id))) result.set(String(id),false);
+  }
+  return result.size?result:null;
+}
+function syncGlowPackConnectivity(){
+  if(S.mode!=='ha') return;
+  const availability=glowResolvePackConnectivity(S.lastStateMap);
+  for(const p of PACKS){
+    const id='pack_'+p.id;
+    p.communicating=availability?.has(id)?availability.get(id):null;
+    for(const b of p.bms){
+      b.online=(b.haVoltageOnline!==false) && p.communicating!==false;
+    }
+  }
+}
+
 function configuredPackIdsFromStates(states){
   const summary=states.find(s=>s.entity_id===GLOBAL_SUMMARY_ID);
   const ids=summary?.attributes?.configured_pack_ids;
@@ -1376,20 +1416,23 @@ function applyHaEventState(s){
       // Reconstruire alors la liste sans effacer les entités du registre HA.
       buildFromStates([...S.lastStateMap.values()]);
     }
+    syncGlowPackConnectivity();
+    S.dirty=true;
     return;
   }
+  if(s.entity_id===GLOW_DIAGNOSTICS_ID){syncGlowPackConnectivity();S.dirty=true;return;}
   const m=s.entity_id.match(ENT_RE);
   if(m && S.configuredPackIds?.includes(`pack_${m[2]}`) &&
      !PACKS.some(p=>p.id===+m[2] && p.bms.some(b=>b.id===bmsId(m[3])))){
     buildFromStates([...S.lastStateMap.values()]);
     return;
   }
-  if(applyState(s)) S.dirty=true;
+  if(applyState(s)){syncGlowPackConnectivity();S.dirty=true;}
 }
 const bmsId = k => /^master$/i.test(k) ? 1 : +k;          // BMS_master = BMS n°1
 const bmsKey = b => b.key || b.id;                          // morceau réel du nom d'entité
 function blankBms(pack,id){ const params={},switches={}; Object.values(PARAM_DEF).flat().forEach(p=>params[p[0]]=null); SW_DEF.forEach(s=>switches[s[0]]=null);
-  return {pack,id,online:true,ts:0,cells:Array(16).fill(0),res:Array(16).fill(0),voltage:0,current:0,power:0,soc:0,capRem:0,capNom:0,t1:0,t2:0,mos:0,balance:0,deltaMv:0,
+  return {pack,id,online:true,haVoltageOnline:true,ts:0,cells:Array(16).fill(0),res:Array(16).fill(0),voltage:0,current:0,power:0,soc:0,capRem:0,capNom:0,t1:0,t2:0,mos:0,balance:0,deltaMv:0,
     soh:0,cycles:0,runtime:'—',chargeStatus:'—',alarms:[],chargeMos:false,dischargeMos:false,params,switches,weak:{cell:1,lowestDays:0,resRise:0},res30:null}; }
 function buildFromStates(states){
   if(!states){ S.haStatus='Lecture impossible'; render(); return; }
@@ -1408,6 +1451,7 @@ function buildFromStates(states){
   if(!list.length){ PACKS=[]; S.mode='waiting'; S.haStatus='Aucune entité pack_X_bms_Y trouvée'; render(); return; }
   PACKS=list; EVENTS=[]; S.mode='ha'; S.histCache={};
   states.forEach(applyState);
+  syncGlowPackConnectivity();
   S.haStatus=`Connecté · ${list.length} packs, ${allBms().length} BMS`;
   // N'appliquer la navigation automatique qu'à la première connexion,
   // jamais lors d'une navigation volontaire de l'utilisateur.
@@ -1429,12 +1473,12 @@ function applyState(s){
   const m=s.entity_id.match(ENT_RE); if(!m) return false;
   const p=PACKS.find(x=>x.id===+m[2]); const b=p&&p.bms.find(x=>x.id===bmsId(m[3])); if(!b) return false;
   const k=m[4], raw=s.state, v=parseFloat(raw), ts=Date.parse(s.last_updated||s.last_changed)||Date.now();
-  if(raw==='unavailable'||raw==='unknown'){ if(k==='tension_totale_volt') b.online=false; return true; }
+  if(raw==='unavailable'||raw==='unknown'){ if(k==='tension_totale_volt'){b.haVoltageOnline=false;b.online=false;} return true; }
   b.ts=Math.max(b.ts,ts);
   const map={tension_totale_volt:'voltage',courant_total:'current',puissance_totale:'power',soc_pourcentage:'soc',capacite_restante_ah:'capRem',capacite_batterie_ah:'capNom',
     sonde_1_temp:'t1',sonde_2_temp:'t2',mos_temp:'mos',balance_courant:'balance',soh_pourcentage:'soh',nombre_cycle:'cycles'};
   let mm;
-  if(map[k]){ b[map[k]]=v; if(k==='tension_totale_volt') b.online=true; }
+  if(map[k]){ b[map[k]]=v; if(k==='tension_totale_volt'){b.haVoltageOnline=true;b.online=true;} }
   else if(k==='cell_voltage_delta') b.deltaMv=v*1000;
   else if(k==='total_runtime_formatted') b.runtime=raw;
   else if(k==='charge_status_text') b.chargeStatus=raw;
