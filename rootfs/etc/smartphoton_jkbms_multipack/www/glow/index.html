@@ -762,10 +762,13 @@ function autonomy(capRem, capNom, current){
 
 function issues(){
   const out=[];
-  PACKS.forEach(p=>{ if(p.expectedBms && p.bms.length<p.expectedBms) out.push({lvl:'warn',where:p.name,href:'#/settings',txt:spGlowDiag('missing',{n:p.expectedBms-p.bms.length,found:p.bms.length,expected:p.expectedBms}),act:spGlowDiag('missingHelp')}); });
+  PACKS.forEach(p=>{
+    if(p.communicating===false) out.push({lvl:'crit',where:p.name,href:'#/pack/'+p.id,txt:spGlowDiag('offline'),act:spGlowDiag('offlineHelp')});
+    if(p.expectedBms && p.bms.length<p.expectedBms) out.push({lvl:'warn',where:p.name,href:'#/settings',txt:spGlowDiag('missing',{n:p.expectedBms-p.bms.length,found:p.bms.length,expected:p.expectedBms}),act:spGlowDiag('missingHelp')});
+  });
   PACKS.forEach(p=>p.bms.forEach(b=>{
     const t=tmax(b), where=`${p.name} · ${bn(b)}`, href=`#/pack/${p.id}/bms/${b.id}`;
-    if(!b.online) out.push({lvl:'crit',where,href:href+'/alarms',txt:spGlowDiag('offline'),act:spGlowDiag('offlineHelp')});
+    if(!b.online && p.communicating!==false) out.push({lvl:'crit',where,href:href+'/alarms',txt:spGlowDiag('offline'),act:spGlowDiag('offlineHelp')});
     b.alarms.forEach(a=>out.push({lvl:'crit',where,href:href+'/alarms',txt:a,act:spGlowDiag('alarmHelp')}));
     if(b.deltaMv>=TH.deltaWarn) out.push({lvl:dL(b.deltaMv),where,href:href+'/live',txt:spGlowDiag('delta',{value:f(b.deltaMv,0)}),act:spGlowDiag('deltaHelp')});
     if(t>=TH.tempWarn) out.push({lvl:tL(t),where,href:href+'/live',txt:spGlowDiag('temp',{value:f(t,1)}),act:spGlowDiag('tempHelp')});
@@ -928,10 +931,11 @@ function statusBanner(big=false){
 function fleetStats(){
   const ag=PACKS.map(p=>({p,a:agg(p.bms)}));
   const live=ag.filter(x=>x.a.online&&!x.a.stale).length;
-  const low=ag.filter(x=>x.a.online).sort((x,y)=>x.a.soc-y.a.soc)[0];
-  const minBms=allBms().filter(b=>b.online).sort((a,b)=>a.soc-b.soc)[0];
-  const dis=ag.map(x=>({...x,au:autonomy(x.a.capRem,x.a.capNom,x.a.current),h:x.a.current<-0.3?(x.a.capRem-TH.autonomyFloor/100*x.a.capNom)/-x.a.current:Infinity})).sort((x,y)=>x.h-y.h);
-  return {ag,live,low,minBms,short:dis[0]};
+  const active=ag.filter(x=>x.a.online);
+  const low=active.slice().sort((x,y)=>x.a.soc-y.a.soc)[0]||null;
+  const minBms=allBms().filter(b=>b.online).sort((a,b)=>a.soc-b.soc)[0]||null;
+  const dis=active.map(x=>({...x,au:autonomy(x.a.capRem,x.a.capNom,x.a.current),h:x.a.current<-0.3?(x.a.capRem-TH.autonomyFloor/100*x.a.capNom)/-x.a.current:Infinity})).sort((x,y)=>x.h-y.h);
+  return {ag,live,low,minBms,short:dis[0]||{h:Infinity,p:{name:'—'},au:{v:'—',sub:'—'}}};
 }
 function fleetKpis(){
   const F=fleetStats(), cap=agg(allBms());
