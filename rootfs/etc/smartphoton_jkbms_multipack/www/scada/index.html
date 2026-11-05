@@ -1415,22 +1415,27 @@ function packHeartbeatAge(h,pack,members,fallbackState){
 function freshnessClass(age){return age<20?'good':age<45?'warn':'bad'}
 function freshnessLabel(age){if(!Number.isFinite(age))return '—';if(age<1)return '< 1 s';return `${age.toFixed(age<10?1:0)} s`}
 function stateOn(h,id){const v=entText(h,id).toLowerCase();return ['on','1','true','active','open'].includes(v)}
-function livePack(h,packId){
- const st=h.states[packSummary(packId)]; if(!st)return null;
+function livePack(h,packId,globalState){
+ const meta=globalState?.attributes||{};
+ const packName=meta.pack_names?.[packId]||packId.replace('_',' ').toUpperCase();
+ const st=h.states[packSummary(packId)];
+ if(!st) return {id:packId,name:packName,members:[],bms:0,soc:0,power:0,a:0,v:0,d:0,t:0,online:false,hasData:false,ageSec:null};
  const a=st.attributes||{}; const members=Array.isArray(a.members)?a.members.map(String):[];
  const vals=(metric)=>members.map(m=>entNum(h,bmsEntity(packId,m,metric))).filter(v=>v!==null);
  const sum=arr=>arr.length?arr.reduce((x,y)=>x+y,0):null;
  const avg=arr=>arr.length?sum(arr)/arr.length:null;
  const p=vals('puissance_totale'), c=vals('courant_total'), v=vals('tension_totale_volt'), d=vals('cell_voltage_delta');
  const temps=[...vals('mos_temp'),...vals('sonde_1_temp'),...vals('sonde_2_temp')];
+ const hasData=[...p,...c,...v,...d,...temps,attrNum(st,'soc_pct'),attrNum(st,'power_total_w'),attrNum(st,'voltage_v')].some(Number.isFinite);
  return {
-   id:packId,name:a.pack_name||packId.replace('_',' ').toUpperCase(),members,bms:members.length||attrNum(st,'bms_count')||0,
+   id:packId,name:a.pack_name||packName,members,bms:members.length||attrNum(st,'bms_count')||0,
    soc:attrNum(st,'soc_pct')??finite(st.state)??0,
    power:sum(p)??attrNum(st,'power_total_w')??0,
    a:sum(c)??attrNum(st,'current_total_a')??0,
    v:avg(v)??attrNum(st,'voltage_v')??0,
    d:(d.length?Math.max(...d)*1000:(attrNum(st,'cell_delta_v')??0)*1000),
    t:temps.length?Math.max(...temps):(attrNum(st,'temperature_max_c')??0),
+   hasData,
    online:!['unknown','unavailable'].includes(String(st.state).toLowerCase()),
    ageSec:packHeartbeatAge(h,packId,members,st)
  };
@@ -2583,8 +2588,11 @@ function spProcessText(key,args={}){return (SP_SCADA_PROCESS_I18N[spLanguage]?.[
 function render(){
  const h=getHass(); let packs=[]; let diag=null; let glob=null; let live=false;
  if(h){
-   for(let i=1;i<=5;i++){const p=livePack(h,`pack_${i}`);if(p)packs.push(p)}
-   diag=h.states[DIAG]||null; glob=h.states[GLOBAL]||null; live=packs.length>0;
+   diag=h.states[DIAG]||null; glob=h.states[GLOBAL]||null;
+   const configured=Array.isArray(glob?.attributes?.configured_pack_ids)?glob.attributes.configured_pack_ids:[];
+   const ids=configured.length?configured:Array.from({length:5},(_,i)=>'pack_'+(i+1));
+   for(const id of ids){if(!/^pack_[1-5]$/.test(id))continue;const p=livePack(h,id,glob);if(p)packs.push(p)}
+   live=packs.length>0;
  }
  if(!live)packs=(demoSingleMode?[demoPacks[0]]:demoPacks).map(p=>({...p,online:true}));
  packs=scadaResolvePackAvailability(packs,glob,diag);
