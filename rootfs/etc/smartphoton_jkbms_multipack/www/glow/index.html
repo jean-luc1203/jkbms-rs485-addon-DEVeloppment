@@ -762,10 +762,18 @@ function autonomy(capRem, capNom, current){
 
 function issues(){
   const out=[];
-  PACKS.forEach(p=>{ if(p.expectedBms && p.bms.length<p.expectedBms) out.push({lvl:'warn',where:p.name,href:'#/settings',txt:spGlowDiag('missing',{n:p.expectedBms-p.bms.length,found:p.bms.length,expected:p.expectedBms}),act:spGlowDiag('missingHelp')}); });
+  PACKS.forEach(p=>{
+    if(p.communicating===false) out.push({lvl:'crit',where:p.name,href:'#/pack/'+p.id,txt:spGlowDiag('offline'),act:spGlowDiag('offlineHelp')});
+    if(p.expectedBms && p.bms.length<p.expectedBms) out.push({lvl:'warn',where:p.name,href:'#/settings',txt:spGlowDiag('missing',{n:p.expectedBms-p.bms.length,found:p.bms.length,expected:p.expectedBms}),act:spGlowDiag('missingHelp')});
+  });
   PACKS.forEach(p=>p.bms.forEach(b=>{
     const t=tmax(b), where=`${p.name} · ${bn(b)}`, href=`#/pack/${p.id}/bms/${b.id}`;
-    if(!b.online) out.push({lvl:'crit',where,href:href+'/alarms',txt:spGlowDiag('offline'),act:spGlowDiag('offlineHelp')});
+    if(!b.online){
+      // Do not reinterpret frozen cell/temperature/alarms as live problems.
+      // A whole-pack outage already has one pack-level issue above.
+      if(p.communicating!==false) out.push({lvl:'crit',where,href:href+'/alarms',txt:spGlowDiag('offline'),act:spGlowDiag('offlineHelp')});
+      return;
+    }
     b.alarms.forEach(a=>out.push({lvl:'crit',where,href:href+'/alarms',txt:a,act:spGlowDiag('alarmHelp')}));
     if(b.deltaMv>=TH.deltaWarn) out.push({lvl:dL(b.deltaMv),where,href:href+'/live',txt:spGlowDiag('delta',{value:f(b.deltaMv,0)}),act:spGlowDiag('deltaHelp')});
     if(t>=TH.tempWarn) out.push({lvl:tL(t),where,href:href+'/live',txt:spGlowDiag('temp',{value:f(t,1)}),act:spGlowDiag('tempHelp')});
@@ -928,16 +936,17 @@ function statusBanner(big=false){
 function fleetStats(){
   const ag=PACKS.map(p=>({p,a:agg(p.bms)}));
   const live=ag.filter(x=>x.a.online&&!x.a.stale).length;
-  const low=ag.filter(x=>x.a.online).sort((x,y)=>x.a.soc-y.a.soc)[0];
-  const minBms=allBms().filter(b=>b.online).sort((a,b)=>a.soc-b.soc)[0];
-  const dis=ag.map(x=>({...x,au:autonomy(x.a.capRem,x.a.capNom,x.a.current),h:x.a.current<-0.3?(x.a.capRem-TH.autonomyFloor/100*x.a.capNom)/-x.a.current:Infinity})).sort((x,y)=>x.h-y.h);
-  return {ag,live,low,minBms,short:dis[0]};
+  const active=ag.filter(x=>x.a.online);
+  const low=active.slice().sort((x,y)=>x.a.soc-y.a.soc)[0]||null;
+  const minBms=allBms().filter(b=>b.online).sort((a,b)=>a.soc-b.soc)[0]||null;
+  const dis=active.map(x=>({...x,au:autonomy(x.a.capRem,x.a.capNom,x.a.current),h:x.a.current<-0.3?(x.a.capRem-TH.autonomyFloor/100*x.a.capNom)/-x.a.current:Infinity})).sort((x,y)=>x.h-y.h);
+  return {ag,live,low,minBms,short:dis[0]||{h:Infinity,p:{name:'—'},au:{v:'—',sub:'—'}}};
 }
 function fleetKpis(){
   const F=fleetStats(), cap=agg(allBms());
   return `<div class="fleet-kpis">
     ${kpi('📡 '+spGlowLabel('Sites à jour'),`${F.live} / ${PACKS.length}`,spGlowOverview(F.live<PACKS.length?'stale':'allConnected'),F.live<PACKS.length?'warn':'ok')}
-    ${kpi('🔋 '+spGlowLabel('SOC le plus bas'),`${f(F.low.a.soc,0)}<small>%</small>`,`${esc(F.low.p.name)} · ${spGlowOverview('minBms')} : ${f(F.minBms.soc,0)} %`,socL(F.low.a.soc))}
+    ${kpi('🔋 '+spGlowLabel('SOC le plus bas'),`${F.low?f(F.low.a.soc,0):'—'}<small>%</small>`,`${F.low?esc(F.low.p.name):'—'} · ${spGlowOverview('minBms')} : ${F.minBms?f(F.minBms.soc,0):'—'} %`,F.low?socL(F.low.a.soc):'warn')}
     ${kpi('⏳ '+spGlowLabel('Autonomie la plus courte'),F.short.h===Infinity?'—':F.short.au.v,F.short.h===Infinity?spGlowOverview('noDischarge'):`${esc(F.short.p.name)} · ${F.short.au.sub}`,F.short.h<6?'warn':'')}
     ${kpi('🏭 '+spGlowLabel('Capacité du parc'),`${f(cap.capRem,0)}<small>/ ${f(cap.capNom,0)} Ah</small>`,`${PACKS.length} ${spGlowOverview('sites')} · ${allBms().length} BMS`)}
   </div>`;
@@ -949,25 +958,25 @@ function fleetStrip(){
     const dur=Math.max(0.5,2.5-Math.abs(a.power)/900);
     return `<div class="fl-row ${a.stale?'stale':''}" data-href="#/pack/${p.id}">
       <div class="fl-name"><b><span class="dot ${st}"></span>${esc(p.name)}</b><small>${stTxt[st]} · ${a.count} BMS${a.alarms.length?` · <span style="color:var(--crit)">${a.alarms.length} alarme</span>`:''}</small></div>
-      <div class="fl-soc"><span style="color:${COL[socL(a.soc)]};min-width:42px">${f(a.soc,0)} %</span><div class="bar"><i style="width:${a.soc}%;--c:${COL[socL(a.soc)]}"></i></div></div>
-      <div class="mflow fl-state">${moving?(a.current>0?'<span class="stb chg"><i class="arw">▲</i>Se recharge</span>':'<span class="stb dis"><i class="arw">▼</i>Alimente le site</span>'):'<span class="stb idle"><i class="arw">■</i>Au repos</span>'}</div>
-      <div class="fl-v fl-pw">${pw(Math.abs(a.power)).replace('<small>',' <small style="display:inline">')}<small>${moving?(a.current>0?'entrant':'sortant'):'—'}</small></div>
-      <div class="fl-v fl-au">${au.v}<small>${au.sub}</small></div>
-      <div class="fl-fresh">${fresh(a.ts)}</div></div>`;
+      <div class="fl-soc"><span style="color:${COL[socL(a.soc)]};min-width:42px">${a.online?f(a.soc,0)+' %':'—'}</span><div class="bar"><i style="width:${a.online?a.soc:0}%;--c:${COL[socL(a.soc)]}"></i></div></div>
+      <div class="mflow fl-state">${!a.online?'<span class="stb idle">HORS LIGNE</span>':moving?(a.current>0?'<span class="stb chg"><i class="arw">▲</i>Se recharge</span>':'<span class="stb dis"><i class="arw">▼</i>Alimente le site</span>'):'<span class="stb idle"><i class="arw">■</i>Au repos</span>'}</div>
+      <div class="fl-v fl-pw">${a.online?pw(Math.abs(a.power)).replace('<small>',' <small style="display:inline">'):'—'}<small>${!a.online?'OFFLINE':moving?(a.current>0?'entrant':'sortant'):'—'}</small></div>
+      <div class="fl-v fl-au">${a.online?au.v:'—'}<small>${a.online?au.sub:'Données figées'}</small></div>
+      <div class="fl-fresh">${!a.online?'<span class="pill crit">OFFLINE</span> ':''}${fresh(a.ts)}</div></div>`;
   }).join('')}</div>`;
 }
 
 function packCard(p){
   const a=agg(p.bms), st=stateL(a), au=autonomy(a.capRem,a.capNom,a.current), open=S.expanded.has(p.id);
-  const soc1=ago(p.bms,'soc',60), d1=ago(p.bms,'delta',60), t1=ago(p.bms,'temp',60), stale=a.stale;
-  return `<div class="card link ${stale?'stale':''}" data-href="#/pack/${p.id}">${stale?`<span class="pill warn stale-tag">⏱ Données anciennes</span>`:''}
+  const soc1=ago(p.bms,'soc',60), d1=ago(p.bms,'delta',60), t1=ago(p.bms,'temp',60), stale=a.stale||!a.online;
+  return `<div class="card link ${stale?'stale':''}" data-href="#/pack/${p.id}">${!a.online?'<span class="pill crit stale-tag">PACK OFFLINE · DONNÉES FIGÉES</span>':stale?'<span class="pill warn stale-tag">⏱ Données anciennes</span>':''}
     <div><div class="pack-head"><div><h3><span class="dot ${st}"></span>${esc(p.name)}</h3>
       <div class="st">${stTxt[st].toUpperCase()} · ${a.count} BMS · ${p.link}</div></div>
-      <span class="pill ${flowTxt(a.current)[1]}">${flowTxt(a.current)[0]}</span></div>
-    <div class="pack-body">${batt(a.soc)}<div class="big3">
-      <div><div class="l">${spGlowLabel('Puissance')}</div><div class="v">${pw(a.power)}</div>${trendHtml(a.soc,soc1,' %',1,null)}</div>
-      <div><div class="l">${spGlowLabel('Écart cellules')}</div><div class="v ${dL(a.delta)==='ok'?'':dL(a.delta)}">${f(a.delta,0)}<small>mV</small></div>${trendHtml(a.delta,d1,' mV',0,true)}</div>
-      <div><div class="l">${au.ic} ${spGlowLabel('Autonomie')}</div><div class="v">${au.v}</div><span class="trend">${au.sub}</span></div>
+      <span class="pill ${flowTxt(a.current)[1]}">${a.online?flowTxt(a.current)[0]:spGlowDiag('offline')}</span></div>
+    <div class="pack-body">${a.online?batt(a.soc):'<div class="pill crit">OFFLINE</div>'}<div class="big3">
+      <div><div class="l">${spGlowLabel('Puissance')}</div><div class="v">${a.online?pw(a.power):'—'}</div>${trendHtml(a.soc,soc1,' %',1,null)}</div>
+      <div><div class="l">${spGlowLabel('Écart cellules')}</div><div class="v ${dL(a.delta)==='ok'?'':dL(a.delta)}">${a.online?f(a.delta,0):'—'}<small>${a.online?'mV':''}</small></div>${trendHtml(a.delta,d1,' mV',0,true)}</div>
+      <div><div class="l">${au.ic} ${spGlowLabel('Autonomie')}</div><div class="v">${a.online?au.v:'—'}</div><span class="trend">${a.online?au.sub:'Données figées'}</span></div>
     </div></div>
     <div class="minicharts">
       ${chart(`pc${p.id}-soc`,spGlowLabel('SOC · 24 h'),[{name:'SOC',color:'var(--s-soc)',data:packSeries(p,'soc','24h')}],'%',0,[],{compact:true,range:'24h',yMin:0,yMax:100})}
@@ -1276,7 +1285,7 @@ function pageWall(){
     <div class="pills"><button class="btn" data-act="fs">⛶ ${spGlowLabel('Plein écran')}</button><a class="btn" href="#/">✕ ${spGlowLabel('Quitter')}</a></div></div>`;
   h+=statusBanner(true)+`<div class="wall-kpis">
     <div class="card kpi ${F.live<PACKS.length?'warn':'ok'}"><div class="lbl">📡 ${spGlowLabel('Sites à jour')}</div><div class="val">${F.live}<small>/ ${PACKS.length}</small></div></div>
-    <div class="card kpi"><div class="lbl">🔋 ${spGlowLabel('SOC le plus bas')} · ${esc(F.low.p.name)}</div><div class="val" style="color:${COL[socL(F.low.a.soc)]}">${f(F.low.a.soc,0)}<small>%</small></div></div>
+    <div class="card kpi"><div class="lbl">🔋 ${spGlowLabel('SOC le plus bas')} · ${F.low?esc(F.low.p.name):'—'}</div><div class="val" style="color:${F.low?COL[socL(F.low.a.soc)]:COL.off}">${F.low?f(F.low.a.soc,0)+'<small>%</small>':'—'}</div></div>
     <div class="card kpi"><div class="lbl">⏳ ${spGlowLabel('Autonomie la plus courte')}${F.short.h===Infinity?'':' · '+esc(F.short.p.name)}</div><div class="val">${F.short.h===Infinity?'—':F.short.au.v}</div></div></div>
     <div class="wall-packs">${PACKS.map(p=>{const a=agg(p.bms),s=stateL(a);return `<div class="card"><h3><span class="dot ${s}" style="width:14px;height:14px"></span>${esc(p.name)}</h3>
       <div class="soc" style="color:${COL[socL(a.soc)]}">${f(a.soc,0)}<small>%</small></div>
@@ -1356,6 +1365,46 @@ function connectHA(url, token){
 }
 const ENT_RE = /^(sensor|binary_sensor|number|switch)\.pack_(\d+)_bms_(\d+|master)_(.+)$/i;
 const GLOBAL_SUMMARY_ID = 'sensor.smartphoton_jk_bms_multi_pack_global_summary';
+const GLOW_DIAGNOSTICS_ID = 'sensor.smartphoton_jk_bms_multi_pack_diagnostics';
+// Step 13F / HA global summary is the authority on pack connectivity.
+// An available retained voltage value is NOT evidence of a live BMS.
+function glowResolvePackConnectivity(map){
+  if(!map) return null;
+  const state=map.get(GLOBAL_SUMMARY_ID);
+  const available=s=>s && !['unknown','unavailable','none',''].includes(String(s.state??'').toLowerCase());
+  if(available(state)){
+    const a=state.attributes||{};
+    if(Array.isArray(a.online_packs)&&Array.isArray(a.offline_packs)){
+      const result=new Map();
+      for(const id of a.online_packs) if(/^pack_[1-5]$/.test(String(id))) result.set(String(id),true);
+      for(const id of a.offline_packs) if(/^pack_[1-5]$/.test(String(id))) result.set(String(id),false);
+      return result;
+    }
+  }
+  // Older summaries: Premium diagnostics may still expose PACK_OFFLINE.
+  const diag=map.get(GLOW_DIAGNOSTICS_ID);
+  if(!available(diag)) return null;
+  const issues=Array.isArray(diag.attributes?.active_issues)?diag.attributes.active_issues:[];
+  const result=new Map();
+  for(const issue of issues){
+    if(issue?.code!=='PACK_OFFLINE') continue;
+    const ids=[...(Array.isArray(issue.packs)?issue.packs:[]),issue.pack_id];
+    for(const id of ids) if(/^pack_[1-5]$/.test(String(id))) result.set(String(id),false);
+  }
+  return result.size?result:null;
+}
+function syncGlowPackConnectivity(){
+  if(S.mode!=='ha') return;
+  const availability=glowResolvePackConnectivity(S.lastStateMap);
+  for(const p of PACKS){
+    const id='pack_'+p.id;
+    p.communicating=availability?.has(id)?availability.get(id):null;
+    for(const b of p.bms){
+      b.online=(b.haVoltageOnline!==false) && p.communicating!==false;
+    }
+  }
+}
+
 function configuredPackIdsFromStates(states){
   const summary=states.find(s=>s.entity_id===GLOBAL_SUMMARY_ID);
   const ids=summary?.attributes?.configured_pack_ids;
@@ -1376,20 +1425,23 @@ function applyHaEventState(s){
       // Reconstruire alors la liste sans effacer les entités du registre HA.
       buildFromStates([...S.lastStateMap.values()]);
     }
+    syncGlowPackConnectivity();
+    S.dirty=true;
     return;
   }
+  if(s.entity_id===GLOW_DIAGNOSTICS_ID){syncGlowPackConnectivity();S.dirty=true;return;}
   const m=s.entity_id.match(ENT_RE);
   if(m && S.configuredPackIds?.includes(`pack_${m[2]}`) &&
      !PACKS.some(p=>p.id===+m[2] && p.bms.some(b=>b.id===bmsId(m[3])))){
     buildFromStates([...S.lastStateMap.values()]);
     return;
   }
-  if(applyState(s)) S.dirty=true;
+  if(applyState(s)){syncGlowPackConnectivity();S.dirty=true;}
 }
 const bmsId = k => /^master$/i.test(k) ? 1 : +k;          // BMS_master = BMS n°1
 const bmsKey = b => b.key || b.id;                          // morceau réel du nom d'entité
 function blankBms(pack,id){ const params={},switches={}; Object.values(PARAM_DEF).flat().forEach(p=>params[p[0]]=null); SW_DEF.forEach(s=>switches[s[0]]=null);
-  return {pack,id,online:true,ts:0,cells:Array(16).fill(0),res:Array(16).fill(0),voltage:0,current:0,power:0,soc:0,capRem:0,capNom:0,t1:0,t2:0,mos:0,balance:0,deltaMv:0,
+  return {pack,id,online:true,haVoltageOnline:true,ts:0,cells:Array(16).fill(0),res:Array(16).fill(0),voltage:0,current:0,power:0,soc:0,capRem:0,capNom:0,t1:0,t2:0,mos:0,balance:0,deltaMv:0,
     soh:0,cycles:0,runtime:'—',chargeStatus:'—',alarms:[],chargeMos:false,dischargeMos:false,params,switches,weak:{cell:1,lowestDays:0,resRise:0},res30:null}; }
 function buildFromStates(states){
   if(!states){ S.haStatus='Lecture impossible'; render(); return; }
@@ -1408,6 +1460,7 @@ function buildFromStates(states){
   if(!list.length){ PACKS=[]; S.mode='waiting'; S.haStatus='Aucune entité pack_X_bms_Y trouvée'; render(); return; }
   PACKS=list; EVENTS=[]; S.mode='ha'; S.histCache={};
   states.forEach(applyState);
+  syncGlowPackConnectivity();
   S.haStatus=`Connecté · ${list.length} packs, ${allBms().length} BMS`;
   // N'appliquer la navigation automatique qu'à la première connexion,
   // jamais lors d'une navigation volontaire de l'utilisateur.
@@ -1429,12 +1482,12 @@ function applyState(s){
   const m=s.entity_id.match(ENT_RE); if(!m) return false;
   const p=PACKS.find(x=>x.id===+m[2]); const b=p&&p.bms.find(x=>x.id===bmsId(m[3])); if(!b) return false;
   const k=m[4], raw=s.state, v=parseFloat(raw), ts=Date.parse(s.last_updated||s.last_changed)||Date.now();
-  if(raw==='unavailable'||raw==='unknown'){ if(k==='tension_totale_volt') b.online=false; return true; }
+  if(raw==='unavailable'||raw==='unknown'){ if(k==='tension_totale_volt'){b.haVoltageOnline=false;b.online=false;} return true; }
   b.ts=Math.max(b.ts,ts);
   const map={tension_totale_volt:'voltage',courant_total:'current',puissance_totale:'power',soc_pourcentage:'soc',capacite_restante_ah:'capRem',capacite_batterie_ah:'capNom',
     sonde_1_temp:'t1',sonde_2_temp:'t2',mos_temp:'mos',balance_courant:'balance',soh_pourcentage:'soh',nombre_cycle:'cycles'};
   let mm;
-  if(map[k]){ b[map[k]]=v; if(k==='tension_totale_volt') b.online=true; }
+  if(map[k]){ b[map[k]]=v; if(k==='tension_totale_volt'){b.haVoltageOnline=true;b.online=true;} }
   else if(k==='cell_voltage_delta') b.deltaMv=v*1000;
   else if(k==='total_runtime_formatted') b.runtime=raw;
   else if(k==='charge_status_text') b.chargeStatus=raw;
