@@ -768,7 +768,12 @@ function issues(){
   });
   PACKS.forEach(p=>p.bms.forEach(b=>{
     const t=tmax(b), where=`${p.name} · ${bn(b)}`, href=`#/pack/${p.id}/bms/${b.id}`;
-    if(!b.online && p.communicating!==false) out.push({lvl:'crit',where,href:href+'/alarms',txt:spGlowDiag('offline'),act:spGlowDiag('offlineHelp')});
+    if(!b.online){
+      // Do not reinterpret frozen cell/temperature/alarms as live problems.
+      // A whole-pack outage already has one pack-level issue above.
+      if(p.communicating!==false) out.push({lvl:'crit',where,href:href+'/alarms',txt:spGlowDiag('offline'),act:spGlowDiag('offlineHelp')});
+      return;
+    }
     b.alarms.forEach(a=>out.push({lvl:'crit',where,href:href+'/alarms',txt:a,act:spGlowDiag('alarmHelp')}));
     if(b.deltaMv>=TH.deltaWarn) out.push({lvl:dL(b.deltaMv),where,href:href+'/live',txt:spGlowDiag('delta',{value:f(b.deltaMv,0)}),act:spGlowDiag('deltaHelp')});
     if(t>=TH.tempWarn) out.push({lvl:tL(t),where,href:href+'/live',txt:spGlowDiag('temp',{value:f(t,1)}),act:spGlowDiag('tempHelp')});
