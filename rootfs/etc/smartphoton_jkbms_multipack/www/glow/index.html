@@ -941,7 +941,7 @@ function fleetKpis(){
   const F=fleetStats(), cap=agg(allBms());
   return `<div class="fleet-kpis">
     ${kpi('📡 '+spGlowLabel('Sites à jour'),`${F.live} / ${PACKS.length}`,spGlowOverview(F.live<PACKS.length?'stale':'allConnected'),F.live<PACKS.length?'warn':'ok')}
-    ${kpi('🔋 '+spGlowLabel('SOC le plus bas'),`${f(F.low.a.soc,0)}<small>%</small>`,`${esc(F.low.p.name)} · ${spGlowOverview('minBms')} : ${f(F.minBms.soc,0)} %`,socL(F.low.a.soc))}
+    ${kpi('🔋 '+spGlowLabel('SOC le plus bas'),`${F.low?f(F.low.a.soc,0):'—'}<small>%</small>`,`${F.low?esc(F.low.p.name):'—'} · ${spGlowOverview('minBms')} : ${F.minBms?f(F.minBms.soc,0):'—'} %`,F.low?socL(F.low.a.soc):'warn')}
     ${kpi('⏳ '+spGlowLabel('Autonomie la plus courte'),F.short.h===Infinity?'—':F.short.au.v,F.short.h===Infinity?spGlowOverview('noDischarge'):`${esc(F.short.p.name)} · ${F.short.au.sub}`,F.short.h<6?'warn':'')}
     ${kpi('🏭 '+spGlowLabel('Capacité du parc'),`${f(cap.capRem,0)}<small>/ ${f(cap.capNom,0)} Ah</small>`,`${PACKS.length} ${spGlowOverview('sites')} · ${allBms().length} BMS`)}
   </div>`;
@@ -1280,7 +1280,7 @@ function pageWall(){
     <div class="pills"><button class="btn" data-act="fs">⛶ ${spGlowLabel('Plein écran')}</button><a class="btn" href="#/">✕ ${spGlowLabel('Quitter')}</a></div></div>`;
   h+=statusBanner(true)+`<div class="wall-kpis">
     <div class="card kpi ${F.live<PACKS.length?'warn':'ok'}"><div class="lbl">📡 ${spGlowLabel('Sites à jour')}</div><div class="val">${F.live}<small>/ ${PACKS.length}</small></div></div>
-    <div class="card kpi"><div class="lbl">🔋 ${spGlowLabel('SOC le plus bas')} · ${esc(F.low.p.name)}</div><div class="val" style="color:${COL[socL(F.low.a.soc)]}">${f(F.low.a.soc,0)}<small>%</small></div></div>
+    <div class="card kpi"><div class="lbl">🔋 ${spGlowLabel('SOC le plus bas')} · ${F.low?esc(F.low.p.name):'—'}</div><div class="val" style="color:${F.low?COL[socL(F.low.a.soc)]:COL.off}">${F.low?f(F.low.a.soc,0)+'<small>%</small>':'—'}</div></div>
     <div class="card kpi"><div class="lbl">⏳ ${spGlowLabel('Autonomie la plus courte')}${F.short.h===Infinity?'':' · '+esc(F.short.p.name)}</div><div class="val">${F.short.h===Infinity?'—':F.short.au.v}</div></div></div>
     <div class="wall-packs">${PACKS.map(p=>{const a=agg(p.bms),s=stateL(a);return `<div class="card"><h3><span class="dot ${s}" style="width:14px;height:14px"></span>${esc(p.name)}</h3>
       <div class="soc" style="color:${COL[socL(a.soc)]}">${f(a.soc,0)}<small>%</small></div>
