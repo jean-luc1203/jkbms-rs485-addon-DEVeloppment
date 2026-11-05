@@ -18,6 +18,7 @@ const data={online:false,power:0,soc:0,current:0,voltage:0,temp:0,delta:0,
   capRem:0,capNom:0,balancing:false,alarms:[],ts:Date.now()-120000};
 const env={
   spLanguage:'fr', S:{range:'24h',expanded:new Set()},
+  TH:{socCrit:20,deltaWarn:20,deltaCrit:50,tempWarn:40,tempCrit:50},
   agg:()=>({...data,online:active}),
   stateL:()=>active?'ok':'off',
   autonomy:()=>({ic:'⏳',v:'0 h 00',sub:'au repos'}),
