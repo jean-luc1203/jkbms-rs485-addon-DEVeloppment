@@ -2648,7 +2648,7 @@ function render(){
  document.getElementById('kpiVoltage').textContent=avgV.toFixed(2);
  document.getElementById('kpiDelta').textContent=maxD.toFixed(0);
  document.getElementById('statusPacks').textContent=singlePack?(online?'Pack communicant':'Pack non communicant'):`${online} / ${packs.length} packs communicants`;
- document.getElementById('statusBms').textContent=`${bms} BMS actifs`;
+ document.getElementById('statusBms').textContent=`${activePacks.reduce((s,p)=>s+(p.bms||0),0)} BMS communicants`;
  const diagIcon=document.getElementById('diagIcon');
  diagIcon.classList.remove('info','warn','alarm');
  if(diagAlarm){
