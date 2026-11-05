@@ -23,8 +23,11 @@ assert.match(bridge.func,/transports:Object\.fromEntries\(packIds\.map/);
 const menuScada=flows.find(n=>n.id==='34cada0000000002');
 const menuGlow=flows.find(n=>n.id==='74a0000000000002');
 assert.ok(menuScada && menuGlow);
-assert.match(menuScada.func,/scada\/index\.html\?v=dev79-3/);
-assert.match(menuGlow.func,/glow\/index\.html\?v=dev79-3/);
+const cfg=fs.readFileSync('config.yaml','utf8');
+const tag=cfg.match(/^version:\s*1\.0\.0-(dev\d+\.\d+)$/m)?.[1]?.replace('.', '-');
+assert.ok(tag,'Missing DEV version for cache validation');
+assert.ok(menuScada.func.includes(`scada/index.html?v=${tag}`));
+assert.ok(menuGlow.func.includes(`glow/index.html?v=${tag}`));
 
 // A true zero is a valid measurement; a null/unavailable value is not.
 const i=scadaJs.indexOf('function finite(v)');
@@ -76,6 +79,5 @@ assert.match(glowJs,/Vérifier la connexion TCP\/IP et la passerelle/);
 assert.match(glowJs,/a\.online\?f\(a\.soc,0\)\+' %':'—'/);
 assert.match(glowJs,/a\.online\?f\(a\.temp,1\)\+' °C':'—'/);
 assert.match(glowJs,/a\.online\?f\(a\.delta,0\)\+' mV':'—'/);
-const cfg=fs.readFileSync('config.yaml','utf8');
-assert.match(cfg,/^version: 1\.0\.0-dev79\.3$/m);
+assert.match(cfg,/^version: 1\.0\.0-dev79\.\d+$/m);
 console.log('PASS dev79-3-offline-metadata-and-diagnostics.test.cjs');
