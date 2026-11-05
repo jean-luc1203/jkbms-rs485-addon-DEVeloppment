@@ -760,10 +760,16 @@ function autonomy(capRem, capNom, current){
   return {v:'—', sub:spGlowText('idle'), ic:'•', mode:'idle'};
 }
 
+function spGlowOfflineHelp(p){
+  const transport=S.lastStateMap?.get(GLOBAL_SUMMARY_ID)?.attributes?.pack_transports?.['pack_'+p.id];
+  if(transport==='tcp') return {fr:'Vérifier la connexion TCP/IP et la passerelle.',en:'Check the TCP/IP connection and gateway.',de:'TCP/IP-Verbindung und Gateway prüfen.'}[spLanguage]||'Vérifier la connexion TCP/IP et la passerelle.';
+  if(transport==='serial') return spGlowDiag('offlineHelp');
+  return {fr:'Vérifier la liaison de communication du pack.',en:'Check the pack communication link.',de:'Kommunikationsverbindung des Packs prüfen.'}[spLanguage]||'Vérifier la liaison de communication du pack.';
+}
 function issues(){
   const out=[];
   PACKS.forEach(p=>{
-    if(p.communicating===false) out.push({lvl:'crit',where:p.name,href:'#/pack/'+p.id,txt:spGlowDiag('offline'),act:spGlowDiag('offlineHelp')});
+    if(p.communicating===false) out.push({lvl:'crit',where:p.name,href:'#/pack/'+p.id,txt:spGlowDiag('offline'),act:spGlowOfflineHelp(p)});
     if(p.expectedBms && p.bms.length<p.expectedBms) out.push({lvl:'warn',where:p.name,href:'#/settings',txt:spGlowDiag('missing',{n:p.expectedBms-p.bms.length,found:p.bms.length,expected:p.expectedBms}),act:spGlowDiag('missingHelp')});
   });
   PACKS.forEach(p=>p.bms.forEach(b=>{
@@ -771,7 +777,7 @@ function issues(){
     if(!b.online){
       // Do not reinterpret frozen cell/temperature/alarms as live problems.
       // A whole-pack outage already has one pack-level issue above.
-      if(p.communicating!==false) out.push({lvl:'crit',where,href:href+'/alarms',txt:spGlowDiag('offline'),act:spGlowDiag('offlineHelp')});
+      if(p.communicating!==false) out.push({lvl:'crit',where,href:href+'/alarms',txt:spGlowDiag('offline'),act:spGlowOfflineHelp(p)});
       return;
     }
     b.alarms.forEach(a=>out.push({lvl:'crit',where,href:href+'/alarms',txt:a,act:spGlowDiag('alarmHelp')}));
@@ -1049,7 +1055,7 @@ function pageDiagnostics(){
     ${kpi(spGlowView('freshness'),`${TH.staleSec}<small>s</small>`,spGlowView('olderThan'))}
   </div><h2>${spGlowView('bySite')}</h2><div class="grid g4">`;
   PACKS.forEach(p=>{const a=agg(p.bms);h+=`<a class="card link" href="#/pack/${p.id}"><b style="display:flex;gap:8px;align-items:center"><span class="dot ${stateL(a)}"></span>${esc(p.name)}</b><table class="tbl">
-    <tr><td>Écart cellules</td><td class="num" style="color:${COL[dL(a.delta)]}">${f(a.delta,0)} mV</td></tr><tr><td>Temp. max</td><td class="num" style="color:${COL[tL(a.temp)]}">${f(a.temp,1)} °C</td></tr><tr><td>SOC</td><td class="num">${f(a.soc,0)} %</td></tr></table></a>`});
+    <tr><td>Écart cellules</td><td class="num" style="color:${COL[dL(a.delta)]}">${a.online?f(a.delta,0)+' mV':'—'}</td></tr><tr><td>Temp. max</td><td class="num" style="color:${COL[tL(a.temp)]}">${a.online?f(a.temp,1)+' °C':'—'}</td></tr><tr><td>SOC</td><td class="num">${a.online?f(a.soc,0)+' %':'—'}</td></tr></table></a>`});
   return h+'</div>';
 }
 

@@ -1388,7 +1388,7 @@ function getHass(){
  }catch(e){}
  return null;
 }
-function finite(v){const n=Number(v);return Number.isFinite(n)?n:null}
+function finite(v){if(v===null||v===undefined||String(v).trim()===''||['unknown','unavailable','none','null'].includes(String(v).trim().toLowerCase()))return null;const n=Number(v);return Number.isFinite(n)?n:null}
 function entNum(h,id){const st=h?.states?.[id];if(!st)return null;return finite(st.state)}
 function entText(h,id){const st=h?.states?.[id];return st?String(st.state??''):''}
 function attrNum(st,k){return finite(st?.attributes?.[k])}
@@ -1415,22 +1415,27 @@ function packHeartbeatAge(h,pack,members,fallbackState){
 function freshnessClass(age){return age<20?'good':age<45?'warn':'bad'}
 function freshnessLabel(age){if(!Number.isFinite(age))return '—';if(age<1)return '< 1 s';return `${age.toFixed(age<10?1:0)} s`}
 function stateOn(h,id){const v=entText(h,id).toLowerCase();return ['on','1','true','active','open'].includes(v)}
-function livePack(h,packId){
- const st=h.states[packSummary(packId)]; if(!st)return null;
+function livePack(h,packId,globalState){
+ const meta=globalState?.attributes||{};
+ const packName=meta.pack_names?.[packId]||packId.replace('_',' ').toUpperCase();
+ const st=h.states[packSummary(packId)];
+ if(!st) return {id:packId,name:packName,members:[],bms:0,soc:0,power:0,a:0,v:0,d:0,t:0,online:false,hasData:false,ageSec:null};
  const a=st.attributes||{}; const members=Array.isArray(a.members)?a.members.map(String):[];
  const vals=(metric)=>members.map(m=>entNum(h,bmsEntity(packId,m,metric))).filter(v=>v!==null);
  const sum=arr=>arr.length?arr.reduce((x,y)=>x+y,0):null;
  const avg=arr=>arr.length?sum(arr)/arr.length:null;
  const p=vals('puissance_totale'), c=vals('courant_total'), v=vals('tension_totale_volt'), d=vals('cell_voltage_delta');
  const temps=[...vals('mos_temp'),...vals('sonde_1_temp'),...vals('sonde_2_temp')];
+ const hasData=[...p,...c,...v,...d,...temps,attrNum(st,'soc_pct'),attrNum(st,'power_total_w'),attrNum(st,'voltage_v')].some(Number.isFinite);
  return {
-   id:packId,name:a.pack_name||packId.replace('_',' ').toUpperCase(),members,bms:members.length||attrNum(st,'bms_count')||0,
+   id:packId,name:a.pack_name||packName,members,bms:members.length||attrNum(st,'bms_count')||0,
    soc:attrNum(st,'soc_pct')??finite(st.state)??0,
    power:sum(p)??attrNum(st,'power_total_w')??0,
    a:sum(c)??attrNum(st,'current_total_a')??0,
    v:avg(v)??attrNum(st,'voltage_v')??0,
    d:(d.length?Math.max(...d)*1000:(attrNum(st,'cell_delta_v')??0)*1000),
    t:temps.length?Math.max(...temps):(attrNum(st,'temperature_max_c')??0),
+   hasData,
    online:!['unknown','unavailable'].includes(String(st.state).toLowerCase()),
    ageSec:packHeartbeatAge(h,packId,members,st)
  };
@@ -1602,7 +1607,7 @@ function packHTML(p){
  const mode=p.power>25?'charge':p.power<-25?'discharge':'idle';
  const powerKw=(p.power/1000); const sign=powerKw>0?'+':'';
  const members=(p.members&&p.members.length?p.members:Array.from({length:p.bms},(_,i)=>String(i+1)));
- const age=Number.isFinite(p.ageSec)?p.ageSec:0; const freshClass=freshnessClass(age); return `<article class="pack ${p.online===false?'off':''}" onclick="openPack('${p.id}')"><div class="pack-top"><div class="packname">${p.name}</div><div class="online">${p.online===false?'OFFLINE':'ONLINE'}</div></div><div class="socring" style="--soc:${Math.max(0,Math.min(100,p.soc||0))}"><b>${(p.soc||0).toFixed(0)}%</b><small>SOC</small></div><div class="packpower ${mode}">${sign}${powerKw.toFixed(2)} kW</div><div class="metrics"><div class="m"><span>Tension</span><b>${(p.v||0).toFixed(2)} V</b></div><div class="m"><span>Courant</span><b>${(p.a||0).toFixed(1)} A</b></div><div class="m"><span>Delta</span><b>${(p.d||0).toFixed(0)} mV</b></div><div class="m temp-kpi"><span>T° MAX</span><b>${(p.t||0).toFixed(0)} °C</b></div></div><div class="bms-strip">${members.map(()=>p.online===false?'<i class="bms-dot"></i>':'<i class="bms-dot on"></i>').join('')}</div><div class="packfresh ${freshClass}">${p.online===false?'DERNIÈRE MAJ HA':'LIVE'} ${freshnessLabel(age)} · BMS ${members.join(' · ')}</div></article>`
+ const age=Number.isFinite(p.ageSec)?p.ageSec:NaN; const freshClass=Number.isFinite(age)?freshnessClass(age):'bad';const visible=p.hasData!==false;const reading=(v,unit,digits=0)=>visible?`${Number(v||0).toFixed(digits)}${unit}`:'—'; return `<article class="pack ${p.online===false?'off':''}" onclick="openPack('${p.id}')"><div class="pack-top"><div class="packname">${p.name}</div><div class="online">${p.online===false?'OFFLINE':'ONLINE'}</div></div><div class="socring" style="--soc:${Math.max(0,Math.min(100,p.soc||0))}"><b>${reading(p.soc,'%')}</b><small>SOC</small></div><div class="packpower ${mode}">${visible?sign+powerKw.toFixed(2)+' kW':'—'}</div><div class="metrics"><div class="m"><span>Tension</span><b>${reading(p.v,' V',2)}</b></div><div class="m"><span>Courant</span><b>${reading(p.a,' A',1)}</b></div><div class="m"><span>Delta</span><b>${reading(p.d,' mV')}</b></div><div class="m temp-kpi"><span>T° MAX</span><b>${reading(p.t,' °C')}</b></div></div><div class="bms-strip">${members.map(()=>p.online===false?'<i class="bms-dot"></i>':'<i class="bms-dot on"></i>').join('')}</div><div class="packfresh ${freshClass}">${p.online===false?(visible?'DERNIÈRE MAJ HA':'MESURES INDISPONIBLES'):'LIVE'} ${freshnessLabel(age)} · BMS ${members.join(' · ')}</div></article>`
 }
 
 let currentPacks=[];
@@ -1810,10 +1815,10 @@ function spView(fr){return SP_SCADA_VIEW_LABELS[fr]?.[spLanguage]||spScadaText(f
 function openPack(id){
  const p=currentPacks.find(x=>x.id===id);if(!p)return;
  const members=(p.members&&p.members.length?p.members:Array.from({length:p.bms},(_,i)=>String(i+1)));
- const mode=p.power>25?'CHARGE':p.power<-25?'DÉCHARGE':'REPOS';const sign=p.power>0?'+':'';
+ const mode=p.power>25?'CHARGE':p.power<-25?'DÉCHARGE':'REPOS';const sign=p.power>0?'+':'';const visible=p.hasData!==false;const display=(v,unit,d=0)=>visible?Number(v||0).toFixed(d)+unit:'—';
  document.getElementById('detailEyebrow').textContent='Fiche opérateur · Process batterie';
  document.getElementById('detailTitle').textContent=p.name;
- document.getElementById('detailBody').innerHTML=`<div class="detail-hero pack-operator-hero"><div class="online ${p.online===false?'offline-label':''}">${p.online===false?'PACK OFFLINE · DONNÉES FIGÉES':'ONLINE · COMMUNICATION OK'}</div><div class="detail-soc" style="--soc:${Math.max(0,Math.min(100,p.soc||0))}"><div><b>${(p.soc||0).toFixed(0)}%</b><small>STATE OF CHARGE</small></div></div><div class="detail-power">${sign}${(p.power/1000).toFixed(2)} kW</div><div class="detail-mode">${mode} · ${(p.a||0).toFixed(1)} A</div><div class="detail-grid"><div class="detail-metric"><span>${spView("Tension")}</span><b>${(p.v||0).toFixed(2)} V</b></div><div class="detail-metric"><span>Delta max</span><b>${(p.d||0).toFixed(0)} mV</b></div><div class="detail-metric"><span>${spView("Temp max")}</span><b>${(p.t||0).toFixed(0)} °C</b></div><div class="detail-metric"><span>${spView("Télémétrie")}</span><b>${freshnessLabel(p.ageSec)}</b></div></div></div><div class="detail-block pack-operator-block"><div class="bms-title"><span>${spView("Modules BMS du pack")}</span><b>${members.length} BMS détectés</b></div><div class="bms-cards">${members.map(m=>{const b=readBms(p.id,m);const fc=freshnessClass(b?.ageSec??999);return `<div class="bms-card clickable" onclick="openBms('${p.id}','${m}')"><div class="addr">BMS ${m}</div><div class="bstate ${p.online===false?'offline-label':''}">${p.online===false?'● OFFLINE':'● ONLINE'}</div><div class="serial">Adresse JK ${m}</div><div class="bline"></div><div class="mini"><span>Process</span><b>${b?.status||mode}</b></div><div class="mini" style="margin-top:6px"><span>${spView("Puissance")}</span><b>${((b?.power||0)/1000).toFixed(2)} kW</b></div><div class="fresh ${fc}">${p.online===false?'DERNIÈRE MAJ HA':'LIVE'} ${freshnessLabel(b?.ageSec)}</div></div>`}).join('')}</div><div class="bms-title" style="margin-top:18px"><span>${spView("Diagnostic pack")}</span><b>${packIssues(p).length?'ATTENTION REQUISE':'NORMAL'}</b></div><div class="alarm-list">${packIssues(p).length?packIssues(p).map(a=>{const ack=alarmAck(a);return `<div class="alarm-item clickable ${issueSeverityClass(a)} ${ack?'acked':''}" onclick="openAlarmDetail('${a.key}')"><time>LIVE</time><div class="sev">${a.severity}</div><div class="msg">${a.category} · ${a.value}</div><div class="state ${ack?'ack':'pending'}">${ack?spScadaText('QUITTANCÉE'):spScadaText('À QUITTANCER')}</div></div>`}).join(''):`<div class="alarm-item sev-ok"><time>LIVE</time><div class="sev">NORMAL</div><div class="msg">${spView("Aucun seuil pack dépassé")}</div><div class="state">OK</div></div>`}</div></div>`;
+ document.getElementById('detailBody').innerHTML=`<div class="detail-hero pack-operator-hero"><div class="online ${p.online===false?'offline-label':''}">${p.online===false?'PACK OFFLINE · DONNÉES FIGÉES':'ONLINE · COMMUNICATION OK'}</div><div class="detail-soc" style="--soc:${Math.max(0,Math.min(100,p.soc||0))}"><div><b>${display(p.soc,'%')}</b><small>STATE OF CHARGE</small></div></div><div class="detail-power">${visible?sign+(p.power/1000).toFixed(2)+' kW':'—'}</div><div class="detail-mode">${visible?mode+' · '+display(p.a,' A',1):'MESURES INDISPONIBLES'}</div><div class="detail-grid"><div class="detail-metric"><span>${spView("Tension")}</span><b>${display(p.v,' V',2)}</b></div><div class="detail-metric"><span>Delta max</span><b>${display(p.d,' mV')}</b></div><div class="detail-metric"><span>${spView("Temp max")}</span><b>${display(p.t,' °C')}</b></div><div class="detail-metric"><span>${spView("Télémétrie")}</span><b>${freshnessLabel(p.ageSec)}</b></div></div></div><div class="detail-block pack-operator-block"><div class="bms-title"><span>${spView("Modules BMS du pack")}</span><b>${members.length} BMS détectés</b></div><div class="bms-cards">${members.map(m=>{const b=readBms(p.id,m);const fc=freshnessClass(b?.ageSec??999);return `<div class="bms-card clickable" onclick="openBms('${p.id}','${m}')"><div class="addr">BMS ${m}</div><div class="bstate ${p.online===false?'offline-label':''}">${p.online===false?'● OFFLINE':'● ONLINE'}</div><div class="serial">Adresse JK ${m}</div><div class="bline"></div><div class="mini"><span>Process</span><b>${b?.status||mode}</b></div><div class="mini" style="margin-top:6px"><span>${spView("Puissance")}</span><b>${((b?.power||0)/1000).toFixed(2)} kW</b></div><div class="fresh ${fc}">${p.online===false?'DERNIÈRE MAJ HA':'LIVE'} ${freshnessLabel(b?.ageSec)}</div></div>`}).join('')}</div><div class="bms-title" style="margin-top:18px"><span>${spView("Diagnostic pack")}</span><b>${packIssues(p).length?'ATTENTION REQUISE':'NORMAL'}</b></div><div class="alarm-list">${packIssues(p).length?packIssues(p).map(a=>{const ack=alarmAck(a);return `<div class="alarm-item clickable ${issueSeverityClass(a)} ${ack?'acked':''}" onclick="openAlarmDetail('${a.key}')"><time>LIVE</time><div class="sev">${a.severity}</div><div class="msg">${a.category} · ${a.value}</div><div class="state ${ack?'ack':'pending'}">${ack?spScadaText('QUITTANCÉE'):spScadaText('À QUITTANCER')}</div></div>`}).join(''):`<div class="alarm-item sev-ok"><time>LIVE</time><div class="sev">NORMAL</div><div class="msg">${spView("Aucun seuil pack dépassé")}</div><div class="state">OK</div></div>`}</div></div>`;
  showScadaDetail();
 }
 function boolState(label,on){return `<div class="state-tile ${on?'state-ok':'state-warn'}"><span>${label}</span><b>${on?'ACTIF':'INACTIF'}</b></div>`}
@@ -2583,8 +2588,11 @@ function spProcessText(key,args={}){return (SP_SCADA_PROCESS_I18N[spLanguage]?.[
 function render(){
  const h=getHass(); let packs=[]; let diag=null; let glob=null; let live=false;
  if(h){
-   for(let i=1;i<=5;i++){const p=livePack(h,`pack_${i}`);if(p)packs.push(p)}
-   diag=h.states[DIAG]||null; glob=h.states[GLOBAL]||null; live=packs.length>0;
+   diag=h.states[DIAG]||null; glob=h.states[GLOBAL]||null;
+   const configured=Array.isArray(glob?.attributes?.configured_pack_ids)?glob.attributes.configured_pack_ids:[];
+   const ids=configured.length?configured:Array.from({length:5},(_,i)=>'pack_'+(i+1));
+   for(const id of ids){if(!/^pack_[1-5]$/.test(id))continue;const p=livePack(h,id,glob);if(p)packs.push(p)}
+   live=packs.length>0;
  }
  if(!live)packs=(demoSingleMode?[demoPacks[0]]:demoPacks).map(p=>({...p,online:true}));
  packs=scadaResolvePackAvailability(packs,glob,diag);

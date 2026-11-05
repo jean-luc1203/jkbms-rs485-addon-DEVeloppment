@@ -96,6 +96,13 @@ assert.match(script, /const active=ag\.filter\(x=>x\.a\.online\)/);
 const flows=JSON.parse(fs.readFileSync('rootfs/etc/node-red/flows.json','utf8'));
 const menu=flows.find(n=>n.name==='BUILD SMARTPHOTON GLOW MENU (dev74)');
 assert.ok(menu, 'Glow sidebar generator missing');
-assert.match(menu.func,/glow\/index\.html\?v=dev79-2/);
+// The cache-busting URL must follow the add-on version. Avoid hardcoding
+// the previous DEV tag, which would make every subsequent release fail.
+const config = fs.readFileSync('config.yaml','utf8');
+const version = config.match(/^version:\s*1\.0\.0-(dev\d+\.\d+)$/m)?.[1];
+assert.ok(version, 'Expected a DEV add-on version in config.yaml');
+const cacheTag = version.replace('.', '-');
+assert.ok(menu.func.includes(`/glow/index.html?v=${cacheTag}`),
+  `Glow iframe cache tag must match ${version} (v=${cacheTag})`);
 
 console.log('PASS dev79-2-glow-pack-offline-status.test.cjs');
