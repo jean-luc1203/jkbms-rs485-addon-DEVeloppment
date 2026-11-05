@@ -1388,7 +1388,7 @@ function getHass(){
  }catch(e){}
  return null;
 }
-function finite(v){const n=Number(v);return Number.isFinite(n)?n:null}
+function finite(v){if(v===null||v===undefined||String(v).trim()===''||['unknown','unavailable','none','null'].includes(String(v).trim().toLowerCase()))return null;const n=Number(v);return Number.isFinite(n)?n:null}
 function entNum(h,id){const st=h?.states?.[id];if(!st)return null;return finite(st.state)}
 function entText(h,id){const st=h?.states?.[id];return st?String(st.state??''):''}
 function attrNum(st,k){return finite(st?.attributes?.[k])}
