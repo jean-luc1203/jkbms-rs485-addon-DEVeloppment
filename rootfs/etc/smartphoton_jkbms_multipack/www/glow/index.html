@@ -1127,19 +1127,26 @@ function cellMap(p){
   <div class="cm-legend"><span style="--c:var(--ok)">${spGlowCell('normalRange')}</span><span style="--c:var(--warn)">${spGlowCell('smallGap')}</span><span style="--c:var(--crit)">${spGlowCell('largeGap')}</span><span style="--c:var(--flow)">🔎 ${spGlowCell('watchOverTime')}</span><span class="cm-z">${spGlowCell('zone')}</span></div>`;
 }
 
+const SP_GLOW_OFFLINE_UI={
+ fr:{title:'Pack hors ligne — mesures instantanées indisponibles',detail:'Les valeurs BMS et les courbes ci-dessous sont historiques. Elles ne représentent pas le fonctionnement actuel du pack.',missing:'Mesure indisponible',past:'Dernières valeurs enregistrées'},
+ en:{title:'Pack offline — live measurements unavailable',detail:'BMS readings and charts below are historical and do not represent the pack’s current operation.',missing:'Measurement unavailable',past:'Last recorded readings'},
+ de:{title:'Pack offline – aktuelle Messwerte nicht verfügbar',detail:'Die folgenden BMS-Werte und Diagramme stammen aus dem Verlauf. Sie zeigen nicht den aktuellen Zustand des Packs.',missing:'Messwert nicht verfügbar',past:'Letzte gespeicherte Messwerte'}
+};
+function spGlowOfflineUi(key){return (SP_GLOW_OFFLINE_UI[spLanguage]||SP_GLOW_OFFLINE_UI.fr)[key]||key}
 function pagePack(p, tab){
-  const a=agg(p.bms), st=stateL(a), au=autonomy(a.capRem,a.capNom,a.current);
+  const a=agg(p.bms), st=stateL(a), au=autonomy(a.capRem,a.capNom,a.current), offline=!a.online;
   let h=header(`<a href="#/">Parc</a> › Sites`,esc(p.name),`<span class="pill ${st}"><span class="dot ${st}"></span>${stTxt[st]}</span><span class="pill">${p.link}</span>${fresh(a.ts)}`);
   h+=`<div class="tabs" style="margin-bottom:16px"><a href="#/pack/${p.id}" class="${tab!=='compare'?'on':''}">${spGlowBmsUi('packView')}</a><a href="#/pack/${p.id}/compare" class="${tab==='compare'?'on':''}">⚖️ ${spGlowBmsUi('compareBms')}</a></div>`;
+  if(offline) h+=`<div class="alert crit" role="status"><span class="ic">⛔</span><div><b>${spGlowOfflineUi('title')}</b><small>${spGlowOfflineUi('detail')}</small></div></div>`;
   if (tab==='compare') return h+compareView(p);
   h+=`<div class="grid g4">
-    ${kpi(spGlowBmsUi('totalPower'),pw(a.power),flowTxt(a.current)[0],'flow',trendHtml(a.power/1000,ago(p.bms,'power',60)==null?null:ago(p.bms,'power',60)/1000,' kW',2,null,false))}
-    ${socKpi(a.soc,`${f(a.capRem,0)} / ${f(a.capNom,0)} Ah`,trendHtml(a.soc,ago(p.bms,'soc',60),' %',1,null))}
-    ${kpi(au.ic+' '+spGlowLabel('Autonomie'),au.v,au.sub)}
-    ${kpi(spGlowBmsUi('worstBms'),f(a.delta,0)+'<small>mV</small>','',dL(a.delta),trendHtml(a.delta,ago(p.bms,'delta',60),' mV',0,true))}
-    ${kpi('Tension',f(a.voltage,2)+'<small>V</small>')}${kpi(spGlowBmsUi('totalCurrent'),f(a.current,1)+'<small>A</small>')}
-    ${kpi('Température max',f(a.temp,1)+'<small>°C</small>','',tL(a.temp),trendHtml(a.temp,ago(p.bms,'temp',60),'°',1,true))}
-    ${kpi(spGlowLabel('Équilibrage'),spGlowCard(a.balancing?'active':'inactive'),'',a.balancing?'bal':'')}
+    ${offline?kpi(spGlowBmsUi('totalPower'),'—',spGlowOfflineUi('missing')):kpi(spGlowBmsUi('totalPower'),pw(a.power),flowTxt(a.current)[0],'flow',trendHtml(a.power/1000,ago(p.bms,'power',60)==null?null:ago(p.bms,'power',60)/1000,' kW',2,null,false))}
+    ${offline?kpi('SOC','—',spGlowOfflineUi('missing')):socKpi(a.soc,`${f(a.capRem,0)} / ${f(a.capNom,0)} Ah`,trendHtml(a.soc,ago(p.bms,'soc',60),' %',1,null))}
+    ${offline?kpi(spGlowLabel('Autonomie'),'—',spGlowOfflineUi('missing')):kpi(au.ic+' '+spGlowLabel('Autonomie'),au.v,au.sub)}
+    ${offline?kpi(spGlowBmsUi('worstBms'),'—',spGlowOfflineUi('missing')):kpi(spGlowBmsUi('worstBms'),f(a.delta,0)+'<small>mV</small>','',dL(a.delta),trendHtml(a.delta,ago(p.bms,'delta',60),' mV',0,true))}
+    ${kpi('Tension',offline?'—':f(a.voltage,2)+'<small>V</small>',offline?spGlowOfflineUi('missing'):'')}${kpi(spGlowBmsUi('totalCurrent'),offline?'—':f(a.current,1)+'<small>A</small>',offline?spGlowOfflineUi('missing'):'')}
+    ${offline?kpi('Température max','—',spGlowOfflineUi('missing')):kpi('Température max',f(a.temp,1)+'<small>°C</small>','',tL(a.temp),trendHtml(a.temp,ago(p.bms,'temp',60),'°',1,true))}
+    ${offline?kpi(spGlowLabel('Équilibrage'),'—',spGlowOfflineUi('missing')):kpi(spGlowLabel('Équilibrage'),spGlowCard(a.balancing?'active':'inactive'),'',a.balancing?'bal':'')}
   </div>
   <h2>${spGlowBmsUi('cellVoltage')}</h2><div class="grid ${p.bms.length>1?'g2':''}">${p.bms.map(b=>`<a class="card link" href="#/pack/${p.id}/bms/${b.id}/live">
     <div class="pack-head"><h3 style="font-size:15px"><span class="dot ${stateL(agg([b]))}"></span>${bn(b)}</h3><span class="pill ${dL(b.deltaMv)==='ok'?'':dL(b.deltaMv)}">écart ${f(b.deltaMv,0)} mV</span></div>
