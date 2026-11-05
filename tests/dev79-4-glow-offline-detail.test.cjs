@@ -32,7 +32,7 @@ const env={
   dL:()=> 'ok', tL:()=> 'ok',
   chart:()=>'', series:()=>null, rangeSeg:()=>'', 
   trendHtml:()=>'', ago:()=>null,
-  spGlowBmsUi:k=>k,spGlowLabel:k=>k,spGlowCard:k=>k,spGlowOverview:k=>k,
+  spGlowBmsUi:k=>k,spGlowLabel:k=>k,spGlowCard:k=>k,spGlowOverview:k=>k,spGlowDetail:k=>k,
   cellsBlock:()=>'', compareView:()=>'<div>comparison</div>'
 };
 const render=vm.runInNewContext(script.slice(i,j)+'\npagePack',env);
