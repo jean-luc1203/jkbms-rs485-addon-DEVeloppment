@@ -1869,17 +1869,62 @@ function openAlarmHistoryDetail(id){
 }
 // New operator sheets start at the top.  A live command read-back redraw must
 // preserve the operator's current scroll position instead.
+// DEV79.7 — keep the read-only operator sheet in sync with Home Assistant.
+// The main render() runs each second, but innerHTML of an open modal is not
+// reactive. Only refresh when operator-visible values change or the displayed
+// telemetry age crosses a short bucket, preserving pack/BMS and scroll.
 let scadaOperatorView=null;
-function scadaRefreshOperatorLanguage(){
- const v=scadaOperatorView,overlay=document.getElementById('scadaOverlay');
- if(!v||!overlay?.classList.contains('open')||document.getElementById('controlConfirmLayer')?.classList.contains('open'))return;
+let scadaOperatorLiveSignature=null;
+function scadaOperatorAgeBucket(age,live){
+ return Number.isFinite(age)?Math.floor(Math.max(0,age)/(live?3:5)):null;
+}
+function scadaOperatorSignature(v){
+ const p=currentPacks.find(x=>x.id===v.packId);
+ if(!p||!['pack','bms'].includes(v.kind))return null;
+ const live=p.online!==false;
+ const members=v.kind==='bms'?[String(v.bms)]:Array.isArray(p.members)?p.members:[];
+ const measurements=members.map(member=>{
+   const b=readBms(p.id,member);
+   if(!b)return [String(member),null];
+   return [String(member),b.soc,b.v,b.a,b.power,b.d,b.t,b.mos,b.t1,b.t2,
+     b.balance,b.remaining,b.nominal,b.soh,b.charge,b.discharge,b.balancing,
+     b.alarm,b.status,scadaOperatorAgeBucket(b.ageSec,live)];
+ });
+ return JSON.stringify([v.kind,v.packId,v.kind==='bms'?String(v.bms):null,
+   p.name,p.online,p.hasData,p.topologySource,p.bms,p.members,
+   p.soc,p.power,p.a,p.v,p.d,p.t,scadaOperatorAgeBucket(p.ageSec,live),
+   measurements,spLanguage]);
+}
+function scadaRedrawOperatorView(v){
+ const overlay=document.getElementById('scadaOverlay');
+ if(!v||!overlay?.classList.contains('open')||
+    document.getElementById('controlConfirmLayer')?.classList.contains('open')||
+    currentControlContext||currentParameterContext)return false;
+ const p=currentPacks.find(x=>x.id===v.packId);
+ if(!p)return false;
+ if(v.kind==='bms'&&!readBms(v.packId,v.bms))return false;
  const panel=overlay.querySelector('.detail-panel'),at=panel?.scrollTop??0;
  if(v.kind==='pack')openPack(v.packId);
  else if(v.kind==='bms')openBms(v.packId,v.bms);
+ else return false;
  if(panel)panel.scrollTop=at;
+ return true;
+}
+function scadaRefreshOperatorLanguage(){
+ if(scadaRedrawOperatorView(scadaOperatorView))scadaOperatorLiveSignature=null;
+}
+function scadaRefreshOperatorLive(){
+ const v=scadaOperatorView,overlay=document.getElementById('scadaOverlay');
+ if(!v||!overlay?.classList.contains('open')||
+    document.getElementById('controlConfirmLayer')?.classList.contains('open')||
+    currentControlContext||currentParameterContext)return;
+ const signature=scadaOperatorSignature(v);
+ if(signature===null||signature===scadaOperatorLiveSignature)return;
+ if(scadaRedrawOperatorView(v))scadaOperatorLiveSignature=signature;
 }
 function showScadaDetail(preserveScroll=false,operatorView=null){
  scadaOperatorView=operatorView;
+ scadaOperatorLiveSignature=null;
  const overlay=document.getElementById('scadaOverlay');
  const panel=overlay.querySelector('.detail-panel');
  const previous=panel.scrollTop;
@@ -2780,6 +2825,7 @@ function render(){
  document.getElementById('liveBadge').textContent=live?'● HA CONNECTÉ · UI 1 s':'● DEMO · LIVE READY';
  document.getElementById('dataMode').textContent=live?`SMARTPHOTON SCADA · HOME ASSISTANT LIVE · ${singlePack?'SINGLE PACK':'MULTI‑PACK'}`:`SMARTPHOTON SCADA · v0.39 · DEMO ${singlePack?'1 PACK':'MULTI'}`;
  const demoToggle=document.getElementById('demoToggle'); if(demoToggle) demoToggle.style.display=live?'none':'inline';
+ scadaRefreshOperatorLive();
 }
 
 document.querySelector('.alarm-pill').addEventListener('click',openAlarmOverview);
