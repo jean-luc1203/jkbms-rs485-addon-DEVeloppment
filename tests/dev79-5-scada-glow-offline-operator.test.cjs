@@ -30,7 +30,7 @@ const ctx={
 };
 function slice(a,b){const i=s.indexOf(a),j=s.indexOf(b,i+a.length);
   assert.ok(i>=0&&j>i,'Missing SCADA code: '+a);return s.slice(i,j);}
-const packFn=vm.runInNewContext(slice('function openPack(id){','function boolState(label,on)')+'\nopenPack',ctx);
+const packFn=vm.runInNewContext(slice('function openPack(id){','function boolState(label,on,live=true)')+'\nopenPack',ctx);
 packFn('pack_2');
 const offPack=dom.detailBody.innerHTML;
 assert.match(offPack,/PACK OFFLINE/);
