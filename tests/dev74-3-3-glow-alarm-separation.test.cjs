@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const html = fs.readFileSync('rootfs/etc/smartphoton_jkbms_multipack/www/glow/index.html','utf8');
 const config = fs.readFileSync('config.yaml','utf8');
-assert.match(config,/version:\s*1\.0\.0-dev(?:74\.3\.3|75\.(?:[0-6]|7(?:\.1)?)|76\.[01]|78(?:\.[0-9]+)?|77(?:\.[0-9]+)?|79(?:\.[0-9]+)?)/);
+assert.match(config,/version:\s*1\.0\.0-dev(?:74\.3\.3|75\.(?:[0-6]|7(?:\.1)?)|76\.[01]|78(?:\.[0-9]+)?|77(?:\.[0-9]+)?|79(?:\.[0-9]+)?|80(?:\.[0-9]+)?)/);
 assert.match(html,/spText\('hardware'\)/);
 assert.match(html,/"hardware":"Alarmes matérielles JK-BMS"/);
 assert.match(html,/spText\('supervision'\)/);
