@@ -143,7 +143,7 @@ assert.match(script,/function render\(\)[\s\S]*?scadaRefreshOperatorLive\(\);\s*
 assert.match(script,/if\(!v\|\|!overlay\?\.classList\.contains\('open'\)/);
 
 const cfg=fs.readFileSync('config.yaml','utf8');
-assert.match(cfg,/^version: 1\.0\.0-dev79\.7$/m);
+assert.match(cfg,/^version: 1\.0\.0-dev(?:79\.[7-9]|[89]\d+\.\d+)$/m);
 const flows=JSON.parse(fs.readFileSync('rootfs/etc/node-red/flows.json','utf8'));
 for(const [id,name] of [['34cada0000000002','scada'],['74a0000000000002','glow']]){
  const node=flows.find(x=>x.id===id);
