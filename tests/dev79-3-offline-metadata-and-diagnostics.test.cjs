@@ -79,5 +79,5 @@ assert.match(glowJs,/Vérifier la connexion TCP\/IP et la passerelle/);
 assert.match(glowJs,/a\.online\?f\(a\.soc,0\)\+' %':'—'/);
 assert.match(glowJs,/a\.online\?f\(a\.temp,1\)\+' °C':'—'/);
 assert.match(glowJs,/a\.online\?f\(a\.delta,0\)\+' mV':'—'/);
-assert.match(cfg,/^version: 1\.0\.0-dev79\.\d+$/m);
+assert.match(cfg,/^version: 1\.0\.0-dev(?:79|80)\.\d+$/m);
 console.log('PASS dev79-3-offline-metadata-and-diagnostics.test.cjs');
