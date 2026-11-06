@@ -6,8 +6,8 @@ const vm=require('node:vm');
 const root='rootfs/etc/smartphoton_jkbms_multipack/www/';
 const scada=fs.readFileSync(root+'scada/index.html','utf8');
 const glow=fs.readFileSync(root+'glow/index.html','utf8');
-const s=scada.match(/<script>([\\s\\S]*?)<\\/script>/)?.[1];
-const g=glow.match(/<script>([\\s\\S]*?)<\\/script>/)?.[1];
+const s=scada.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+const g=glow.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert.ok(s&&g,'Dashboard scripts missing');
 new vm.Script(s,{filename:'scada/index.html'});
 new vm.Script(g,{filename:'glow/index.html'});
@@ -30,20 +30,20 @@ const ctx={
 };
 function slice(a,b){const i=s.indexOf(a),j=s.indexOf(b,i+a.length);
   assert.ok(i>=0&&j>i,'Missing SCADA code: '+a);return s.slice(i,j);}
-const packFn=vm.runInNewContext(slice('function openPack(id){','function boolState(label,on)')+'\\nopenPack',ctx);
+const packFn=vm.runInNewContext(slice('function openPack(id){','function boolState(label,on)')+'\nopenPack',ctx);
 packFn('pack_2');
 const offPack=dom.detailBody.innerHTML;
 assert.match(offPack,/PACK OFFLINE/);
 assert.match(offPack,/Mesures instantanées indisponibles/);
-assert.doesNotMatch(offPack,/1\\.88 kW|86%|53\\.21 V/);
+assert.doesNotMatch(offPack,/1\.88 kW|86%|53\.21 V/);
 assert.match(offPack,/Pack 2 - Berlin|BMS 1/);
 
-const bmsFn=vm.runInNewContext(slice('function openBms(packId,bms){','function openBmsOverview()')+'\\nopenBms',ctx);
+const bmsFn=vm.runInNewContext(slice('function openBms(packId,bms){','function openBmsOverview()')+'\nopenBms',ctx);
 bmsFn('pack_2','1');
 const offBms=dom.detailBody.innerHTML;
 assert.match(offBms,/État BMS indisponible/);
 assert.match(offBms,/Dernières valeurs enregistrées/);
-assert.doesNotMatch(offBms,/0\\.92 kW|85%|17\\.34 A|ACTIVE<\\/b>|AUCUNE<\\/b>/);
+assert.doesNotMatch(offBms,/0\.92 kW|85%|17\.34 A|ACTIVE<\/b>|AUCUNE<\/b>/);
 assert.match(offBms,/MOS charge/);
 assert.match(offBms,/—/);
 
@@ -52,29 +52,29 @@ pack.online=true;
 pack.power=0;
 pack.a=0;
 packFn('pack_2');
-assert.match(dom.detailBody.innerHTML,/0\\.00 kW/);
+assert.match(dom.detailBody.innerHTML,/0\.00 kW/);
 assert.match(dom.detailBody.innerHTML,/86%/);
 bmsFn('pack_2','1');
-assert.match(dom.detailBody.innerHTML,/0\\.92 kW/);
+assert.match(dom.detailBody.innerHTML,/0\.92 kW/);
 assert.match(dom.detailBody.innerHTML,/85%/);
 assert.match(dom.detailBody.innerHTML,/NORMAL/);
 
-const cardFn=vm.runInNewContext(slice('function packHTML(p){','let currentPacks=[]')+'\\npackHTML',
+const cardFn=vm.runInNewContext(slice('function packHTML(p){','let currentPacks=[]')+'\npackHTML',
   {freshnessClass:()=> 'bad',freshnessLabel:()=> '100 s'});
 pack.online=false;
 const offCard=cardFn(pack);
 assert.match(offCard,/OFFLINE/);
-assert.doesNotMatch(offCard,/86%|53\\.21 V/);
+assert.doesNotMatch(offCard,/86%|53\.21 V/);
 
 // Offline Glow must not advertise an old charge/discharge direction as live.
-assert.match(g,/offline=!b\\.online, stale=isStale\\(b\\)\\|\\|offline/);
-assert.match(g,/offline\\?\`<span class="pill off">\\$\\{spGlowOfflineUi\\('past'\\)\\}/);
+assert.match(g,/offline=!b\.online, stale=isStale\(b\)\|\|offline/);
+assert.match(g,/offline\?\`<span class="pill off">\$\{spGlowOfflineUi\('past'\)\}/);
 assert.match(s,/SP_SCADA_OFFLINE_UI/);
-assert.match(s,/p\\.online===false\\?'—'/);
+assert.match(s,/p\.online===false\?'—'/);
 assert.match(s,/Source : entités JK-BMS Home Assistant en temps réel/);
 
 const cfg=fs.readFileSync('config.yaml','utf8');
-assert.match(cfg,/^version: 1\\.0\\.0-dev79\\.5$/m);
+assert.match(cfg,/^version: 1\.0\.0-dev79\.5$/m);
 const flows=JSON.parse(fs.readFileSync('rootfs/etc/node-red/flows.json','utf8'));
 for(const [id,slug] of [['34cada0000000002','scada'],['74a0000000000002','glow']]){
   assert.ok(flows.find(x=>x.id===id)?.func.includes(slug+'/index.html?v=dev79-5'));
