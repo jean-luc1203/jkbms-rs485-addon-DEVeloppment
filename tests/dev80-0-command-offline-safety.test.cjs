@@ -115,6 +115,35 @@ async function run(){
   assert.equal(r.engine.command('pack_2',1,'charging_switch',true,false),false);
   assert.equal(r.engine.command('pack_2',2,'charging_switch',true,false),true);
  }
+ // A parsed SETUP or STATIC frame is not new LIVE freshness.
+ {
+  const r=rig();
+  r.state.lastLive={};
+  r.state.responses=0;
+  const buf=Buffer.alloc(308);
+  r.engine.publish=Engine.prototype.publish;
+  r.engine.publish(r.state,1,0x161e,buf);
+  assert.equal(r.state.lastLive[1],undefined,'SETUP must not rearm commands');
+  r.engine.publish(r.state,1,0x1620,buf);
+  assert.ok(Date.now()-r.state.lastLive[1]<200,'Validated LIVE rearms address 1');
+  assert.equal(r.state.lastLive[0],undefined,'Other BMS cannot borrow LIVE freshness');
+ }
+ // A Serial inter-frame gap cannot bypass the final beforeSend safeguard.
+ {
+  const r=rig();
+  const command={addr:1,transportEpoch:r.state.transportEpoch,expires:performance.now()+15000};
+  let tx=0;
+  r.state.def.transport='serial';
+  r.state.bus.send=()=>{tx++;return true};
+  r.engine.waitTransportGap=async()=>{r.state.transportEpoch++;};
+  let failure=null;
+  try{
+   await Engine.prototype.exchange.call(r.engine,r.state,1,0x1114,1,1,'ack',
+      {beforeSend:()=>r.engine.assertCommandSafety(r.state,command)});
+  }catch(e){failure=e;}
+  assert.match(failure?.message||'',/transport_changed/);
+  assert.equal(tx,0,'Never transmit after an offline transition during Serial gap');
+ }
  // Guard all hardware write families, including address 0 (JK master).
  await exerciseAccepted('display_always_on_switch',true,0x1114,0);
  await exerciseAccepted('charging_switch',true,0x1070);
