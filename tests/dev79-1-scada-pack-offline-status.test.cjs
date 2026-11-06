@@ -32,7 +32,7 @@ assert.equal(unchanged[0].online,true);
 assert.equal(unchanged[1].online,true);
 
 // Visible UI, summary and local alarm center must share the resolved pack status.
-assert.match(script,/packs=scadaResolvePackAvailability\(packs,glob,diag\);\s*currentPacks=packs;\s*const scadaIssues=syncAlarmState\(\);/);
+assert.match(script,/packs=scadaResolvePackAvailability\(packs,glob,diag\);\s*packs=scadaRestoreTopology\(packs,glob,h\);\s*currentPacks=packs;\s*const scadaIssues=syncAlarmState\(\);/);
 assert.match(script,/const online=packs.filter\(p=>p.online!==false\).length;/);
 assert.match(script,/if\(p.online===false\)push\('PACK_OFFLINE'/);
 assert.match(script,/const activePacks=packs.filter\(p=>p.online!==false\);/);
