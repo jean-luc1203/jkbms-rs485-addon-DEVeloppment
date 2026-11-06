@@ -92,12 +92,14 @@ assert.match(script,/spSetLanguage\(value\)[\s\S]*?scadaRefreshOperatorLanguage\
 assert.match(script,/scadaRefreshOperatorLanguage\(\);spApplyLanguage\(\)/);
 
 // Refresh only the active operator overlay, preserve scroll; do not send commands.
-const refreshSrc=section('function scadaRefreshOperatorLanguage(){','function showScadaDetail(');
+const refreshSrc=section('function scadaRedrawOperatorView(v){','function showScadaDetail(');
 let invoked=[];
 const panel={scrollTop:87};
 const layer={classList:{contains:()=>true},querySelector:()=>panel};
 const rEnv={
  scadaOperatorView:{kind:'bms',packId:'pack_2',bms:'1'},
+  scadaOperatorLiveSignature:null,currentControlContext:null,currentParameterContext:null,
+  currentPacks:[{id:'pack_2'}],readBms:()=>({soc:85}),
  document:{getElementById:id=>id==='scadaOverlay'?layer:id==='controlConfirmLayer'?{classList:{contains:()=>false}}:null},
  openBms:(p,b)=>invoked.push(['bms',p,b]),openPack:p=>invoked.push(['pack',p])
 };
