@@ -143,10 +143,12 @@ assert.match(script,/function render\(\)[\s\S]*?scadaRefreshOperatorLive\(\);\s*
 assert.match(script,/if\(!v\|\|!overlay\?\.classList\.contains\('open'\)/);
 
 const cfg=fs.readFileSync('config.yaml','utf8');
-assert.match(cfg,/^version: 1\.0\.0-dev79\.7$/m);
+const version=cfg.match(/^version:\s*1\.0\.0-(dev\d+\.\d+)$/m)?.[1];
+assert.ok(version,'Missing DEV version');
+const cacheTag=version.replace('.','-');
 const flows=JSON.parse(fs.readFileSync('rootfs/etc/node-red/flows.json','utf8'));
 for(const [id,name] of [['34cada0000000002','scada'],['74a0000000000002','glow']]){
  const node=flows.find(x=>x.id===id);
- assert.ok(node&&node.func.includes(name+'/index.html?v=dev79-7'),'Stale '+name+' cache version');
+ assert.ok(node&&node.func.includes(name+'/index.html?v='+cacheTag),'Stale '+name+' cache version');
 }
 console.log('PASS dev79-7-scada-live-operator-refresh.test.cjs');
