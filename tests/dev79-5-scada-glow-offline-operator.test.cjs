@@ -21,8 +21,10 @@ const bms={soc:85,power:920,a:17.34,v:53.21,d:8,t:24,mos:24,t1:22.8,t2:23,
 const dom={};
 const ctx={
   currentPacks:[pack],readBms:()=>bms,spView:v=>v,
+  scadaTopologyCaption:p=>p.members.length+' BMS détectés',
+  scadaOfflineNotice:()=>'<div>Mesures instantanées indisponibles · Dernières valeurs enregistrées (historiques)</div>',
   spScadaOffline:key=>({missing:'Mesures instantanées indisponibles',
-    history:'Dernières valeurs enregistrées (historiques)',state:'État BMS indisponible'})[key]||key,
+    history:'Dernières valeurs enregistrées (historiques)',state:'État BMS indisponible',packOffline:'PACK HORS LIGNE · DONNÉES FIGÉES'})[key]||key,
   document:{getElementById:id=>(dom[id]??=( {textContent:'',innerHTML:''} ))},
   freshnessLabel:()=> '100 s',freshnessClass:()=> 'bad',
   showScadaDetail:()=>{},packIssues:()=>[],spScadaText:v=>v,
@@ -33,7 +35,7 @@ function slice(a,b){const i=s.indexOf(a),j=s.indexOf(b,i+a.length);
 const packFn=vm.runInNewContext(slice('function openPack(id){','function boolState(label,on,live=true)')+'\nopenPack',ctx);
 packFn('pack_2');
 const offPack=dom.detailBody.innerHTML;
-assert.match(offPack,/PACK OFFLINE/);
+assert.match(offPack,/PACK HORS LIGNE/);
 assert.match(offPack,/Mesures instantanées indisponibles/);
 assert.doesNotMatch(offPack,/1\.88 kW|86%|53\.21 V/);
 assert.match(offPack,/Pack 2 - Berlin|BMS 1/);
@@ -74,9 +76,11 @@ assert.match(s,/p\.online===false\?'—'/);
 assert.match(s,/Source : entités JK-BMS Home Assistant en temps réel/);
 
 const cfg=fs.readFileSync('config.yaml','utf8');
-assert.match(cfg,/^version: 1\.0\.0-dev79\.5$/m);
+const version=cfg.match(/^version:\s*1\.0\.0-(dev\d+\.\d+)$/m)?.[1];
+assert.ok(version,'DEV version missing');
+const cacheTag=version.replace('.','-');
 const flows=JSON.parse(fs.readFileSync('rootfs/etc/node-red/flows.json','utf8'));
 for(const [id,slug] of [['34cada0000000002','scada'],['74a0000000000002','glow']]){
-  assert.ok(flows.find(x=>x.id===id)?.func.includes(slug+'/index.html?v=dev79-5'));
+  assert.ok(flows.find(x=>x.id===id)?.func.includes(slug+'/index.html?v='+cacheTag));
 }
 console.log('PASS dev79-5-scada-glow-offline-operator.test.cjs');
