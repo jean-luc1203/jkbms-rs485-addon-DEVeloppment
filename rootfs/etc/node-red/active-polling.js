@@ -427,6 +427,8 @@ class Engine {
   // TCP behavior remains exactly as before during normal runtime.
   const configuredGap=Number(config.serialInterFrameMs);
   this.serialInterFrameMs=Number.isFinite(configuredGap)?Math.max(0,configuredGap):100;
+  // A physical LIVE frame is the only freshness evidence for new commands.
+  this.commandFreshnessMs=Math.max(5000,Math.min(60000,Math.ceil(this.intervalMs*2.5+this.timeoutMs*2)));
   this.states=new Map();this.frameMeta=new WeakMap();
   for(const d of config.packs){
    // Keep runtime discovery state private to the engine. The wrapper may reuse
@@ -439,7 +441,7 @@ class Engine {
    const autoDiscovery=runtimeDef.bms_discovery==='auto'||runtimeDef.bms_addresses.length===0;
    const state={
     def:runtimeDef,bus:createBus(runtimeDef,this),due:[],commands:[],running:false,timer:null,lastError:null,
-    lastLive:{},responses:0,exchangeStats:{},nextSerialTxAt:0,
+    lastLive:{},transportEpoch:0,responses:0,exchangeStats:{},nextSerialTxAt:0,
     autoDiscovery,discoveryComplete:!autoDiscovery,discoveryRunning:false,
     discoveryRetryAt:0,discoveredBms:autoDiscovery?[]:[...runtimeDef.bms_addresses]
    };
@@ -451,7 +453,30 @@ class Engine {
   s.due=[];
   for(const addr of addresses)for(const reg of [0x161e,0x161c,0x1620])s.due.push({addr,reg,at:0});
  }
- connection(id,online){const s=this.states.get(id);if(!this.stopped)this.emit({event:'connection',pack_id:id,transport:s?.def?.transport,bus_id:s?.def?.bus_id,online});}
+ connection(id,online){
+  const s=this.states.get(id);
+  if(this.stopped||!s)return;
+  // Invalidate every pre-outage command even if TCP reconnects within 15 s.
+  s.transportEpoch=(s.transportEpoch||0)+1;
+  s.lastLive={};
+  if(!online){
+   for(const c of s.commands.splice(0))this.status(s,c,'failed',{error:'transport_offline_queue_cancelled'});
+  }
+  this.emit({event:'connection',pack_id:id,transport:s.def.transport,bus_id:s.def.bus_id,online});
+ }
+ commandSafety(s,addr,epoch=null){
+  if(this.stopped||!s||s.bus?.ready!==true)return 'transport_offline';
+  if(epoch!==null&&epoch!==s.transportEpoch)return 'transport_changed';
+  const last=Number(s.lastLive?.[addr]||0),age=Date.now()-last;
+  if(!Number.isFinite(last)||last<=0)return 'no_recent_live';
+  if(!Number.isFinite(age)||age<0||age>this.commandFreshnessMs)return 'stale_live';
+  return null;
+ }
+ assertCommandSafety(s,c){
+  const error=this.commandSafety(s,c.addr,c.transportEpoch);
+  if(error)throw new Error(error);
+  if(!this.authorized()||performance.now()>c.expires)throw new Error('authorization_or_expiry');
+ }
  error(id,error,extra={}){const s=this.states.get(id);if(!this.stopped)this.emit({event:'error',pack_id:id,transport:s?.def?.transport,bus_id:s?.def?.bus_id,error,...extra});}
  wake(id,delay=0){const s=this.states.get(id);if(!s||this.stopped)return;clearTimeout(s.timer);s.timer=setTimeout(()=>this.step(s),delay);}
  recordExchange(s,meta,ok,error=null){
@@ -484,7 +509,7 @@ class Engine {
  status(s,c,status,extra={}){if(this.stopped)return;this.emit({event:'command',pack_id:s.def.id,transport:s.def.transport,bus_id:s.def.bus_id,bms_numero:c.addr,control:c.control,status,command_id:c.id,requested_value:c.value,register:c.def.register,register_hex:registerHex(c.def.register),request_id:c.requestId||null,previous_value:c.previousValue,source_code:c.sourceCode,unit:c.unit||null,...extra});}
  command(pack,addr,control,value,retained,meta={}){
   const s=this.states.get(pack), def=CONTROL_DEFS[control];
-  if(!s||!s.def.bms_addresses.includes(addr)||!def||retained||!this.authorized())return false;
+  if(!s||!s.def.bms_addresses.includes(addr)||!def||retained||!this.authorized()||this.commandSafety(s,addr)!==null)return false;
   if(def.kind==='switch'||def.kind==='switch32'){
    if(typeof value!=='boolean')return false;
   }else{
@@ -496,7 +521,7 @@ class Engine {
   if(meta.request_id!==undefined && (typeof meta.request_id!=='string'||!/^dry-[a-zA-Z0-9-]{8,100}$/.test(meta.request_id)))return false;
   if(meta.expected_raw!==undefined && !Number.isInteger(meta.expected_raw))return false;
   if(meta.expected_source!==undefined && (!Number.isInteger(meta.expected_source)||meta.expected_source<0||meta.expected_source>255))return false;
-  const c={addr,control,value,def,id:Date.now().toString(36)+'-'+Math.random().toString(16).slice(2,8),expires:performance.now()+15000,requestId:meta.request_id,expectedRaw:meta.expected_raw,expectedSource:meta.expected_source};
+  const c={addr,control,value,def,id:Date.now().toString(36)+'-'+Math.random().toString(16).slice(2,8),expires:performance.now()+15000,transportEpoch:s.transportEpoch,requestId:meta.request_id,expectedRaw:meta.expected_raw,expectedSource:meta.expected_source};
   s.commands.push(c);this.status(s,c,'queued');this.wake(pack);return true;
  }
  async waitTransportGap(s){
@@ -639,8 +664,8 @@ class Engine {
    if(c){
     if(c.def.dry)s.activeDry=c.addr;
     try{
-     if(performance.now()>c.expires)throw new Error('command_expired');
-     if(!this.authorized())throw new Error('not_authorized');
+     this.assertCommandSafety(s,c);
+     const beforeWrite=()=>this.assertCommandSafety(s,c);
      const staticControl=c.def.kind==='static_select'||c.def.kind==='static_number';
      // Existing controls are verified against SETUP (0x161E). DRY1/DRY2
      // configuration is verified against STATIC / Device Info (0x161C).
@@ -656,15 +681,15 @@ class Engine {
      }
      if(c.def.kind==='switch'){
       const old=before.readUInt16LE(282), desired=c.value?old|c.def.mask:old&~c.def.mask;
-      if(!this.authorized()||performance.now()>c.expires)throw new Error('authorization_or_expiry');
-      if(desired!==old){await this.exchange(s,c.addr,0x1114,desired,1,'ack');this.status(s,c,'acknowledged',{previous_value:Boolean(old&c.def.mask),encoded_value:desired});}
+      this.assertCommandSafety(s,c);
+      if(desired!==old){await this.exchange(s,c.addr,0x1114,desired,1,'ack',{beforeSend:beforeWrite});this.status(s,c,'acknowledged',{previous_value:Boolean(old&c.def.mask),encoded_value:desired});}
       const after=await this.exchange(s,c.addr,0x161e);this.publish(s,c.addr,0x161e,after);
       const readback=Boolean(after.readUInt16LE(282)&c.def.mask);
       this.status(s,c,readback===c.value?'confirmed':'not_confirmed',{readback_value:readback,encoded_value:desired});
      }else if(c.def.kind==='switch32'){
       const oldRaw=before.readInt32LE(c.def.offset), oldValue=oldRaw!==0, desiredRaw=c.value?1:0;
-      if(!this.authorized()||performance.now()>c.expires)throw new Error('authorization_or_expiry');
-      if(desiredRaw!==oldRaw){await this.exchange(s,c.addr,c.def.register,desiredRaw,2,'ack');this.status(s,c,'acknowledged',{previous_value:oldValue,encoded_value:desiredRaw});}
+      this.assertCommandSafety(s,c);
+      if(desiredRaw!==oldRaw){await this.exchange(s,c.addr,c.def.register,desiredRaw,2,'ack',{beforeSend:beforeWrite});this.status(s,c,'acknowledged',{previous_value:oldValue,encoded_value:desiredRaw});}
       const after=await this.exchange(s,c.addr,0x161e);this.publish(s,c.addr,0x161e,after);
       const readbackRaw=after.readInt32LE(c.def.offset), readback=readbackRaw!==0;
       this.status(s,c,readbackRaw===desiredRaw?'confirmed':'not_confirmed',{previous_value:oldValue,readback_value:readback,encoded_value:desiredRaw});
@@ -691,9 +716,9 @@ class Engine {
        ? ((neighbor<<8)|desired)
        : ((desired<<8)|neighbor);
 
-      if(this.stopped||!this.authorized()||performance.now()>c.expires)throw new Error('authorization_or_expiry');
+      this.assertCommandSafety(s,c);
       if(desired!==old){
-       await this.exchange(s,c.addr,c.def.register,encoded,1,'ack',{beforeSend:()=>{if(this.stopped||!this.authorized()||performance.now()>c.expires)throw new Error('authorization_or_expiry');}});
+       await this.exchange(s,c.addr,c.def.register,encoded,1,'ack',{beforeSend:beforeWrite});
        this.status(s,c,'acknowledged',{previous_value:old,encoded_value:encoded,source_frame:'STATIC'});
       }
 
@@ -722,9 +747,9 @@ class Engine {
        if(!pair.ok)throw new Error(pair.error);
       }
 
-      if(!this.authorized()||performance.now()>c.expires)throw new Error('authorization_or_expiry');
+      this.assertCommandSafety(s,c);
       if(desiredRaw!==oldRaw){
-       await this.exchange(s,c.addr,c.def.register,desiredRaw,2,'ack',{beforeSend:()=>{if(this.stopped||!this.authorized()||performance.now()>c.expires)throw new Error('authorization_or_expiry');}});
+       await this.exchange(s,c.addr,c.def.register,desiredRaw,2,'ack',{beforeSend:beforeWrite});
        this.status(s,c,'acknowledged',{previous_value:oldRaw,encoded_value:desiredRaw,source_frame:'STATIC'});
       }
 
@@ -737,8 +762,8 @@ class Engine {
      }else{
       const oldRaw=before.readInt32LE(c.def.offset), oldValue=oldRaw/c.def.scale;
       const desiredRaw=Math.round(c.value*c.def.scale), desiredValue=desiredRaw/c.def.scale;
-      if(!this.authorized()||performance.now()>c.expires)throw new Error('authorization_or_expiry');
-      if(desiredRaw!==oldRaw){await this.exchange(s,c.addr,c.def.register,desiredRaw,2,'ack');this.status(s,c,'acknowledged',{previous_value:oldValue,encoded_value:desiredRaw});}
+      this.assertCommandSafety(s,c);
+      if(desiredRaw!==oldRaw){await this.exchange(s,c.addr,c.def.register,desiredRaw,2,'ack',{beforeSend:beforeWrite});this.status(s,c,'acknowledged',{previous_value:oldValue,encoded_value:desiredRaw});}
       const after=await this.exchange(s,c.addr,0x161e);this.publish(s,c.addr,0x161e,after);
       const readbackRaw=after.readInt32LE(c.def.offset), readbackValue=readbackRaw/c.def.scale;
       this.status(s,c,readbackRaw===desiredRaw?'confirmed':'not_confirmed',{previous_value:oldValue,readback_value:readbackValue,encoded_value:desiredRaw,normalized_value:desiredValue});
