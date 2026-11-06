@@ -86,11 +86,13 @@ assert.match(compare,/b\.online\?fn\(b\):'—'/);
 
 const flow=JSON.parse(fs.readFileSync('rootfs/etc/node-red/flows.json','utf8'));
 const cfg=fs.readFileSync('config.yaml','utf8');
-assert.match(cfg,/^version: 1\.0\.0-dev79\.4$/m);
+const version=cfg.match(/^version:\s*1\.0\.0-(dev\d+\.\d+)$/m)?.[1];
+assert.ok(version,'DEV version missing');
+const cacheTag=version.replace('.','-');
 for(const [id,target] of [['74a0000000000002','glow'],['34cada0000000002','scada']]){
   const node=flow.find(n=>n.id===id);
   assert.ok(node,'Dashboard sidebar generator missing '+id);
-  assert.ok(node.func.includes(target+'/index.html?v=dev79-4'),
+  assert.ok(node.func.includes(target+'/index.html?v='+cacheTag),
     'Stale dashboard iframe cache tag for '+target);
 }
 console.log('PASS dev79-4-glow-offline-detail.test.cjs');
