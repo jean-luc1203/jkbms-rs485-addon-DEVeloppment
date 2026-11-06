@@ -134,7 +134,7 @@ async function run(){
   assert.equal(r.engine.command('pack_2',1,control,value,false),true);
   r.engine.exchange=async (...args)=>{
    const frame=await exchange(...args);
-   if(args[4]==='frame'&&args[2]===(control.startsWith('dry')?0x161c:0x161e)){
+   if(args[2]===(control.startsWith('dry')?0x161c:0x161e)&&args[5]!=='ack'){
     r.state.transportEpoch++;r.state.lastLive={}; // reconnect during pre-read
    }
    return frame;
