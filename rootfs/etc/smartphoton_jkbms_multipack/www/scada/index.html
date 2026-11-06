@@ -1519,6 +1519,7 @@ function scadaTopologyFingerprint(id,meta,pack){
    String(meta?.pack_transports?.[id]||'')]);
 }
 function scadaRestoreTopology(packs,globalState,h){
+ if(!h)return packs; // Demo mode must never seed persisted real-device topology.
  const meta=globalState?.attributes||{};
  return packs.map(p=>{
    if(!/^pack_[1-5]$/.test(p.id))return p;
