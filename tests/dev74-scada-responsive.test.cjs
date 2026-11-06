@@ -89,8 +89,10 @@ for (const expected of [
 
 // Narrow 360px/480px screenshots: changing from Pack to BMS to Conduite
 // reused an old scroll offset and made content show through a translucent title.
+// DEV79.6: operator sheets retain their identity to support language re-rendering,
+// but still open at scrollTop=0. Control/parameter redraws keep preserveScroll.
 const modalBlock=html.slice(html.indexOf('function showScadaDetail('),html.indexOf('function openPack('));
-assert.match(modalBlock,/function showScadaDetail\(preserveScroll=false\)/);
+assert.match(modalBlock,/function showScadaDetail\(preserveScroll=false,operatorView=null\)/);
 assert.match(modalBlock,/panel\.scrollTop=preserveScroll\?previous:0/);
 const controlsBlock=html.slice(html.indexOf('function openBmsControls('),html.indexOf('const BMS_PARAMETER_SECTIONS='));
 assert.match(controlsBlock,/showScadaDetail\(preserveScroll\)/);
@@ -100,9 +102,9 @@ const parameterBlock=html.slice(html.indexOf('function openBmsTechnicalParameter
 assert.match(parameterBlock,/showScadaDetail\(preserveScroll\)/);
 assert.match(parameterBlock,/openBmsTechnicalParameters\(packId,bms,true\)/);
 const screenBlock=html.slice(html.indexOf('function openBms(packId,bms){'),html.indexOf('function openBmsOverview(){'));
-assert.match(screenBlock,/showScadaDetail\(\)/);
+assert.match(screenBlock,/showScadaDetail\(false,\{kind:'bms',packId,bms\}\)/);
 const packBlock=html.slice(html.indexOf('function openPack(id){'),html.indexOf('function boolState('));
-assert.match(packBlock,/showScadaDetail\(\)/);
+assert.match(packBlock,/showScadaDetail\(false,\{kind:'pack',packId:id\}\)/);
 const headerFix=style.slice(style.indexOf('DEV74.2: mobile operator sheet header'));
 assert.match(headerFix,/\.detail-panel>\.detail-head\s*\{\s*background:#091e29/);
 assert.match(headerFix,/background:#091e29;min-height:70px/);
