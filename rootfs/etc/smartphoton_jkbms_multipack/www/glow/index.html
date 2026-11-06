@@ -990,9 +990,9 @@ function packCard(p){
       ${chart(`pc${p.id}-t`,spGlowLabel('Temp. max · 24 h'),[{name:'Temp.',color:'var(--s-temp)',data:packSeries(p,'temp','24h')}],'°C',1,[{v:TH.tempWarn,label:'',color:'var(--warn)'}],{compact:true,range:'24h',forceTh:true})}
     </div>
     <div class="details ${open?'open':''}"><div class="minis">
-      ${mini(spGlowLabel('Tension'),f(a.voltage,2)+'<small> V</small>')}${mini(spGlowLabel('Courant'),f(a.current,1)+'<small> A</small>')}
-      ${mini(spGlowLabel('Temp. max'),f(a.temp,1)+'<small> °C</small> '+trendHtml(a.temp,t1,'°',1,true).replace('class="trend','style="font-size:10px" class="trend'),tL(a.temp)==='ok'?'':tL(a.temp))}
-      ${mini(spGlowLabel('Capacité'),f(a.capRem,0)+'<small> / '+f(a.capNom,0)+' Ah</small>')}${mini(spGlowLabel('Équilibrage'),a.balancing?`<span style="color:var(--bal)">${spGlowCard('active')}</span>`:spGlowCard('inactive'))}${mini(spGlowLabel('Alarmes'),a.alarms.length?`<span style="color:var(--crit)">${a.alarms.length}</span>`:'0')}
+      ${mini(spGlowLabel('Tension'),a.online?f(a.voltage,2)+'<small> V</small>':'—')}${mini(spGlowLabel('Courant'),a.online?f(a.current,1)+'<small> A</small>':'—')}
+      ${mini(spGlowLabel('Temp. max'),a.online?f(a.temp,1)+'<small> °C</small> '+trendHtml(a.temp,t1,'°',1,true).replace('class="trend','style="font-size:10px" class="trend'):'—',a.online&&tL(a.temp)!=='ok'?tL(a.temp):'')}
+      ${mini(spGlowLabel('Capacité'),a.online?f(a.capRem,0)+'<small> / '+f(a.capNom,0)+' Ah</small>':'—')}${mini(spGlowLabel('Équilibrage'),!a.online?'—':a.balancing?`<span style="color:var(--bal)">${spGlowCard('active')}</span>`:spGlowCard('inactive'))}${mini(spGlowLabel('Alarmes'),!a.online?'—':a.alarms.length?`<span style="color:var(--crit)">${a.alarms.length}</span>`:'0')}
     </div></div>
     <div class="cardfoot"><div class="pills">${a.balancing?'<span class="pill bal">⚖ Équilibrage</span>':''}${a.alarms.map(x=>`<span class="pill crit">⚠ ${x}</span>`).join('')}</div>
       <div class="pills">${fresh(a.ts)}<button class="more" data-act="exp" data-id="${p.id}">${spGlowCard(open?'less':'more')}</button></div></div></div>
@@ -1011,25 +1011,25 @@ function pageOverview(){
 function pageAggregation(){
   const all=allBms().filter(b=>b.online), ag=PACKS.map(p=>agg(p.bms)), t=agg(all);
   let cmin={v:9},cmax={v:0},worst={d:0},hot={t:0};
-  PACKS.forEach(p=>p.bms.forEach(b=>{
+  PACKS.forEach(p=>p.bms.filter(b=>b.online).forEach(b=>{
     b.cells.forEach((v,i)=>{ if(v<cmin.v) cmin={v,w:`${p.name} · ${bn(b)} · C${i+1}`}; if(v>cmax.v) cmax={v,w:`${p.name} · ${bn(b)} · C${i+1}`}; });
     if(b.deltaMv>worst.d) worst={d:b.deltaMv,w:`${p.name} · ${bn(b)}`};
     if(tmax(b)>hot.t) hot={t:tmax(b),w:`${p.name} · ${bn(b)}`};
   }));
   const rows=PACKS.map(p=>{const a=agg(p.bms);return {p,a,au:autonomy(a.capRem,a.capNom,a.current)}});
-  const best=(fn,lowGood)=>{const v=rows.map(fn);return lowGood?Math.min(...v):Math.max(...v)};
+  const best=(fn,lowGood)=>{const v=rows.filter(r=>r.a.online).map(fn);return v.length?(lowGood?Math.min(...v):Math.max(...v)):NaN};
   const cell=(v,txt,isBest,l='')=>`<td class="num" style="${l?`color:${COL[l]}`:''}">${txt}${isBest?'<span title="'+spGlowView('best')+'">★</span>':''}</td>`;
   let h=header(spGlowLabel('Parc'),spGlowLabel('Comparatif des sites'));
   h+=`<div class="alert info"><span class="ic">📍</span><div><b>${spGlowView('independent')}</b><small>${spGlowView('independentHelp')}</small></div></div>
   <h2>${spGlowView('comparison')}</h2><div class="card tblwrap"><table class="tbl"><tr><th>${spGlowView('site')}</th><th class="num">SOC</th><th class="num">${spGlowView('power')}</th><th class="num">${spGlowView('autonomy')}</th><th class="num">${spGlowView('delta')}</th><th class="num">${spGlowView('tempMax')}</th><th class="num">${spGlowView('soh')}</th><th class="num">${spGlowView('cycles')}</th><th class="num">${spGlowView('data')}</th></tr>
   ${rows.map(({p,a,au})=>{const bs=p.bms;const soh=bs.reduce((x,b)=>x+b.soh,0)/bs.length, cyc=Math.max(...bs.map(b=>b.cycles));
     return `<tr data-href="#/pack/${p.id}" style="cursor:pointer"><td><span class="dot ${stateL(a)}"></span> <a href="#/pack/${p.id}" style="color:var(--txt);font-weight:600">${esc(p.name)}</a></td>
-    ${cell(a.soc,f(a.soc,0)+' %',a.soc===best(r=>r.a.soc),socL(a.soc))}<td class="num">${pw(a.power).replace(/<\/?small>/g,' ')}</td><td class="num">${au.v}</td>
-    ${cell(a.delta,f(a.delta,0)+' mV',a.delta===best(r=>r.a.delta,true),dL(a.delta))}${cell(a.temp,f(a.temp,1)+' °C',false,tL(a.temp))}
-    <td class="num">${f(soh,0)} %</td><td class="num">${cyc}</td><td class="num">${fresh(a.ts)}</td></tr>`}).join('')}</table></div>
+    ${a.online?cell(a.soc,f(a.soc,0)+' %',a.soc===best(r=>r.a.soc),socL(a.soc)):'<td class="num">—</td>'}<td class="num">${a.online?pw(a.power).replace(/<\/?small>/g,' '):'—'}</td><td class="num">${a.online?au.v:'—'}</td>
+    ${a.online?cell(a.delta,f(a.delta,0)+' mV',a.delta===best(r=>r.a.delta,true),dL(a.delta)):'<td class="num">—</td>'}${a.online?cell(a.temp,f(a.temp,1)+' °C',false,tL(a.temp)):'<td class="num">—</td>'}
+    <td class="num">${a.online?f(soh,0)+' %':'—'}</td><td class="num">${a.online?cyc:'—'}</td><td class="num">${fresh(a.ts)}</td></tr>`}).join('')}</table></div>
   <h2>${spGlowView('extremes')}</h2><div class="grid g4">
-    ${kpi(spGlowView('minCell'),f(cmin.v,3)+'<small>V</small>',cmin.w)}${kpi(spGlowView('maxCell'),f(cmax.v,3)+'<small>V</small>',cmax.w)}
-    ${kpi(spGlowView('worstDelta'),f(worst.d,0)+'<small>mV</small>',worst.w,dL(worst.d))}${kpi(spGlowView('maxTemperature'),f(hot.t,1)+'<small>°C</small>',hot.w,tL(hot.t))}
+    ${kpi(spGlowView('minCell'),all.length?f(cmin.v,3)+'<small>V</small>':'—',all.length?cmin.w:'')}${kpi(spGlowView('maxCell'),all.length?f(cmax.v,3)+'<small>V</small>':'—',all.length?cmax.w:'')}
+    ${kpi(spGlowView('worstDelta'),all.length?f(worst.d,0)+'<small>mV</small>':'—',all.length?worst.w:'',all.length?dL(worst.d):'')}${kpi(spGlowView('maxTemperature'),all.length?f(hot.t,1)+'<small>°C</small>':'—',all.length?hot.w:'',all.length?tL(hot.t):'')}
   </div>
   <h2>${spGlowView('socSites')} ${rangeSeg()}</h2>
   ${chart('agg-soc',spGlowView('socSites'),PACKS.map((p,i)=>({name:p.name,color:['var(--s-soc)','var(--flow)','var(--s-cur)','var(--s-temp)'][i%4],data:packSeries(p,'soc')})),'%',0,[{v:TH.socCrit,label:`${TH.socCrit} %`,color:'var(--crit)'}])}`;
@@ -1127,30 +1127,37 @@ function cellMap(p){
   <div class="cm-legend"><span style="--c:var(--ok)">${spGlowCell('normalRange')}</span><span style="--c:var(--warn)">${spGlowCell('smallGap')}</span><span style="--c:var(--crit)">${spGlowCell('largeGap')}</span><span style="--c:var(--flow)">🔎 ${spGlowCell('watchOverTime')}</span><span class="cm-z">${spGlowCell('zone')}</span></div>`;
 }
 
+const SP_GLOW_OFFLINE_UI={
+ fr:{title:'Pack hors ligne — mesures instantanées indisponibles',detail:'Les valeurs BMS et les courbes ci-dessous sont historiques. Elles ne représentent pas le fonctionnement actuel du pack.',missing:'Mesure indisponible',past:'Dernières valeurs enregistrées'},
+ en:{title:'Pack offline — live measurements unavailable',detail:'BMS readings and charts below are historical and do not represent the pack’s current operation.',missing:'Measurement unavailable',past:'Last recorded readings'},
+ de:{title:'Pack offline – aktuelle Messwerte nicht verfügbar',detail:'Die folgenden BMS-Werte und Diagramme stammen aus dem Verlauf. Sie zeigen nicht den aktuellen Zustand des Packs.',missing:'Messwert nicht verfügbar',past:'Letzte gespeicherte Messwerte'}
+};
+function spGlowOfflineUi(key){return (SP_GLOW_OFFLINE_UI[spLanguage]||SP_GLOW_OFFLINE_UI.fr)[key]||key}
 function pagePack(p, tab){
-  const a=agg(p.bms), st=stateL(a), au=autonomy(a.capRem,a.capNom,a.current);
+  const a=agg(p.bms), st=stateL(a), au=autonomy(a.capRem,a.capNom,a.current), offline=!a.online;
   let h=header(`<a href="#/">Parc</a> › Sites`,esc(p.name),`<span class="pill ${st}"><span class="dot ${st}"></span>${stTxt[st]}</span><span class="pill">${p.link}</span>${fresh(a.ts)}`);
   h+=`<div class="tabs" style="margin-bottom:16px"><a href="#/pack/${p.id}" class="${tab!=='compare'?'on':''}">${spGlowBmsUi('packView')}</a><a href="#/pack/${p.id}/compare" class="${tab==='compare'?'on':''}">⚖️ ${spGlowBmsUi('compareBms')}</a></div>`;
+  if(offline) h+=`<div class="alert crit" role="status"><span class="ic">⛔</span><div><b>${spGlowOfflineUi('title')}</b><small>${spGlowOfflineUi('detail')}</small></div></div>`;
   if (tab==='compare') return h+compareView(p);
   h+=`<div class="grid g4">
-    ${kpi(spGlowBmsUi('totalPower'),pw(a.power),flowTxt(a.current)[0],'flow',trendHtml(a.power/1000,ago(p.bms,'power',60)==null?null:ago(p.bms,'power',60)/1000,' kW',2,null,false))}
-    ${socKpi(a.soc,`${f(a.capRem,0)} / ${f(a.capNom,0)} Ah`,trendHtml(a.soc,ago(p.bms,'soc',60),' %',1,null))}
-    ${kpi(au.ic+' '+spGlowLabel('Autonomie'),au.v,au.sub)}
-    ${kpi(spGlowBmsUi('worstBms'),f(a.delta,0)+'<small>mV</small>','',dL(a.delta),trendHtml(a.delta,ago(p.bms,'delta',60),' mV',0,true))}
-    ${kpi('Tension',f(a.voltage,2)+'<small>V</small>')}${kpi(spGlowBmsUi('totalCurrent'),f(a.current,1)+'<small>A</small>')}
-    ${kpi('Température max',f(a.temp,1)+'<small>°C</small>','',tL(a.temp),trendHtml(a.temp,ago(p.bms,'temp',60),'°',1,true))}
-    ${kpi(spGlowLabel('Équilibrage'),spGlowCard(a.balancing?'active':'inactive'),'',a.balancing?'bal':'')}
+    ${offline?kpi(spGlowBmsUi('totalPower'),'—',spGlowOfflineUi('missing')):kpi(spGlowBmsUi('totalPower'),pw(a.power),flowTxt(a.current)[0],'flow',trendHtml(a.power/1000,ago(p.bms,'power',60)==null?null:ago(p.bms,'power',60)/1000,' kW',2,null,false))}
+    ${offline?kpi('SOC','—',spGlowOfflineUi('missing')):socKpi(a.soc,`${f(a.capRem,0)} / ${f(a.capNom,0)} Ah`,trendHtml(a.soc,ago(p.bms,'soc',60),' %',1,null))}
+    ${offline?kpi(spGlowLabel('Autonomie'),'—',spGlowOfflineUi('missing')):kpi(au.ic+' '+spGlowLabel('Autonomie'),au.v,au.sub)}
+    ${offline?kpi(spGlowBmsUi('worstBms'),'—',spGlowOfflineUi('missing')):kpi(spGlowBmsUi('worstBms'),f(a.delta,0)+'<small>mV</small>','',dL(a.delta),trendHtml(a.delta,ago(p.bms,'delta',60),' mV',0,true))}
+    ${kpi('Tension',offline?'—':f(a.voltage,2)+'<small>V</small>',offline?spGlowOfflineUi('missing'):'')}${kpi(spGlowBmsUi('totalCurrent'),offline?'—':f(a.current,1)+'<small>A</small>',offline?spGlowOfflineUi('missing'):'')}
+    ${offline?kpi('Température max','—',spGlowOfflineUi('missing')):kpi('Température max',f(a.temp,1)+'<small>°C</small>','',tL(a.temp),trendHtml(a.temp,ago(p.bms,'temp',60),'°',1,true))}
+    ${offline?kpi(spGlowLabel('Équilibrage'),'—',spGlowOfflineUi('missing')):kpi(spGlowLabel('Équilibrage'),spGlowCard(a.balancing?'active':'inactive'),'',a.balancing?'bal':'')}
   </div>
-  <h2>${spGlowBmsUi('cellVoltage')}</h2><div class="grid ${p.bms.length>1?'g2':''}">${p.bms.map(b=>`<a class="card link" href="#/pack/${p.id}/bms/${b.id}/live">
+  <h2>${spGlowBmsUi('cellVoltage')} ${offline?`<span class="pill warn">${spGlowOfflineUi('past')}</span>`:''}</h2><div class="grid ${p.bms.length>1?'g2':''}">${p.bms.map(b=>`<a class="card link" href="#/pack/${p.id}/bms/${b.id}/live">
     <div class="pack-head"><h3 style="font-size:15px"><span class="dot ${stateL(agg([b]))}"></span>${bn(b)}</h3><span class="pill ${dL(b.deltaMv)==='ok'?'':dL(b.deltaMv)}">écart ${f(b.deltaMv,0)} mV</span></div>
     ${cellsBlock(b.cells,'V',3,undefined,b.balance>0?b.cells.indexOf(Math.max(...b.cells)):-1)}
     <div class="legend"><span style="--c:var(--crit)">Min ${f(Math.min(...b.cells),3)} V (C${b.cells.indexOf(Math.min(...b.cells))+1})</span><span style="--c:var(--ok)">Max ${f(Math.max(...b.cells),3)} V (C${b.cells.indexOf(Math.max(...b.cells))+1})</span></div></a>`).join('')}</div>
   <h2>${spGlowBmsUi('packBms')}</h2><div class="grid g2">`;
   p.bms.forEach(b=>{
-    const s=stateL(agg([b])), t=tmax(b), stale=isStale(b);
+    const s=stateL(agg([b])), t=tmax(b), stale=isStale(b)||!b.online;
     h+=`<div class="card link ${stale?'stale':''}" data-href="#/pack/${p.id}/bms/${b.id}">${stale?`<span class="pill warn stale-tag">⏱ Données anciennes</span>`:''}<div>
       <div class="pack-head"><div><h3><span class="dot ${s}"></span>${bn(b)}</h3><div class="st">${b.chargeStatus.toUpperCase()} · ${stTxt[s].toUpperCase()}</div></div>
-      <span class="pill ${flowTxt(b.current)[1]}">${flowTxt(b.current)[0]}</span></div>
+      <span class="pill ${b.online?flowTxt(b.current)[1]:'off'}">${b.online?flowTxt(b.current)[0]:spGlowOverview('offline')}</span></div>
       <div class="pack-body">${batt(b.soc)}<div class="minis">
         ${mini('Puissance',f(b.power,0)+'<small> W</small>')}${mini('Tension',f(b.voltage,2)+'<small> V</small>')}${mini('Courant',f(b.current,1)+'<small> A</small>')}
         ${mini('Écart cellules',f(b.deltaMv,0)+'<small> mV</small>',dL(b.deltaMv)==='ok'?'':dL(b.deltaMv))}${mini('Temp. max',f(t,1)+'<small> °C</small>',tL(t)==='ok'?'':tL(t))}${mini('Capacité',f(b.capRem,0)+'<small> / '+b.capNom+' Ah</small>')}
@@ -1178,7 +1185,7 @@ function compareView(p){
   const meas=[['SOC',b=>f(b.soc,0)+' %'],['Tension',b=>f(b.voltage,2)+' V'],['Courant',b=>f(b.current,1)+' A'],['Écart cellules',b=>f(b.deltaMv,0)+' mV'],['Temp. max',b=>f(tmax(b),1)+' °C'],['SOH',b=>b.soh+' %'],['Cycles',b=>b.cycles],['Résistance moy.',b=>f(b.res.reduce((a,c)=>a+c,0)/16*1000,0)+' mΩ']];
   let nd=0;
   rows.push(`<tr class="sec"><td colspan="${cols.length+1}">${spGlowCell('measurements')}</td></tr>`);
-  if(!S.diffOnly) meas.forEach(([l,fn])=>rows.push(`<tr><td>${spGlowLabel(l)}</td>${cols.map(b=>`<td class="num">${fn(b)}</td>`).join('')}</tr>`));
+  if(!S.diffOnly) meas.forEach(([l,fn])=>rows.push(`<tr><td>${spGlowLabel(l)}</td>${cols.map(b=>`<td class="num">${b.online?fn(b):'—'}</td>`).join('')}</tr>`));
   Object.entries(PARAM_DEF).forEach(([g,list])=>{
     const body=list.map(([k,l,u,d])=>{ const vals=cols.map(b=>b.params[k]); const counts={}; vals.forEach(v=>counts[v]=(counts[v]||0)+1);
       const major=+Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0]; const diff=Object.keys(counts).length>1; if(diff) nd++;
@@ -1294,8 +1301,8 @@ function pageWall(){
     <div class="card kpi"><div class="lbl">🔋 ${spGlowLabel('SOC le plus bas')} · ${F.low?esc(F.low.p.name):'—'}</div><div class="val" style="color:${F.low?COL[socL(F.low.a.soc)]:COL.off}">${F.low?f(F.low.a.soc,0)+'<small>%</small>':'—'}</div></div>
     <div class="card kpi"><div class="lbl">⏳ ${spGlowLabel('Autonomie la plus courte')}${F.short.h===Infinity?'':' · '+esc(F.short.p.name)}</div><div class="val">${F.short.h===Infinity?'—':F.short.au.v}</div></div></div>
     <div class="wall-packs">${PACKS.map(p=>{const a=agg(p.bms),s=stateL(a);return `<div class="card"><h3><span class="dot ${s}" style="width:14px;height:14px"></span>${esc(p.name)}</h3>
-      <div class="soc" style="color:${COL[socL(a.soc)]}">${f(a.soc,0)}<small>%</small></div>
-      <div class="row"><span>${flowTxt(a.current)[0].split(' ')[0]} ${Math.abs(a.power)>=1000?f(a.power/1000,2)+' kW':f(a.power,0)+' W'}</span><span>⏳ ${autonomy(a.capRem,a.capNom,a.current).v}</span></div><div class="row"><span style="color:${COL[dL(a.delta)]}">Δ ${f(a.delta,0)} mV</span><span style="color:${COL[tL(a.temp)]}">${f(a.temp,0)} °C</span></div></div>`}).join('')}</div>`;
+      <div class="soc" style="color:${a.online?COL[socL(a.soc)]:COL.off}">${a.online?f(a.soc,0)+'<small>%</small>':'—'}</div>
+      <div class="row"><span>${a.online?flowTxt(a.current)[0].split(' ')[0]+' '+(Math.abs(a.power)>=1000?f(a.power/1000,2)+' kW':f(a.power,0)+' W'):spGlowOverview('offline')}</span><span>⏳ ${a.online?autonomy(a.capRem,a.capNom,a.current).v:'—'}</span></div><div class="row"><span style="color:${a.online?COL[dL(a.delta)]:COL.off}">Δ ${a.online?f(a.delta,0)+' mV':'—'}</span><span style="color:${a.online?COL[tL(a.temp)]:COL.off}">${a.online?f(a.temp,0)+' °C':'—'}</span></div></div>`}).join('')}</div>`;
   return h;
 }
 
