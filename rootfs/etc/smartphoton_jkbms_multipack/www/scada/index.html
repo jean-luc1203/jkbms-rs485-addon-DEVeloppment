@@ -1409,10 +1409,10 @@ function memberHeartbeatAge(h,pack,bms){
 function packHeartbeatAge(h,pack,members,fallbackState){
   const ages=members.map(m=>memberHeartbeatAge(h,pack,m)).filter(Number.isFinite);
   if(ages.length) return Math.max(...ages); // worst BMS = operator-safe pack age
-  const ts=new Date(fallbackState?.last_updated||fallbackState?.last_changed||Date.now()).getTime();
-  return Math.max(0,(Date.now()-ts)/1000);
+  // HA summary timestamp is not a fresh physical BMS measurement.
+  return null;
 }
-function freshnessClass(age){return age<20?'good':age<45?'warn':'bad'}
+function freshnessClass(age){return !Number.isFinite(age)?'bad':age<20?'good':age<45?'warn':'bad'}
 function freshnessLabel(age){if(!Number.isFinite(age))return '—';if(age<1)return '< 1 s';return `${age.toFixed(age<10?1:0)} s`}
 function stateOn(h,id){const v=entText(h,id).toLowerCase();return ['on','1','true','active','open'].includes(v)}
 function livePack(h,packId,globalState){
@@ -1476,6 +1476,46 @@ function readBms(packId,bms){
  return {packId,bms:String(bms),soc:num('soc_pourcentage')??p.soc,v:num('tension_totale_volt')??p.v,a:current,power,d:(num('cell_voltage_delta')??0)*1000,t:temps.length?Math.max(...temps):p.t,mos:num('mos_temp'),t1:num('sonde_1_temp'),t2:num('sonde_2_temp'),ageSec:memberHeartbeatAge(h,packId,bms),balance:num('balance_courant')??0,remaining:num('capacite_restante_ah'),nominal:num('capacite_batterie_ah'),soh:num('soh_pourcentage'),charge:stateOn(h,bmsBinary(packId,bms,'switch_charge')),discharge:stateOn(h,bmsBinary(packId,bms,'switch_decharge')),balancing:stateOn(h,bmsBinary(packId,bms,'balance_action'))||Math.abs(num('balance_courant')??0)>0.001,alarm:stateOn(h,bmsBinary(packId,bms,'alarm_active')),status:entText(h,bmsEntity(packId,bms,'charge_status_text'))|| (power>25?'CHARGE':power<-25?'DÉCHARGE':'REPOS')};
 }
 
+// DEV79.6: last verified topology survives temporarily missing HA summary attributes.
+// A cached BMS address is never proof that the device is currently connected.
+const SCADA_TOPOLOGY_KEY='smartphoton_scada_known_bms_v1';
+let scadaKnownTopology={};
+try{
+ const stored=JSON.parse(localStorage.getItem(SCADA_TOPOLOGY_KEY)||'{}');
+ if(stored&&typeof stored==='object'&&!Array.isArray(stored))scadaKnownTopology=stored;
+}catch(_){}
+function scadaMemberIds(members){
+ if(!Array.isArray(members))return [];
+ return [...new Set(members.map(String).filter(id=>/^(?:[0-9]|1[0-5])$/.test(id)))].slice(0,16);
+}
+function scadaTopologyFingerprint(id,meta,pack){
+ return JSON.stringify([id,String(meta?.pack_names?.[id]||pack.name||''),
+   String(meta?.pack_transports?.[id]||'')]);
+}
+function scadaRestoreTopology(packs,globalState,h){
+ const meta=globalState?.attributes||{};
+ return packs.map(p=>{
+   if(!/^pack_[1-5]$/.test(p.id))return p;
+   const fingerprint=scadaTopologyFingerprint(p.id,meta,p);
+   const seen=scadaMemberIds(p.members);
+   if(seen.length){
+     const previous=scadaKnownTopology[p.id];
+     if(!previous||previous.fingerprint!==fingerprint||JSON.stringify(previous.members)!==JSON.stringify(seen)){
+       scadaKnownTopology[p.id]={fingerprint,members:seen};
+       try{localStorage.setItem(SCADA_TOPOLOGY_KEY,JSON.stringify(scadaKnownTopology))}catch(_){}
+     }
+     return {...p,members:seen,bms:seen.length,topologySource:'summary'};
+   }
+   const previous=scadaKnownTopology[p.id];
+   const known=previous?.fingerprint===fingerprint?scadaMemberIds(previous.members):[];
+   if(p.online===false&&known.length){
+     return {...p,members:known,bms:known.length,topologySource:'last_known',
+       ageSec:packHeartbeatAge(h,p.id,known,null)};
+   }
+   return {...p,members:[],topologySource:'unknown',
+      ageSec:p.online===false?null:p.ageSec};
+ });
+}
 function readCells(packId,bms){
  const h=getHass(); const b=readBms(packId,bms);
  if(!b)return [];
@@ -1606,8 +1646,8 @@ function openCellDiagnostics(packId,bms){
 function packHTML(p){
  const mode=p.power>25?'charge':p.power<-25?'discharge':'idle';
  const powerKw=(p.power/1000); const sign=powerKw>0?'+':'';
- const members=(p.members&&p.members.length?p.members:Array.from({length:p.bms},(_,i)=>String(i+1)));
- const age=Number.isFinite(p.ageSec)?p.ageSec:NaN; const freshClass=Number.isFinite(age)?freshnessClass(age):'bad';const visible=p.hasData!==false&&p.online!==false;const reading=(v,unit,digits=0)=>visible?`${Number(v||0).toFixed(digits)}${unit}`:'—'; return `<article class="pack ${p.online===false?'off':''}" onclick="openPack('${p.id}')"><div class="pack-top"><div class="packname">${p.name}</div><div class="online">${p.online===false?'OFFLINE':'ONLINE'}</div></div><div class="socring" style="--soc:${Math.max(0,Math.min(100,p.soc||0))}"><b>${reading(p.soc,'%')}</b><small>SOC</small></div><div class="packpower ${mode}">${visible?sign+powerKw.toFixed(2)+' kW':'—'}</div><div class="metrics"><div class="m"><span>Tension</span><b>${reading(p.v,' V',2)}</b></div><div class="m"><span>Courant</span><b>${reading(p.a,' A',1)}</b></div><div class="m"><span>Delta</span><b>${reading(p.d,' mV')}</b></div><div class="m temp-kpi"><span>T° MAX</span><b>${reading(p.t,' °C')}</b></div></div><div class="bms-strip">${members.map(()=>p.online===false?'<i class="bms-dot"></i>':'<i class="bms-dot on"></i>').join('')}</div><div class="packfresh ${freshClass}">${p.online===false?(visible?'DERNIÈRE MAJ HA':'MESURES INDISPONIBLES'):'LIVE'} ${freshnessLabel(age)} · BMS ${members.join(' · ')}</div></article>`
+ const members=Array.isArray(p.members)?p.members:[];
+ const age=Number.isFinite(p.ageSec)?p.ageSec:NaN; const freshClass=Number.isFinite(age)?freshnessClass(age):'bad';const visible=p.hasData!==false&&p.online!==false;const reading=(v,unit,digits=0)=>visible?`${Number(v||0).toFixed(digits)}${unit}`:'—'; return `<article class="pack ${p.online===false?'off':''}" onclick="openPack('${p.id}')"><div class="pack-top"><div class="packname">${p.name}</div><div class="online">${p.online===false?'OFFLINE':'ONLINE'}</div></div><div class="socring" style="--soc:${Math.max(0,Math.min(100,p.soc||0))}"><b>${reading(p.soc,'%')}</b><small>SOC</small></div><div class="packpower ${mode}">${visible?sign+powerKw.toFixed(2)+' kW':'—'}</div><div class="metrics"><div class="m"><span>Tension</span><b>${reading(p.v,' V',2)}</b></div><div class="m"><span>Courant</span><b>${reading(p.a,' A',1)}</b></div><div class="m"><span>Delta</span><b>${reading(p.d,' mV')}</b></div><div class="m temp-kpi"><span>T° MAX</span><b>${reading(p.t,' °C')}</b></div></div><div class="bms-strip">${members.map(()=>p.online===false?'<i class="bms-dot"></i>':'<i class="bms-dot on"></i>').join('')}</div><div class="packfresh ${freshClass}">${p.online===false?(visible?'DERNIÈRE MAJ HA':'MESURES INDISPONIBLES'):'LIVE'} ${freshnessLabel(age)} · ${members.length?'BMS '+members.join(' · '):'BMS —'}</div></article>`
 }
 
 let currentPacks=[];
@@ -1820,7 +1860,7 @@ const SP_SCADA_OFFLINE_UI={
 function spScadaOffline(key){return (SP_SCADA_OFFLINE_UI[spLanguage]||SP_SCADA_OFFLINE_UI.fr)[key]||key}
 function openPack(id){
  const p=currentPacks.find(x=>x.id===id);if(!p)return;
- const members=(p.members&&p.members.length?p.members:Array.from({length:p.bms},(_,i)=>String(i+1)));
+ const members=Array.isArray(p.members)?p.members:[];
  const mode=p.power>25?'CHARGE':p.power<-25?'DÉCHARGE':'REPOS';const sign=p.power>0?'+':'';const visible=p.hasData!==false;const display=(v,unit,d=0)=>visible&&p.online!==false?Number(v||0).toFixed(d)+unit:'—';
  document.getElementById('detailEyebrow').textContent='Fiche opérateur · Process batterie';
  document.getElementById('detailTitle').textContent=p.name;
@@ -2321,7 +2361,7 @@ function openBms(packId,bms){
 function openBmsOverview(){
  document.getElementById('detailEyebrow').textContent='SmartPhoton SCADA · Supervision BMS';
  document.getElementById('detailTitle').textContent='BMS supervisés';
- document.getElementById('detailBody').innerHTML=`<div class="detail-block bms-overview-shell" style="grid-column:1/3">${currentPacks.map(p=>{const members=(p.members&&p.members.length?p.members:Array.from({length:p.bms},(_,i)=>String(i+1)));return `<div class="bms-overview-pack"><h3>${p.name} · ${members.length} BMS</h3><div class="bms-cards">${members.map(m=>{const b=readBms(p.id,m);const fc=freshnessClass(b?.ageSec??999);return `<div class="bms-card clickable" onclick="openBms('${p.id}','${m}')"><div class="addr">BMS ${m}</div><div class="bstate ${p.online===false?'offline-label':''}">${p.online===false?'● OFFLINE':'● ONLINE'}</div><div class="serial">${p.online===false?'—':(b?.soc||0).toFixed(0)+' % SOC · '+((b?.power||0)/1000).toFixed(2)+' kW'}</div><div class="bline"></div><div class="mini"><span>Delta</span><b>${p.online===false?'—':(b?.d||0).toFixed(0)+' mV'}</b></div><div class="fresh ${fc}">${p.online===false?'DERNIÈRE MAJ HA':'LIVE'} ${freshnessLabel(b?.ageSec)}</div></div>`}).join('')}</div></div>`}).join('')}</div>`;
+ document.getElementById('detailBody').innerHTML=`<div class="detail-block bms-overview-shell" style="grid-column:1/3">${currentPacks.map(p=>{const members=Array.isArray(p.members)?p.members:[];return `<div class="bms-overview-pack"><h3>${p.name} · ${members.length} BMS</h3><div class="bms-cards">${members.map(m=>{const b=readBms(p.id,m);const fc=freshnessClass(b?.ageSec??999);return `<div class="bms-card clickable" onclick="openBms('${p.id}','${m}')"><div class="addr">BMS ${m}</div><div class="bstate ${p.online===false?'offline-label':''}">${p.online===false?'● OFFLINE':'● ONLINE'}</div><div class="serial">${p.online===false?'—':(b?.soc||0).toFixed(0)+' % SOC · '+((b?.power||0)/1000).toFixed(2)+' kW'}</div><div class="bline"></div><div class="mini"><span>Delta</span><b>${p.online===false?'—':(b?.d||0).toFixed(0)+' mV'}</b></div><div class="fresh ${fc}">${p.online===false?'DERNIÈRE MAJ HA':'LIVE'} ${freshnessLabel(b?.ageSec)}</div></div>`}).join('')}</div></div>`}).join('')}</div>`;
  showScadaDetail();
 }
 const SP_ALARM_UI={"fr":{"active":"Actives","activeNone":"Installation sans alarme SCADA","physical":"Conditions physiques en cours","pending":"À quittancer","operatorRequired":"Prise en compte opérateur requise","ackActive":"Quittancées actives","conditionsRemain":"Conditions toujours présentes","history":"Historique","central":"Journal central Node-RED","local":"Historique local de secours","events":"Événements actifs","eventHelp":"Temps réel · cliquer pour le détail / quittance","observed":"Historique observé","observedHelp":"Apparition · quittance · retour normal · durée","normal":"RETOUR NORMAL","notAck":"NON QUITT.","lastValue":"dernière valeur","showing":"affiché(s)","activeCount":"actif(s)","attention":"ATTENTION","ackDone":"QUITTANCÉE","centralNote":"Journal centralisé Node-RED/MQTT.","localNote":"Mode local de secours.","centralDesc":"Les apparitions, retours à la normale et quittances des diagnostics centraux sont persistés côté add-on et partagés entre les postes SCADA.","localDesc":"Le navigateur conserve temporairement les événements lorsque le journal central n’est pas disponible.","noHistory":"Aucun événement revenu à la normale disponible dans ce SCADA.","loading":"Chargement du journal MQTT central…","admin":"Accès à l’historique détaillé indisponible : compte administrateur Home Assistant requis."},"en":{"active":"Active","activeNone":"No active SCADA alarms","physical":"Conditions still present","pending":"To acknowledge","operatorRequired":"Operator acknowledgement required","ackActive":"Acknowledged and active","conditionsRemain":"Conditions still present","history":"History","central":"Central Node-RED log","local":"Local fallback history","events":"Active events","eventHelp":"Live · select an event for details / acknowledgement","observed":"Recorded history","observedHelp":"Triggered · acknowledged · cleared · duration","normal":"CLEARED","notAck":"NOT ACK.","lastValue":"last value","showing":"shown","activeCount":"active","attention":"WARNING","ackDone":"ACKNOWLEDGED","centralNote":"Central Node-RED/MQTT log.","localNote":"Local fallback mode.","centralDesc":"Alarm appearances, clearances and acknowledgements are persisted by the add-on and shared across SCADA clients.","localDesc":"The browser temporarily stores events when the central log is unavailable.","noHistory":"No cleared events available in this SCADA.","loading":"Loading central MQTT log…","admin":"Detailed history unavailable: Home Assistant administrator account required."},"de":{"active":"Aktiv","activeNone":"Keine aktiven SCADA-Alarme","physical":"Bedingungen weiterhin vorhanden","pending":"Zu quittieren","operatorRequired":"Quittierung durch Bediener erforderlich","ackActive":"Quittiert und aktiv","conditionsRemain":"Bedingungen weiterhin vorhanden","history":"Verlauf","central":"Zentrales Node-RED-Protokoll","local":"Lokaler Ersatzverlauf","events":"Aktive Ereignisse","eventHelp":"Live · für Details / Quittierung auswählen","observed":"Ereignisverlauf","observedHelp":"Beginn · Quittierung · Rückkehr zur Normalität · Dauer","normal":"NORMALISIERT","notAck":"NICHT QUITT.","lastValue":"letzter Wert","showing":"angezeigt","activeCount":"aktiv","attention":"WARNUNG","ackDone":"QUITTIERT","centralNote":"Zentrales Node-RED/MQTT-Protokoll.","localNote":"Lokaler Ersatzmodus.","centralDesc":"Beginn, Ende und Quittierungen zentraler Alarme werden vom Add-on gespeichert und SCADA-Clients bereitgestellt.","localDesc":"Der Browser speichert Ereignisse vorübergehend, wenn das zentrale Protokoll nicht verfügbar ist.","noHistory":"Keine beendeten Ereignisse verfügbar.","loading":"Zentrales MQTT-Protokoll wird geladen…","admin":"Detaillierter Verlauf nicht verfügbar: Home-Assistant-Administratorkonto erforderlich."}};
@@ -2423,7 +2463,7 @@ function openServiceOverview(){
  const recorderText=mainTrendLoadedAt?`OK · ${new Date(mainTrendLoadedAt).toLocaleTimeString(spScadaLocale(),{hour:'2-digit',minute:'2-digit'})}`:(recorderReady?'API PRÊTE':'INDISPONIBLE');
  const recorderClass=recorderReady?'ok':'warn';
  const mode=commModeLabel();
- const packsHtml=currentPacks.map(p=>{const members=(p.members&&p.members.length?p.members:Array.from({length:p.bms},(_,i)=>String(i+1)));const f=freshnessClass(p.ageSec??999);const process=p.power>25?'CHARGE':p.power<-25?'DÉCHARGE':'REPOS';return `<div class="service-pack"><div class="service-pack-head"><b>${p.name}</b><span>${p.online===false?'● OFFLINE':'● ONLINE'}</span></div><div class="service-rows"><div class="service-row"><span>${spView("BMS détectés")}</span><b>${members.length} · JK ${members.join(', ')}</b></div><div class="service-row"><span>${spView("Télémétrie la plus lente")}</span><b class="${f}">${freshnessLabel(p.ageSec)}</b></div><div class="service-row"><span>Process</span><b>${process} · ${(p.power/1000).toFixed(2)} kW</b></div><div class="service-row"><span>Delta / T° max</span><b>${(p.d||0).toFixed(0)} mV · ${(p.t||0).toFixed(0)} °C</b></div></div></div>`}).join('');
+ const packsHtml=currentPacks.map(p=>{const members=Array.isArray(p.members)?p.members:[];const f=freshnessClass(p.ageSec??999);const process=p.power>25?'CHARGE':p.power<-25?'DÉCHARGE':'REPOS';return `<div class="service-pack"><div class="service-pack-head"><b>${p.name}</b><span>${p.online===false?'● OFFLINE':'● ONLINE'}</span></div><div class="service-rows"><div class="service-row"><span>${spView("BMS détectés")}</span><b>${members.length} · JK ${members.join(', ')}</b></div><div class="service-row"><span>${spView("Télémétrie la plus lente")}</span><b class="${f}">${freshnessLabel(p.ageSec)}</b></div><div class="service-row"><span>Process</span><b>${process} · ${(p.power/1000).toFixed(2)} kW</b></div><div class="service-row"><span>Delta / T° max</span><b>${(p.d||0).toFixed(0)} mV · ${(p.t||0).toFixed(0)} °C</b></div></div></div>`}).join('');
  const thresholds=di.a?.thresholds&&typeof di.a.thresholds==='object'?di.a.thresholds:{};
  const cellThr=finite(thresholds.cell_delta_high_v);const tempThr=finite(thresholds.temperature_high_c);
  const worst=serviceText(di.a?.worst_pack_name||di.a?.worst_pack,'Aucun');const action=serviceText(di.a?.recommended_action,'Aucune action requise');
@@ -2602,6 +2642,7 @@ function render(){
  }
  if(!live)packs=(demoSingleMode?[demoPacks[0]]:demoPacks).map(p=>({...p,online:true}));
  packs=scadaResolvePackAvailability(packs,glob,diag);
+ packs=scadaRestoreTopology(packs,glob,h);
  currentPacks=packs;
  const scadaIssues=syncAlarmState();
  updateOperatorJournal(packs,live);
