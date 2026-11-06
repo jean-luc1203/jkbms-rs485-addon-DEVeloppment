@@ -1,3 +1,15 @@
+## 1.0.0-dev80.0 — 2026-11-06 — Refus des commandes hors ligne (HAOS TEST ONLY)
+
+- **Moteur Active Polling** : aucune commande booléenne, numérique ou DRY ne peut être mise en file sans transport effectivement prêt et trame physique LIVE récente **pour l'adresse JK exacte** (y compris 0). Le délai admissible suit la période de polling, sans utiliser les timestamps de résumés Home Assistant.
+- **Coupure/reconnexion** : la perte TCP/RS485 invalide la preuve LIVE, annule avec événement d'échec explicite les commandes en attente et incrémente une génération de transport. Le rétablissement de la liaison ne réarme les écritures qu'après une nouvelle trame LIVE vérifiée ; les commandes antérieures ne sont jamais rejouées.
+- **Juste avant chaque émission RTU** : nouvelle vérification de l'autorisation, du délai, de l'epoch de transport, de la fraîcheur LIVE et de la disponibilité du bus, y compris après le silence inter-trames série. Les relectures SETUP/STATIC restent obligatoires ; aucun changement des registres ni de l'ordonnancement des lectures.
+- **SCADA** : commandes Conduite, paramètres numériques et DRY désactivées si le pack est hors ligne ou la télémétrie du BMS indisponible/périmée ; vérification répétée au clic et avant l'appel Home Assistant. Après une coupure pendant l'attente, l'interface affiche « résultat physique inconnu » plutôt qu'une fausse confirmation.
+- **Audit MQTT** : rejet explicite des demandes booléennes et numériques refusées dans le journal de résultats, sans émission RTU. Les commandes DRY disposent déjà d'un résultat rejeté corrélé.
+- Nouveau test `tests/dev80-0-command-offline-safety.test.cjs` couvrant la fraîcheur individuelle, BMS 0, queue annulée, reconnexion, epoch, perte pendant prélecture, pause série et cinq familles de commandes.
+- **À qualifier** avant fusion : test Node.js Pop!_OS, tests DEV7x complets, puis HAOS Test `.184` avec coupure Berlin et aucune écriture physique pendant l'indisponibilité. Tests de commande sous charge/transport rétabli uniquement sur matériel de laboratoire avec précautions.
+- **Limite distincte avant RC** : les confirmations UI de commandes booléennes/numériques reposent encore sur l'état Home Assistant, sans corrélation cryptographiquement ou transactionnellement robuste avec le `command_result` du moteur ; ne pas présenter cette piste comme complètement sécurisée tant que ce point n'est pas traité. La licence Oracle / conversion Premium unique reste également hors de cette version.
+- Production HAOS `.217`, Legacy, licences et portail Oracle inchangés.
+
 ## 1.0.0-dev75.7.1 — 2026-11-03 — GLOW visual qualification follow-up (HAOS Test only)
 
 - Correct FR/EN/DE alert and warning plural forms; translate Recorder notice, graph time axis, German expand button, and diagnostic temperature threshold label.
