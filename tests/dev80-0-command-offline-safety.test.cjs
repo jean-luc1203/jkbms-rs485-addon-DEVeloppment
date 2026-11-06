@@ -27,7 +27,7 @@ function rig(){
  engine.publish=()=>{};
  const state={
   def:{id:'pack_2',name:'Berlin',transport:'tcp',bus_id:'TCP2',bms_addresses:[0,1,2]},
-  bus:{ready:true},due:[],commands:[],running:false,autoDiscovery:false,
+  bus:{ready:true},due:[{addr:1,reg:0x1620,at:performance.now()+120000}],commands:[],running:false,autoDiscovery:false,
   discoveryComplete:true,discoveryRetryAt:performance.now()+1000,
   transportEpoch:1,lastLive:{0:Date.now(),1:Date.now(),2:Date.now()},
   exchangeStats:{},nextSerialTxAt:0
