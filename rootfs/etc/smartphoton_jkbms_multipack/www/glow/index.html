@@ -1,0 +1,1696 @@
+<!doctype html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JK-BMS MultiPack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   THÈMES — une couleur = un sens
+   vert = OK · orange = à surveiller · rouge = critique
+   cyan = équilibrage · violet = flux d'énergie
+   ========================================================= */
+:root,[data-theme=dark]{
+  --bg:#07111d; --bg2:#0b1828; --card:#0f1f33; --card-end:#0c1a2b; --card2:#132740; --line:#1d3552;
+  --txt:#e6f1fa; --mut:#8aa3ba; --dim:#5d758c; --glow:#0f2a44;
+  --ok:#3ddc84; --warn:#ffb300; --crit:#ef5350; --bal:#29b6f6; --flow:#a78bfa; --off:#6b7f93;
+  --s-volt:#94a3b8; --s-cur:#60a5fa; --s-temp:#f472b6; --s-soc:#2dd4bf; --s-delta:#fbbf24;
+  --heat-lo:255,112,67; --heat-hi:41,182,246;
+  --shadow:0 1px 0 rgba(255,255,255,.02) inset;
+}
+[data-theme=light]{
+  --bg:#eef3f8; --bg2:#e4ecf4; --card:#ffffff; --card-end:#f8fbfd; --card2:#eef4fa; --line:#d5e0ea;
+  --txt:#0f1d2b; --mut:#4b6278; --dim:#7d91a4; --glow:#dbe9f7;
+  --ok:#16a34a; --warn:#d97706; --crit:#dc2626; --bal:#0284c7; --flow:#7c3aed; --off:#94a3b8;
+  --s-volt:#64748b; --s-cur:#2563eb; --s-temp:#db2777; --s-soc:#0d9488; --s-delta:#ca8a04;
+  --shadow:0 1px 3px rgba(15,29,43,.06);
+}
+:root{--r:14px;--mono:'JetBrains Mono',ui-monospace,monospace}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:radial-gradient(1200px 600px at 80% -10%,var(--glow) 0%,transparent 60%),var(--bg);color:var(--txt);font:14px/1.45 Inter,system-ui,sans-serif;min-height:100vh;transition:background .3s}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;cursor:pointer}
+input{font:inherit;color:inherit}
+
+/* ---------- Layout ---------- */
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.side{background:color-mix(in srgb,var(--bg) 85%,transparent);border-right:1px solid var(--line);padding:18px 12px;position:sticky;top:0;height:100vh;overflow:auto;display:flex;flex-direction:column}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 16px}
+.brand .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--flow),#4c1d95);display:grid;place-items:center;font-weight:700;color:#fff}
+.brand b{display:block;font-size:15px}.brand small{color:var(--mut);font-size:11px}
+.nav-sec{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin:14px 8px 6px}
+.nav a,.nav button{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:9px;color:var(--mut);font-weight:500;width:100%;background:none;border:0;text-align:left}
+.nav a:hover,.nav button:hover{background:var(--card2);color:var(--txt)}
+.nav a.on{background:color-mix(in srgb,var(--flow) 14%,transparent);color:var(--txt);box-shadow:inset 2px 0 0 var(--flow)}
+.nav .sub a{padding-left:30px;font-size:13px}
+.nav .badge{margin-left:auto;font-size:11px;padding:1px 7px;border-radius:99px;background:var(--crit);color:#fff}
+.nav .badge.warn{background:var(--warn);color:#111}
+.side-foot{margin-top:auto;padding-top:12px;border-top:1px solid var(--line)}
+.mode{font-size:11px;color:var(--mut);padding:6px 10px;display:flex;gap:6px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--off);display:inline-block}
+.dot.ok{background:var(--ok)}.dot.warn{background:var(--warn)}.dot.crit{background:var(--crit)}.dot.bal{background:var(--bal)}
+.dot.pulse{box-shadow:0 0 0 0 currentColor;animation:pulse 2s infinite}
+@keyframes fade{from{opacity:0}}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ok) 60%,transparent)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+
+main{padding:22px 28px 48px;min-width:0}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.crumbs{color:var(--mut);font-size:13px}.crumbs a:hover{color:var(--txt)}
+h1{margin:2px 0 0;font-size:24px;letter-spacing:-.01em}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--mut);margin:26px 0 10px;font-weight:600;display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;background:var(--card);border:1px solid var(--line);font-size:12px;color:var(--mut);white-space:nowrap}
+.pill.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,transparent)}
+.pill.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 40%,transparent)}
+.pill.crit{color:var(--crit);border-color:color-mix(in srgb,var(--crit) 45%,transparent)}
+.pill.bal{color:var(--bal);border-color:color-mix(in srgb,var(--bal) 40%,transparent)}
+.pill.flow{color:var(--flow);border-color:color-mix(in srgb,var(--flow) 40%,transparent)}
+.pills{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:9px;border:1px solid var(--line);background:var(--card);font-weight:500;font-size:13px}
+.btn:hover{border-color:var(--flow)}
+.btn.primary{background:var(--flow);border-color:var(--flow);color:#fff}
+.btn.danger{background:var(--crit);border-color:var(--crit);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ---------- Cards ---------- */
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.card{background:linear-gradient(180deg,var(--card),var(--card-end));border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow);min-width:0}
+.card.link{cursor:pointer;transition:border-color .15s,transform .15s}
+.card.link:hover{border-color:color-mix(in srgb,var(--flow) 60%,transparent);transform:translateY(-1px)}
+.stale{position:relative}
+.stale>*:not(.stale-tag){opacity:.45;filter:grayscale(.7)}
+.stale-tag{position:absolute;top:10px;right:12px;z-index:2}
+
+.kpi .lbl{color:var(--mut);font-size:12px;display:flex;align-items:center;gap:6px;justify-content:space-between}
+.kpi .val{font:700 22px/1.2 var(--mono);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .val small{font-size:13px;color:var(--mut);font-weight:500;margin-left:3px}
+.kpi .sub{color:var(--dim);font-size:12px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi.ok .val{color:var(--ok)}.kpi.warn .val{color:var(--warn)}.kpi.crit .val{color:var(--crit)}.kpi.bal .val{color:var(--bal)}.kpi.flow .val{color:var(--flow)}
+.trend{font:600 11px var(--mono);color:var(--mut);white-space:nowrap}
+.trend.up-bad,.trend.down-bad{color:var(--warn)}
+.trend.up-good,.trend.down-good{color:var(--ok)}
+
+/* Status banner */
+.banner{display:flex;align-items:center;gap:16px;padding:16px 20px;border-radius:16px;border:1px solid;margin-bottom:14px}
+.banner.ok{border-color:color-mix(in srgb,var(--ok) 40%,transparent);background:color-mix(in srgb,var(--ok) 8%,var(--card))}
+.banner.warn{border-color:color-mix(in srgb,var(--warn) 45%,transparent);background:color-mix(in srgb,var(--warn) 9%,var(--card))}
+.banner.crit{border-color:color-mix(in srgb,var(--crit) 50%,transparent);background:color-mix(in srgb,var(--crit) 10%,var(--card))}
+.banner .ic{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-size:22px;flex:none;background:var(--bg2)}
+.banner b{font-size:18px;display:block}
+.banner small{color:var(--mut)}
+.banner .go{margin-left:auto;color:var(--mut);font-size:13px;white-space:nowrap}
+
+/* Parc de sites (packs distants) */
+.fleet-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:12px}
+.fleet{padding:6px 0}
+.fl-row{display:grid;grid-template-columns:minmax(150px,1.4fr) minmax(120px,1.2fr) minmax(130px,1.1fr) minmax(90px,.8fr) minmax(100px,.9fr) 90px;gap:14px;align-items:center;padding:11px 16px;border-bottom:1px solid var(--line);cursor:pointer}
+.fl-row:last-child{border-bottom:0}
+.fl-row:hover{background:var(--card2)}
+.fl-row.head{cursor:default;padding-top:6px;padding-bottom:6px;font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.fl-row.head:hover{background:none}
+.fl-name b{display:flex;align-items:center;gap:8px;font-size:14px}
+.fl-name small{color:var(--mut);font-size:11px;margin-left:16px}
+.fl-soc{display:flex;align-items:center;gap:10px;font:700 15px var(--mono)}
+.fl-soc .bar{flex:1;margin:0}
+.fl-v{font:700 14px var(--mono);white-space:nowrap}
+.fl-v small{font:500 11px Inter,sans-serif;color:var(--mut);display:block}
+.fl-row.stale>*{opacity:.5}
+.mflow{display:flex;align-items:center;gap:6px;font-size:15px}
+.stb{display:inline-flex;align-items:center;gap:7px;padding:5px 11px 5px 8px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap;border:1px solid}
+.stb .arw{font-style:normal;font-size:9px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;color:#fff}
+.stb.chg{color:var(--s-soc);border-color:color-mix(in srgb,var(--s-soc) 40%,transparent);background:color-mix(in srgb,var(--s-soc) 10%,transparent)}
+.stb.chg .arw{background:var(--s-soc);animation:up 1.6s ease-in-out infinite}
+.stb.dis{color:var(--flow);border-color:color-mix(in srgb,var(--flow) 40%,transparent);background:color-mix(in srgb,var(--flow) 10%,transparent)}
+.stb.dis .arw{background:var(--flow);animation:down 1.6s ease-in-out infinite}
+.stb.idle{color:var(--mut);border-color:var(--line)}
+.stb.idle .arw{background:var(--off);font-size:7px}
+@keyframes up{0%,100%{transform:translateY(1px)}50%{transform:translateY(-2px)}}
+@keyframes down{0%,100%{transform:translateY(-1px)}50%{transform:translateY(2px)}}
+.mflow svg{flex:1;height:12px;min-width:40px}
+.mflow .wire{stroke:var(--line);stroke-width:6;stroke-linecap:round}
+.mflow .stream{stroke:var(--flow);stroke-width:4;stroke-linecap:round;stroke-dasharray:1 9;animation:dash linear infinite}
+.mflow .stream.rev{animation-direction:reverse}
+@keyframes dash{to{stroke-dashoffset:-20}}
+
+/* Pack card */
+.pack-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.pack-head h3{margin:0;font-size:17px;display:flex;align-items:center;gap:8px}
+.pack-head .st{font-size:11px;color:var(--mut);letter-spacing:.04em;margin-top:3px}
+.pack-body{display:grid;grid-template-columns:80px 1fr;gap:16px;margin:14px 0 10px;align-items:center}
+.big3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.big3 .l{font-size:11px;color:var(--mut)}
+.big3 .v{font:700 19px/1.25 var(--mono);white-space:nowrap}
+.big3 .v small{font-size:11px;color:var(--mut);font-weight:500;margin-left:2px}
+.big3 .v.warn{color:var(--warn)}.big3 .v.crit{color:var(--crit)}.big3 .v.ok{color:var(--ok)}
+.sparkrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.spark{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--mut);min-width:0}
+.spark svg{flex:1;height:24px;min-width:0}
+.details{display:none;margin-top:10px}
+.details.open{display:block}
+.minis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.mini{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:7px 10px;min-width:0}
+.mini .l{font-size:11px;color:var(--mut)}
+.mini .v{font:700 14px var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini .v small{font-size:11px;color:var(--mut)}
+.mini.warn .v{color:var(--warn)}.mini.crit .v{color:var(--crit)}
+.more{background:none;border:0;color:var(--mut);font-size:12px;padding:4px 0}
+.more:hover{color:var(--txt)}
+.cardfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.fresh{font-size:11px;color:var(--dim);white-space:nowrap}
+.fresh.old{color:var(--warn)}
+
+/* SOC battery */
+.batt{position:relative;width:56px;height:96px;margin:0 auto}
+.batt .cap{width:22px;height:6px;border-radius:3px 3px 0 0;background:var(--line);margin:0 auto}
+.batt .in{position:relative;height:88px;border:2px solid var(--line);border-radius:10px;overflow:hidden;background:var(--bg2)}
+.batt .fill{position:absolute;left:3px;right:3px;bottom:3px;border-radius:6px;background:linear-gradient(0deg,var(--c),color-mix(in srgb,var(--c) 55%,white));height:calc((100% - 6px) * var(--s) / 100);transition:height .6s}
+.batt .pct{position:absolute;inset:6px 0 0;display:grid;place-items:center;font:700 15px var(--mono);color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+.bar{height:6px;border-radius:9px;background:var(--bg2);overflow:hidden;margin-top:8px}
+.bar>i{display:block;height:100%;border-radius:9px;background:var(--c,var(--flow))}
+
+/* Cells bars */
+.cells{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:6px;align-items:end;height:170px;padding-top:6px}
+.cell{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;min-width:0}
+.cell .col{width:100%;max-width:34px;border-radius:6px 6px 3px 3px;background:linear-gradient(0deg,color-mix(in srgb,var(--s-volt) 50%,var(--bg2)),var(--s-volt));min-height:6px}
+.cell.min .col{background:linear-gradient(0deg,color-mix(in srgb,var(--crit) 40%,var(--bg2)),var(--crit))}
+.cell.max .col{background:linear-gradient(0deg,color-mix(in srgb,var(--ok) 40%,var(--bg2)),var(--ok))}
+.cell.balc .col{box-shadow:0 0 0 2px var(--bal)}
+.cell .v{font:600 10px var(--mono);color:var(--mut);writing-mode:vertical-rl;transform:rotate(180deg)}
+.cell.min .v{color:var(--crit)}.cell.max .v{color:var(--ok)}
+.cell .n{font-size:10px;color:var(--dim)}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--mut);margin-top:10px;flex-wrap:wrap}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+
+/* Mini-graphes des cartes */
+.minicharts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;padding-top:12px;border-top:1px dashed var(--line)}
+.mchart .t{font-size:11px;margin-bottom:4px}
+.mchart .t b{font-size:12px}
+.mchart .ch-plot{height:64px;margin-left:30px}
+.mchart .ch-y{left:-32px;width:28px;font-size:9px}
+.mchart .ch-x{margin-left:30px;font-size:9px}
+.mchart .ch-x span:nth-child(2),.mchart .ch-x span:nth-child(4){display:none}
+.mchart .ch-empty{height:64px}
+.ch-grid{position:absolute;left:0;right:0;border-top:1px dashed var(--line);opacity:.6;pointer-events:none}
+/* État des cellules (lisible) */
+.cm-intro{color:var(--mut);font-size:13px;margin-bottom:14px;max-width:820px}
+.cm-intro b{color:var(--txt)}
+.cm{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.cm-head{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px}
+.cm-head .ic{font-size:18px;line-height:1.2}
+.cm-head b{display:block;font-size:14px}
+.cm-head small{color:var(--mut);font-size:12px}
+.cm-plot{position:relative;height:110px;margin-left:64px}
+.cm-y{position:absolute;left:-66px;width:60px;text-align:right;font:500 10px/1.2 var(--mono);color:var(--dim);transform:translateY(-50%)}
+.cm-y b{color:var(--mut)}
+.cm-mid{position:absolute;left:0;right:0;top:50%;border-top:1.5px solid var(--mut);opacity:.7}
+.cm-zone{position:absolute;left:0;right:0;background:color-mix(in srgb,var(--ok) 10%,transparent);border-radius:4px}
+.cm-bars{position:absolute;inset:0;display:grid;grid-template-columns:repeat(16,1fr);gap:4px}
+.cm-col{position:relative;cursor:help}
+.cm-col:hover{background:color-mix(in srgb,var(--txt) 6%,transparent);border-radius:4px}
+.cm-col i{position:absolute;left:18%;right:18%;border-radius:3px;background:var(--ok)}
+.cm-col.mid i{background:var(--warn)}
+.cm-col.big i{background:var(--crit)}
+.cm-col.sus i{background:var(--flow)}
+.cm-col em{position:absolute;top:-4px;left:50%;transform:translateX(-50%);font-style:normal;font-size:11px}
+.cm-x{display:grid;grid-template-columns:repeat(16,1fr);gap:4px;margin:4px 0 0 64px;font-size:10px;color:var(--dim);text-align:center}
+.cm-legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--mut);margin-top:12px}
+.cm-legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+.cm-legend .cm-z::before{background:color-mix(in srgb,var(--ok) 18%,transparent)}
+/* Heatmap */
+.heat{display:grid;gap:4px;overflow-x:auto}
+.heat .row{display:grid;grid-template-columns:70px repeat(16,minmax(34px,1fr));gap:4px;align-items:center}
+.heat .hd{font-size:10px;color:var(--dim);text-align:center}
+.heat .lb{font-size:12px;color:var(--mut);font-weight:600}
+.heat .hc{height:38px;border-radius:7px;display:grid;place-items:center;font:600 10px var(--mono);color:var(--txt);border:1px solid var(--line);cursor:default}
+.heat .hc.weak{outline:2px dashed var(--warn);outline-offset:-3px}
+.heatlegend{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--mut);margin-top:10px}
+.heatlegend i{height:8px;width:160px;border-radius:9px;background:linear-gradient(90deg,rgb(var(--heat-lo)),var(--card2),rgb(var(--heat-hi)))}
+
+/* Tables */
+.tbl{width:100%;border-collapse:collapse}
+.tbl td,.tbl th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}
+.tbl th{font-size:11px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td.num,.tbl th.num{text-align:right;font-family:var(--mono);font-weight:600;white-space:nowrap}
+.tbl td:first-child{color:var(--mut)}
+.tbl tr.diff td{background:color-mix(in srgb,var(--warn) 8%,transparent)}
+.tbl tr.diff td.num.odd{color:var(--warn)}
+.tbl tr.sec td{background:var(--bg2);color:var(--txt);font-weight:600;font-size:12px}
+.tdiff{display:block;font-size:10px;color:var(--warn);font-family:Inter,sans-serif;font-weight:500}
+.tblwrap{overflow-x:auto}
+
+/* Toggle & inputs */
+.tg{width:36px;height:20px;border-radius:99px;background:var(--line);position:relative;display:inline-block;vertical-align:middle;border:0;padding:0;flex:none}
+.tg::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--mut);transition:.2s}
+.tg.on{background:color-mix(in srgb,var(--ok) 40%,transparent)}.tg.on::after{left:19px;background:var(--ok)}
+.tg[disabled]{cursor:default}
+.tg.changed{box-shadow:0 0 0 2px var(--flow)}
+.inp{width:110px;padding:5px 8px;border-radius:8px;border:1px solid var(--line);background:var(--bg2);text-align:right;font-family:var(--mono)}
+.inp:focus{outline:2px solid var(--flow);border-color:transparent}
+.inp.changed{border-color:var(--flow);color:var(--flow)}
+.sw-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;gap:10px}
+.field{display:grid;gap:6px;margin-bottom:12px}
+.field label{font-size:12px;color:var(--mut)}
+.field input[type=text],.field input[type=password]{padding:9px 12px;border-radius:9px;border:1px solid var(--line);background:var(--bg2);width:100%}
+
+/* Tabs / segmented */
+.tabs,.seg{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--line);padding:4px;border-radius:12px;width:max-content;max-width:100%;overflow:auto}
+.tabs a,.seg button{padding:7px 14px;border-radius:9px;color:var(--mut);font-weight:500;white-space:nowrap;background:none;border:0}
+.seg button{padding:4px 11px;font-size:12px}
+.tabs a.on,.seg button.on{background:var(--card);color:var(--txt);box-shadow:0 0 0 1px var(--line)}
+.bmssel{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.bmssel a{padding:7px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--mut);display:flex;gap:8px;align-items:center}
+.bmssel a.on{border-color:var(--flow);color:var(--txt);background:color-mix(in srgb,var(--flow) 10%,var(--card))}
+
+/* Interactive charts */
+.chart .t{display:flex;justify-content:space-between;align-items:baseline;color:var(--mut);font-size:12px;margin-bottom:8px;gap:8px}
+.chart .t b{color:var(--txt);font-family:var(--mono)}
+.ch-plot{position:relative;height:150px;margin-left:44px;cursor:crosshair}
+.ch-plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.ch-y{position:absolute;left:-44px;font:500 10px var(--mono);color:var(--dim);transform:translateY(-50%);width:40px;text-align:right}
+.ch-th{position:absolute;right:2px;font-size:10px;transform:translateY(-110%);font-weight:600}
+.ch-x{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin:6px 0 0 44px}
+.ch-cross{position:absolute;top:0;bottom:0;width:1px;background:var(--mut);display:none;pointer-events:none}
+.ch-tip{position:absolute;top:0;display:none;pointer-events:none;background:var(--card);border:1px solid var(--line);border-radius:9px;padding:6px 9px;font-size:11px;white-space:nowrap;z-index:5;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.ch-tip b{font-family:var(--mono)}
+.ch-tip i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
+.ch-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--mut);margin-top:6px;margin-left:44px}
+.ch-legend span::before{content:"";display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:5px;vertical-align:3px;background:var(--c)}
+.ch-empty{height:150px;display:grid;place-items:center;color:var(--dim);font-size:12px}
+
+/* Alerts & events */
+.alert{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card)}
+.alert.warn{border-color:color-mix(in srgb,var(--warn) 45%,transparent);background:color-mix(in srgb,var(--warn) 7%,var(--card))}
+.alert.crit{border-color:color-mix(in srgb,var(--crit) 50%,transparent);background:color-mix(in srgb,var(--crit) 8%,var(--card))}
+.alert.ok{border-color:color-mix(in srgb,var(--ok) 40%,transparent);background:color-mix(in srgb,var(--ok) 6%,var(--card))}
+.alert.info{border-color:color-mix(in srgb,var(--flow) 40%,transparent);background:color-mix(in srgb,var(--flow) 6%,var(--card))}
+.alert .ic{font-size:18px;line-height:1.2}
+.alert b{display:block}
+.alert small{color:var(--mut)}
+.alert .act{margin-left:auto;align-self:center}
+.events{display:grid}
+.ev{display:grid;grid-template-columns:52px 14px 1fr;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line);align-items:start}
+.ev:last-child{border-bottom:0}
+.ev time{font:600 12px var(--mono);color:var(--mut)}
+.ev .dot{margin-top:5px}
+.ev b{font-weight:600}
+.ev small{display:block;color:var(--dim);font-size:12px}
+.day{font-size:12px;color:var(--mut);font-weight:600;margin:16px 0 4px;text-transform:capitalize}
+.note{color:var(--dim);font-size:12px;margin-top:28px;font-style:italic}
+.burger{display:none;background:var(--card);border:1px solid var(--line);border-radius:9px;padding:6px 10px}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;z-index:50;padding:16px}
+.modal{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.modal h3{margin:0 0 6px}
+.modal ul{padding-left:18px;margin:12px 0;font-size:13px}
+.modal li{margin:4px 0}
+.modal li b{font-family:var(--mono)}
+.modal .row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+
+/* Menu tiroir (mobile / tablette portrait) */
+.scrim{display:none}
+.side-close{display:none;margin-left:auto;background:var(--card2);border:1px solid var(--line);border-radius:9px;width:34px;height:34px;font-size:16px;color:var(--mut)}
+/* Bottom nav (mobile) */
+.bnav{display:none}
+
+/* ---------- Mode mural ---------- */
+.app.wall{grid-template-columns:1fr}
+.app.wall .side{display:none}
+.wall-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:12px;flex-wrap:wrap}
+.wall-clock{font:700 48px var(--mono)}
+.wall-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:16px 0}
+.wall-kpis .card{padding:22px}
+.wall-kpis .val{font:800 54px/1.1 var(--mono)}
+.wall-kpis .val small{font-size:22px;color:var(--mut)}
+.wall-kpis .lbl{font-size:16px;color:var(--mut)}
+.wall-packs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.wall-packs .card{padding:20px}
+.wall-packs h3{margin:0 0 8px;font-size:20px;display:flex;gap:10px;align-items:center}
+.wall-packs .soc{font:800 64px/1 var(--mono)}
+.wall-packs .soc small{font-size:24px}
+.wall-packs .row{display:flex;justify-content:space-between;font:600 18px var(--mono);margin-top:10px;color:var(--mut)}
+.wall .banner b{font-size:26px}
+
+@media (max-width:1180px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.cells .v{display:none}.fleet-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.fl-row{grid-template-columns:minmax(140px,1.4fr) minmax(110px,1fr) minmax(110px,1fr) minmax(90px,.8fr) minmax(90px,.8fr)}.fl-row .fl-fresh{display:none}}
+@media (max-width:860px){
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;inset:0 auto 0 0;width:260px;z-index:30;transform:translateX(-100%);transition:transform .2s}
+  .side.open{transform:none;box-shadow:8px 0 30px rgba(0,0,0,.4)}
+  .scrim.open{display:block;position:fixed;inset:0;z-index:29;background:rgba(0,0,0,.55);animation:fade .2s}
+  .side-close{display:grid;place-items:center}
+  body.menu-open{overflow:hidden}
+  .burger{display:inline-block;margin-bottom:6px}
+  main{padding:14px 14px calc(84px + env(safe-area-inset-bottom))}
+  h1{font-size:21px}
+  .g2,.g3{grid-template-columns:1fr}
+  .fleet-kpis .kpi .val{font-size:18px}
+  .fl-row.head{display:none}
+  .fl-row{grid-template-columns:1fr 1fr;grid-template-areas:"n n" "s s" "f f" "p a";gap:8px 12px;padding:12px 14px}
+  .fl-name{grid-area:n}.fl-soc{grid-area:s}.mflow{grid-area:f}.fl-pw{grid-area:p}.fl-au{grid-area:a;text-align:right}
+  .pack-body{grid-template-columns:60px 1fr;gap:12px}
+  .batt{transform:scale(.85);transform-origin:center}
+  .big3 .v{font-size:16px}
+  .minicharts{grid-template-columns:1fr;gap:10px}
+  .mchart .ch-plot{height:56px}
+  .cm-plot{margin-left:56px}.cm-y{left:-58px;width:54px;font-size:9px}.cm-x{margin-left:56px}.cm-bars,.cm-x{gap:2px}
+  .minis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cells{grid-template-columns:repeat(8,minmax(0,1fr));height:auto;row-gap:14px}
+  .cell{height:100px}
+  .bnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:20;background:color-mix(in srgb,var(--card) 92%,transparent);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+  .bnav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:var(--mut);padding:4px 0;border-radius:10px;position:relative}
+  .bnav a span{font-size:19px;line-height:1}
+  .bnav a.on{color:var(--txt);background:var(--card2)}
+  .bnav .badge{position:absolute;top:0;right:22%;font-size:9px;padding:0 5px;border-radius:99px;background:var(--crit);color:#fff}
+  .banner{padding:12px 14px;gap:12px}.banner b{font-size:16px}.banner .go{display:none}
+  .wall-kpis{grid-template-columns:1fr}
+  .wall-kpis .val{font-size:40px}
+}
+
+/* =========================================================
+   VARIANTE « GLOW » — plus saturée, reflets & halos
+   ========================================================= */
+:root,[data-theme=dark]{
+  --bg:#050b16; --bg2:#0a1630; --card:#0e1d3d; --card-end:#0a1530; --card2:#14295a; --line:#1f3b74;
+  --txt:#f2f7ff; --mut:#9db4dc; --dim:#6a84b0; --glow:#1b3f8f;
+  --ok:#2dff9a; --warn:#ffc22e; --crit:#ff4d6d; --bal:#22d3ff; --flow:#b388ff; --off:#7a8bab;
+  --s-volt:#a9bfe6; --s-cur:#5ea8ff; --s-temp:#ff5cc8; --s-soc:#19f0d0; --s-delta:#ffd23f;
+  --halo:0.32;
+}
+[data-theme=light]{
+  --bg:#dfe9fb; --bg2:#d3e1fa; --card:#ffffff; --card-end:#eef4ff; --card2:#e3edff; --line:#b9cdf3;
+  --txt:#0a1733; --mut:#3a5687; --dim:#6a82ad; --glow:#a9c6ff;
+  --ok:#00b86b; --warn:#f08c00; --crit:#e5254a; --bal:#0096d6; --flow:#7b3fe4; --off:#8a9bbd;
+  --s-volt:#4f6896; --s-cur:#1f6fe0; --s-temp:#d62f9a; --s-soc:#00a99a; --s-delta:#d99a00;
+  --halo:0.16;
+}
+body{background:
+  radial-gradient(900px 500px at 85% -5%, color-mix(in srgb,var(--flow) 20%,transparent) 0%, transparent 60%),
+  radial-gradient(800px 500px at -10% 30%, color-mix(in srgb,var(--bal) 14%,transparent) 0%, transparent 60%),
+  radial-gradient(700px 400px at 60% 110%, color-mix(in srgb,var(--s-soc) 10%,transparent) 0%, transparent 60%),
+  var(--bg); background-attachment:fixed}
+
+/* Cartes effet verre + liseré lumineux */
+.card,.banner,.fleet{position:relative;overflow:hidden;
+  background:linear-gradient(160deg, color-mix(in srgb,var(--card) 92%,white 8%) 0%, var(--card) 35%, var(--card-end) 100%);
+  border:1px solid color-mix(in srgb,var(--flow) 28%,var(--line));
+  box-shadow:0 0 0 1px rgba(255,255,255,.03) inset, 0 1px 0 rgba(255,255,255,.12) inset, 0 10px 30px -12px color-mix(in srgb,var(--flow) calc(var(--halo)*60%),transparent), 0 2px 8px rgba(0,0,0,.18)}
+.card::before,.fleet::before{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,0) 35%)}
+.card.link::after,.fl-row::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:40%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.08),transparent);transform:skewX(-18deg);transition:none;opacity:0}
+.card.link:hover::after,.fl-row:hover::after{animation:sheen .9s ease-out}
+@keyframes sheen{0%{left:-60%;opacity:1}100%{left:130%;opacity:0}}
+.card.link:hover{border-color:color-mix(in srgb,var(--flow) 70%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--flow) 40%,transparent), 0 0 20px -6px color-mix(in srgb,var(--flow) calc(var(--halo)*80%),transparent)}
+.fl-row{position:relative;overflow:hidden}
+
+/* Valeurs lumineuses */
+.kpi .val,.big3 .v,.fl-soc,.wall-kpis .val,.wall-packs .soc{text-shadow:0 0 14px color-mix(in srgb,currentColor calc(var(--halo)*70%),transparent)}
+.kpi.ok .val,.kpi.warn .val,.kpi.crit .val,.kpi.flow .val,.kpi.bal .val{text-shadow:0 0 10px color-mix(in srgb,currentColor 45%,transparent)}
+[data-theme=light] .kpi.ok .val,[data-theme=light] .kpi.warn .val,[data-theme=light] .kpi.crit .val,[data-theme=light] .kpi.flow .val{text-shadow:0 0 10px color-mix(in srgb,currentColor 35%,transparent)}
+
+/* Points d'état qui brillent */
+.dot{box-shadow:0 0 5px color-mix(in srgb,currentColor 70%,transparent)}
+.dot.ok{color:var(--ok)}.dot.warn{color:var(--warn)}.dot.crit{color:var(--crit)}.dot.bal{color:var(--bal)}
+.dot.crit{animation:blink 1.6s ease-in-out infinite}
+@keyframes blink{50%{box-shadow:0 0 9px 1px var(--crit)}}
+
+/* Batterie glossy */
+.batt .in{border-color:color-mix(in srgb,var(--c) 55%,var(--line));box-shadow:0 0 12px -3px color-mix(in srgb,var(--c) 40%,transparent), inset 0 0 10px rgba(0,0,0,.35)}
+.batt .cap{background:color-mix(in srgb,var(--c) 55%,var(--line))}
+.batt .fill{background:linear-gradient(90deg,color-mix(in srgb,var(--c) 70%,black) 0%,var(--c) 35%,color-mix(in srgb,var(--c) 55%,white) 55%,var(--c) 75%,color-mix(in srgb,var(--c) 70%,black) 100%);box-shadow:0 0 8px color-mix(in srgb,var(--c) 50%,transparent)}
+.batt .fill::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.28),transparent 30%);}
+.batt .fill::before{content:"";position:absolute;left:0;right:0;height:30%;top:-30%;background:linear-gradient(180deg,transparent,rgba(255,255,255,.16),transparent);animation:rise 4s ease-in-out infinite}
+@keyframes rise{0%{top:100%}100%{top:-30%}}
+.batt .fill{overflow:hidden}
+
+/* Barres de progression néon */
+.bar{background:color-mix(in srgb,var(--bg2) 70%,black 10%);box-shadow:inset 0 1px 2px rgba(0,0,0,.35)}
+.bar>i{background:linear-gradient(90deg,color-mix(in srgb,var(--c) 70%,black),var(--c) 60%,color-mix(in srgb,var(--c) 70%,white));box-shadow:0 0 6px color-mix(in srgb,var(--c) 45%,transparent);position:relative}
+
+/* Barres de cellules brillantes */
+.cell .col{background:linear-gradient(90deg,color-mix(in srgb,var(--s-volt) 55%,black),var(--s-volt) 45%,color-mix(in srgb,var(--s-volt) 75%,white) 60%,color-mix(in srgb,var(--s-volt) 60%,black))}
+.cell.min .col{background:linear-gradient(90deg,color-mix(in srgb,var(--crit) 55%,black),var(--crit) 45%,color-mix(in srgb,var(--crit) 55%,white) 60%,color-mix(in srgb,var(--crit) 60%,black));box-shadow:0 0 8px color-mix(in srgb,var(--crit) 45%,transparent)}
+.cell.max .col{background:linear-gradient(90deg,color-mix(in srgb,var(--ok) 55%,black),var(--ok) 45%,color-mix(in srgb,var(--ok) 55%,white) 60%,color-mix(in srgb,var(--ok) 60%,black));box-shadow:0 0 8px color-mix(in srgb,var(--ok) 45%,transparent)}
+
+/* Courbes avec halo */
+.ch-plot svg path[fill="none"]{filter:none}
+.ch-plot svg{color:var(--flow)}
+.chart .ch-plot svg path[stroke]{filter:drop-shadow(0 0 3px color-mix(in srgb,var(--flow) 35%,transparent))}
+
+/* Pastilles & badges */
+.pill.ok,.pill.warn,.pill.crit,.pill.bal,.pill.flow{box-shadow:0 0 8px -4px currentColor;background:color-mix(in srgb,currentColor 7%,var(--card))}
+.stb.chg,.stb.dis{box-shadow:0 0 8px -4px currentColor}
+.stb .arw{box-shadow:0 0 5px color-mix(in srgb,currentColor 60%,transparent)}
+.btn.primary{background:linear-gradient(135deg,var(--flow),color-mix(in srgb,var(--flow) 60%,var(--bal)));box-shadow:0 0 10px -4px var(--flow);border:0}
+.nav a.on{background:linear-gradient(90deg,color-mix(in srgb,var(--flow) 30%,transparent),transparent);box-shadow:inset 3px 0 0 var(--flow)}
+.brand .logo{box-shadow:0 0 10px color-mix(in srgb,var(--flow) 50%,transparent)}
+.tabs a.on,.seg button.on{background:linear-gradient(135deg,color-mix(in srgb,var(--flow) 35%,var(--card)),var(--card));box-shadow:0 0 0 1px color-mix(in srgb,var(--flow) 45%,transparent)}
+.banner.crit{box-shadow:0 0 18px -8px color-mix(in srgb,var(--crit) 55%,transparent)}
+.banner.warn{box-shadow:0 0 18px -8px color-mix(in srgb,var(--warn) 55%,transparent)}
+.banner.ok{box-shadow:0 0 18px -8px color-mix(in srgb,var(--ok) 45%,transparent)}
+.side{background:linear-gradient(180deg,color-mix(in srgb,var(--card) 70%,transparent),color-mix(in srgb,var(--bg) 85%,transparent));backdrop-filter:blur(14px)}
+h2{color:color-mix(in srgb,var(--flow) 45%,var(--mut))}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="side" id="side"></aside>
+  <div class="scrim" id="scrim"></div>
+  <main id="main"></main>
+</div>
+<nav class="bnav" id="bnav"></nav>
+<div id="modal"></div>
+
+<script>
+
+// DEV75 - shared translation keys (FR fallback); no credentials, no external assets.
+const SP_I18N={"fr":{"language":"Langue","hardware":"Alarmes matérielles JK-BMS","supervision":"Alertes de supervision","noHardware":"Aucune alarme matérielle signalée","hardwareActive":"Alarme matérielle active","noSupervision":"Aucun seuil de supervision dépassé","supervisionActive":"Écart ou température à surveiller","hardwareExplanation":"Les indicateurs d’alarme transmis par le BMS ne signalent aucun défaut. Les alertes calculées sont présentées séparément ci-dessous.","supervisionExplanation":"Les seuils de surveillance des cellules et de température ne sont pas dépassés.","supervisionIndependent":"Calcul indépendant des indicateurs d’alarme du JK-BMS.","centralHistory":"Alarmes & historique opérateur","alarmCenter":"Centre alarmes · Cycle de vie","active":"Actives","toAck":"À quittancer","ackActive":"Quittancées actives","history":"Historique","normal":"Normal","close":"Fermer","alarmEvents":"Événements actifs","observedHistory":"Historique observé"},"en":{"language":"Language","hardware":"JK-BMS hardware alarms","supervision":"Supervision alerts","noHardware":"No hardware alarm reported","hardwareActive":"Hardware alarm active","noSupervision":"No supervision threshold exceeded","supervisionActive":"Cell imbalance or temperature requires attention","hardwareExplanation":"The BMS alarm indicators report no fault. Calculated alerts are shown separately below.","supervisionExplanation":"No cell-voltage imbalance or temperature monitoring threshold has been exceeded.","supervisionIndependent":"Calculated independently of JK-BMS hardware alarm indicators.","centralHistory":"Alarms & operator history","alarmCenter":"Alarm center · Lifecycle","active":"Active","toAck":"Awaiting acknowledgement","ackActive":"Acknowledged and active","history":"History","normal":"Normal","close":"Close","alarmEvents":"Active events","observedHistory":"Observed history"},"de":{"language":"Sprache","hardware":"JK-BMS-Hardwarealarme","supervision":"Überwachungswarnungen","noHardware":"Kein Hardwarealarm gemeldet","hardwareActive":"Hardwarealarm aktiv","noSupervision":"Kein Überwachungsgrenzwert überschritten","supervisionActive":"Zellabweichung oder Temperatur prüfen","hardwareExplanation":"Die Alarmmeldungen des BMS zeigen keinen Fehler an. Berechnete Warnungen werden unten separat angezeigt.","supervisionExplanation":"Die Grenzwerte für Zellabweichung und Temperatur sind nicht überschritten.","supervisionIndependent":"Unabhängig von den Hardware-Alarmmeldungen des JK-BMS berechnet.","centralHistory":"Alarme & Bedienerprotokoll","alarmCenter":"Alarmzentrale · Lebenszyklus","active":"Aktiv","toAck":"Zu quittieren","ackActive":"Quittiert und aktiv","history":"Verlauf","normal":"Normal","close":"Schließen","alarmEvents":"Aktive Ereignisse","observedHistory":"Ereignisverlauf"}};
+const SP_LANG_KEY='smartphoton_multipack_language_v1';
+function spNormalizeLanguage(value){const v=String(value||'').toLowerCase().split(/[-_]/)[0];return Object.hasOwn(SP_I18N,v)?v:'fr'}
+function spHaLanguage(){
+ try{
+  const ha=window.parent?.document?.querySelector('home-assistant')?.hass;
+  return ha?.locale?.language||ha?.language||null;
+ }catch(_){return null}
+}
+let spManualLanguage=null;
+try{spManualLanguage=localStorage.getItem(SP_LANG_KEY)}catch(_){}
+let spLanguage=spNormalizeLanguage(spManualLanguage||spHaLanguage()||navigator.language);
+function spLocale(){return {fr:'fr-FR',en:'en-GB',de:'de-DE'}[spLanguage]||'fr-FR'}
+function spText(key){return SP_I18N[spLanguage]?.[key]||SP_I18N.fr[key]||key}
+function spSetLanguage(value){
+ spLanguage=spNormalizeLanguage(value);
+ try{localStorage.setItem(SP_LANG_KEY,spLanguage)}catch(_){}
+ try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:'smartphoton-multipack-language',language:spLanguage},window.location.origin)}catch(_){}
+ if(document.documentElement)document.documentElement.lang=spLanguage;
+ if(typeof render==='function')render();
+ spApplyLanguage();
+}
+
+// DEV75.1: translation of visible Glow labels without modifying HA entity ids or BMS command payloads.
+const SP_GLOW_LABELS={"Parc":{"en":"Fleet","de":"Übersicht"},"Vue d’ensemble":{"en":"Overview","de":"Gesamtübersicht"},"Comparatif des sites":{"en":"Site comparison","de":"Standortvergleich"},"Diagnostics":{"en":"Diagnostics","de":"Diagnose"},"Diagnostic":{"en":"Diagnostics","de":"Diagnose"},"Journal":{"en":"Log","de":"Protokoll"},"Sites":{"en":"Sites","de":"Standorte"},"Thème clair":{"en":"Light theme","de":"Helles Design"},"Thème sombre":{"en":"Dark theme","de":"Dunkles Design"},"Mode écran mural":{"en":"Wall display","de":"Wandanzeige"},"Connexion Home Assistant":{"en":"Home Assistant connection","de":"Home-Assistant-Verbindung"},"Connecté à Home Assistant":{"en":"Connected to Home Assistant","de":"Mit Home Assistant verbunden"},"Données de démonstration":{"en":"Demo data","de":"Demodaten"},"En attente de Home Assistant":{"en":"Waiting for Home Assistant","de":"Warte auf Home Assistant"},"Comparer":{"en":"Compare","de":"Vergleichen"},"Réglages":{"en":"Settings","de":"Einstellungen"},"Menu":{"en":"Menu","de":"Menü"},"Paramètres":{"en":"Parameters","de":"Parameter"},"Alarmes":{"en":"Alarms","de":"Alarme"},"État énergétique":{"en":"Energy status","de":"Energiezustand"},"Puissance":{"en":"Power","de":"Leistung"},"Tension":{"en":"Voltage","de":"Spannung"},"Courant":{"en":"Current","de":"Strom"},"Écart cellules":{"en":"Cell imbalance","de":"Zellabweichung"},"Capacité":{"en":"Capacity","de":"Kapazität"},"Cellules":{"en":"Cells","de":"Zellen"},"Autonomie":{"en":"Remaining runtime","de":"Restlaufzeit"},"Températures & équilibrage":{"en":"Temperatures & balancing","de":"Temperaturen & Balancing"},"État du BMS":{"en":"BMS status","de":"BMS-Status"},"Historiques":{"en":"History","de":"Verlauf"},"Température MOS":{"en":"MOS temperature","de":"MOS-Temperatur"},"Courant d’équilibrage":{"en":"Balancing current","de":"Balancierstrom"},"Sonde batterie 1":{"en":"Battery probe 1","de":"Batteriesensor 1"},"Sonde batterie 2":{"en":"Battery probe 2","de":"Batteriesensor 2"},"État de charge":{"en":"Charge status","de":"Ladestatus"},"Alarme":{"en":"Alarm","de":"Alarm"},"Aucune":{"en":"None","de":"Keine"},"Lecture seule":{"en":"Read-only","de":"Nur lesen"},"Mode modification":{"en":"Editing mode","de":"Bearbeitungsmodus"},"Annuler":{"en":"Cancel","de":"Abbrechen"},"Enregistrer":{"en":"Save","de":"Speichern"},"Modifier":{"en":"Edit","de":"Bearbeiten"},"Interrupteurs de contrôle":{"en":"Control switches","de":"Steuerschalter"},"Cellules à surveiller":{"en":"Cells to monitor","de":"Zellen beobachten"},"Aucune cellule suspecte":{"en":"No suspicious cells","de":"Keine auffälligen Zellen"},"Batterie & durée de vie":{"en":"Battery & lifespan","de":"Batterie & Lebensdauer"},"Capacité restante":{"en":"Remaining capacity","de":"Restkapazität"},"Cycles":{"en":"Cycles","de":"Zyklen"},"Durée de fonctionnement":{"en":"Operating time","de":"Betriebsdauer"},"Tensions des cellules":{"en":"Cell voltages","de":"Zellspannungen"},"Moyenne":{"en":"Average","de":"Durchschnitt"},"Mesures":{"en":"Measurements","de":"Messwerte"},"Tout afficher":{"en":"Show all","de":"Alle anzeigen"},"Seulement les différences":{"en":"Differences only","de":"Nur Unterschiede"},"Paramètres identiques sur tous les BMS":{"en":"Identical parameters on all BMS","de":"Identische Parameter auf allen BMS"},"Données anciennes":{"en":"Stale data","de":"Veraltete Daten"},"Autres cellules":{"en":"Other cells","de":"Andere Zellen"},"En équilibrage":{"en":"Balancing","de":"Balancierung"},"Inactif":{"en":"Inactive","de":"Inaktiv"},"Maintenant":{"en":"Now","de":"Jetzt"},"maintenant":{"en":"now","de":"jetzt"},"Temp. max":{"en":"Max. temp.","de":"Max. Temp."},"Résistance moy.":{"en":"Avg. resistance","de":"Mittl. Widerstand"},"Tensions cellules":{"en":"Cell voltages","de":"Zellspannungen"},"Courants & capacité":{"en":"Currents & capacity","de":"Ströme & Kapazität"},"Protections":{"en":"Protections","de":"Schutzfunktionen"},"Thermique":{"en":"Thermal","de":"Temperatur"},"MOS charge":{"en":"Charging MOS","de":"Lade-MOS"},"MOS décharge":{"en":"Discharging MOS","de":"Entlade-MOS"},"Équilibrage":{"en":"Balancing","de":"Balancierung"},"Chauffage":{"en":"Heating","de":"Heizung"},"Écran toujours allumé":{"en":"Display always on","de":"Display immer an"},"Désactiver module PCL":{"en":"Disable PCL module","de":"PCL-Modul deaktivieren"},"Stockage temporisé":{"en":"Timed storage","de":"Zeitgesteuerte Speicherung"},"Mode Floating charge":{"en":"Float charging mode","de":"Erhaltungslademodus"}};
+Object.assign(SP_GLOW_LABELS,{"Les changements ne sont envoyés au BMS qu’après confirmation.":{"en":"Changes are sent to the BMS only after confirmation.","de":"Änderungen werden erst nach Bestätigung an das BMS gesendet."},"Cliquez sur « Modifier » pour changer un réglage. Chaque envoi demande une confirmation.":{"en":"Select Edit to change a setting. Each write requires confirmation.","de":"Wählen Sie Bearbeiten, um eine Einstellung zu ändern. Jeder Schreibvorgang erfordert eine Bestätigung."},"Surlignés ci-dessous — vérifiez qu’il ne s’agit pas d’une erreur de réglage.":{"en":"Highlighted below — check for a configuration mistake.","de":"Unten markiert – bitte auf Konfigurationsfehler prüfen."},"Une cellule durablement en bas de la pile indique souvent une capacité plus faible ou une mauvaise connexion.":{"en":"A cell consistently at the lowest voltage may indicate lower capacity or a poor connection.","de":"Eine dauerhaft spannungsschwache Zelle kann auf geringere Kapazität oder einen schlechten Kontakt hinweisen."},"Une hausse progressive pointe généralement un contact qui se dégrade (barre desserrée, oxydation).":{"en":"A gradual increase may indicate a deteriorating connection (loose busbar or oxidation).","de":"Ein allmählicher Anstieg kann auf einen schlechter werdenden Kontakt hinweisen."},"Pas de cellule durablement basse ni de résistance en hausse sur 30 jours.":{"en":"No persistently low-voltage cell or rising cell resistance over 30 days.","de":"Keine dauerhaft spannungsschwache Zelle oder steigender Zellwiderstand in 30 Tagen."},"Les valeurs hors majorité sont surlignées en orange.":{"en":"Values that differ from the majority are highlighted in orange.","de":"Von der Mehrheit abweichende Werte sind orange markiert."},"Statut":{"en":"Status","de":"Status"},"Contexte":{"en":"Context","de":"Kontext"},"Alarme matérielle BMS":{"en":"BMS hardware alarm","de":"BMS-Hardwarealarm"},"État général (inclut diagnostics)":{"en":"Overall status (includes diagnostics)","de":"Gesamtstatus (einschließlich Diagnose)"},"Liste des alarmes matérielles":{"en":"Hardware alarms","de":"Hardwarealarme"},"Événements de ce BMS (48 h)":{"en":"Events for this BMS (48 h)","de":"Ereignisse dieses BMS (48 Std.)"},"Oui":{"en":"Yes","de":"Ja"},"Non":{"en":"No","de":"Nein"},"Résistances des cellules":{"en":"Cell resistances","de":"Zellwiderstände"},"Plein écran":{"en":"Full screen","de":"Vollbild"},"Quitter":{"en":"Exit","de":"Verlassen"},"Sites à jour":{"en":"Sites up to date","de":"Standorte aktuell"},"SOC le plus bas":{"en":"Lowest SOC","de":"Niedrigster SOC"},"Autonomie la plus courte":{"en":"Shortest remaining runtime","de":"Kürzeste Restlaufzeit"},"En attente des données JK-BMS":{"en":"Waiting for JK-BMS data","de":"Warte auf JK-BMS-Daten"}});
+Object.assign(SP_GLOW_LABELS,{"Supervision des sites":{"en":"Site monitoring","de":"Standortüberwachung"},"Tout va bien":{"en":"All systems normal","de":"Alles in Ordnung"},"Voir le diagnostic ›":{"en":"View diagnostics ›","de":"Diagnose anzeigen ›"},"Détail des sites":{"en":"Site details","de":"Standortdetails"},"Données":{"en":"Data","de":"Daten"},"État":{"en":"Status","de":"Status"},"Site":{"en":"Site","de":"Standort"},"Sites à jour":{"en":"Sites up to date","de":"Standorte aktuell"},"SOC le plus bas":{"en":"Lowest SOC","de":"Niedrigster SOC"},"Autonomie la plus courte":{"en":"Shortest runtime","de":"Kürzeste Restlaufzeit"},"Capacité du parc":{"en":"Fleet capacity","de":"Gesamtkapazität"},"Se recharge":{"en":"Charging","de":"Wird geladen"},"Alimente le site":{"en":"Discharging to site","de":"Versorgt den Standort"},"Au repos":{"en":"Idle","de":"Ruhezustand"},"entrant":{"en":"incoming","de":"eingehend"},"sortant":{"en":"outgoing","de":"ausgehend"},"tous les sites communiquent":{"en":"all sites connected","de":"alle Standorte verbunden"},"aucun site en décharge":{"en":"no sites discharging","de":"kein Standort entlädt"},"à l’instant":{"en":"just now","de":"gerade eben"},"Normal":{"en":"Normal","de":"Normal"},"Écart cellules · 24 h":{"en":"Cell imbalance · 24 h","de":"Zellabweichung · 24 Std."},"Temp. max · 24 h":{"en":"Max. temperature · 24 h","de":"Max. Temperatur · 24 Std."},"SOC · 24 h":{"en":"SOC · 24 h","de":"SOC · 24 Std."},"Charge":{"en":"Charging","de":"Laden"},"Décharge":{"en":"Discharging","de":"Entladen"},"Repos":{"en":"Idle","de":"Ruhezustand"}});
+const spOriginalText=new WeakMap();
+const SP_GLOW_MESSAGES={"fr":{"delta":"Écart cellules","temp":"Température","warning":"alerte","critical":"critique","weakLow":"Cellule {cell} est la plus basse depuis {days} jours","weakResistance":"Résistance de la cellule {cell} : +{rise} % en 30 jours"},"en":{"delta":"Cell imbalance","temp":"Temperature","warning":"warning","critical":"critical","weakLow":"Cell {cell} has had the lowest voltage for {days} days","weakResistance":"Cell {cell} resistance: +{rise}% over 30 days"},"de":{"delta":"Zellabweichung","temp":"Temperatur","warning":"Warnung","critical":"kritisch","weakLow":"Zelle {cell} hat seit {days} Tagen die niedrigste Spannung","weakResistance":"Widerstand von Zelle {cell}: +{rise}% in 30 Tagen"}};
+function spMessage(key,params={}){let value=SP_GLOW_MESSAGES[spLanguage]?.[key]||SP_GLOW_MESSAGES.fr[key]||key;return value.replace(/\{(\w+)\}/g,(_,name)=>String(params[name]??''))}
+Object.assign(SP_GLOW_MESSAGES.fr,{"confirmSend":"Confirmer l’envoi","sensitive":"Réglage sensible","sensitiveNote":"Ces paramètres touchent aux MOS ou aux protections : une erreur peut couper le pack.","commandSent":"Commande transmise","commandRejected":"Commande refusée","readback":"relecture BMS à vérifier","sendChanges":"Envoyer {count} modification(s) au {bms} ?"});
+Object.assign(SP_GLOW_MESSAGES.en,{"confirmSend":"Confirm sending","sensitive":"Sensitive setting","sensitiveNote":"These settings affect MOS switches or protections: an error may disconnect the battery pack.","commandSent":"Command sent","commandRejected":"Command rejected","readback":"verify BMS readback","sendChanges":"Send {count} change(s) to {bms}?"});
+Object.assign(SP_GLOW_MESSAGES.de,{"confirmSend":"Senden bestätigen","sensitive":"Sicherheitsrelevante Einstellung","sensitiveNote":"Diese Einstellungen betreffen MOS-Schalter oder Schutzfunktionen. Ein Fehler kann das Batteriepack abschalten.","commandSent":"Befehl gesendet","commandRejected":"Befehl abgelehnt","readback":"BMS-Rückmeldung prüfen","sendChanges":"{count} Änderung(en) an {bms} senden?"});
+const SP_GLOW_DYNAMIC={"fr":{"watch":"{n} point(s) à surveiller","alarm":"{n} alarme(s) active(s)","inRange":"{sites} sites · {bms} BMS dans les seuils","before":"avant {pct} %","idle":"au repos","reached":"Atteint","bmsDelta":"Écart cellules {delta} mV","notDetected":"{n} BMS non détecté(s)"},"en":{"watch":"{n} point(s) to monitor","alarm":"{n} active alarm(s)","inRange":"{sites} sites · {bms} BMS within limits","before":"until {pct}%","idle":"idle","reached":"Reached","bmsDelta":"Cell imbalance {delta} mV","notDetected":"{n} BMS not detected"},"de":{"watch":"{n} Punkt(e) zu überwachen","alarm":"{n} aktive(r) Alarm(e)","inRange":"{sites} Standorte · {bms} BMS innerhalb der Grenzwerte","before":"bis {pct} %","idle":"im Ruhezustand","reached":"Erreicht","bmsDelta":"Zellabweichung {delta} mV","notDetected":"{n} BMS nicht erkannt"}};
+const SP_GLOW_OVERVIEW_I18N={"fr":{"stale":"un site ne remonte plus de données récentes","allConnected":"tous les sites communiquent","minBms":"BMS le plus bas","noDischarge":"aucun site en décharge","sites":"sites","justNow":"à l’instant","ago":"il y a {n} {unit}","flowCharge":"Charge","flowDischarge":"Décharge","flowIdle":"Repos","normal":"Normal","watch":"À surveiller","critical":"Critique","balance":"Équilibrage","offline":"Hors ligne","footerRecorder":"Les résumés Home Assistant sont volontairement limités en fréquence afin de protéger Recorder.","nowShort":"maint.","now":"maintenant"},"en":{"stale":"a site has stopped reporting recent data","allConnected":"all sites connected","minBms":"Lowest BMS","noDischarge":"no sites discharging","sites":"sites","justNow":"just now","ago":"{n} {unit} ago","flowCharge":"Charging","flowDischarge":"Discharging","flowIdle":"Idle","normal":"Normal","watch":"Watch","critical":"Critical","balance":"Balancing","offline":"Offline","footerRecorder":"Home Assistant summaries are deliberately rate-limited to protect Recorder.","nowShort":"now","now":"now"},"de":{"stale":"ein Standort meldet keine aktuellen Daten","allConnected":"alle Standorte melden Daten","minBms":"Niedrigster BMS","noDischarge":"kein Standort entlädt","sites":"Standorte","justNow":"gerade eben","ago":"vor {n} {unit}","flowCharge":"Laden","flowDischarge":"Entladen","flowIdle":"Ruhezustand","normal":"Normal","watch":"Überwachen","critical":"Kritisch","balance":"Balancierung","offline":"Offline","footerRecorder":"Home-Assistant-Zusammenfassungen werden zum Schutz des Recorders bewusst seltener aktualisiert.","nowShort":"jetzt","now":"jetzt"}};
+const SP_GLOW_VIEWS_I18N={"fr":{"independent":"Sites indépendants","independentHelp":"Chaque pack est sur un site distinct : les valeurs ne s’additionnent pas, on les compare.","comparison":"Tableau comparatif","extremes":"Valeurs extrêmes du parc","minCell":"Cellule minimale","maxCell":"Cellule maximale","worstDelta":"Pire écart interne","maxTemperature":"Température maximale","best":"meilleur du parc","activeIssues":"Problèmes actifs & actions recommandées","open":"Ouvrir ›","noIssue":"Aucun problème","allInRange":"Tous les packs sont dans les seuils.","thresholds":"Seuils du diagnostic","bySite":"Détail par site","warningCritical":"alerte / critique","lowCritical":"bas / critique","olderThan":"au-delà : données anciennes","freshness":"Fraîcheur données","none":"Aucun événement","nothing":"Rien à signaler sur la période.","all":"Tous","chargeDischarge":"Charge / décharge","events":"Journal des événements","settings":"Réglages","eventCount":"{n} événements · 48 h","site":"Site","power":"Puissance","autonomy":"Autonomie","delta":"Écart cellules","tempMax":"Temp. max","soh":"SOH moy.","cycles":"Cycles max","data":"Données","socSites":"SOC des sites","journalUnavailable":"Le journal historique n’est pas encore connecté aux événements Home Assistant. Les alertes actuelles sont visibles dans Diagnostics.","journalNotRecording":"Historique indisponible","supervisionDelta":"Déséquilibrage des cellules à surveiller","supervisionTemp":"Température à surveiller","supervisionBoth":"Déséquilibrage et température à surveiller"},"en":{"independent":"Independent sites","independentHelp":"Each pack is at a separate site: values are compared, not added.","comparison":"Site comparison table","extremes":"Fleet extremes","minCell":"Lowest cell voltage","maxCell":"Highest cell voltage","worstDelta":"Largest cell imbalance","maxTemperature":"Maximum temperature","best":"best in fleet","activeIssues":"Active issues & recommended actions","open":"Open ›","noIssue":"No issues","allInRange":"All packs are within limits.","thresholds":"Diagnostic thresholds","bySite":"Details by site","warningCritical":"warning / critical","lowCritical":"low / critical","olderThan":"above limit: stale data","freshness":"Data age","none":"No events","nothing":"Nothing to report for this period.","all":"All","chargeDischarge":"Charging / discharging","events":"Event log","settings":"Settings","eventCount":"{n} events · 48 h","site":"Site","power":"Power","autonomy":"Runtime","delta":"Cell imbalance","tempMax":"Max. temp.","soh":"Avg. SOH","cycles":"Max. cycles","data":"Data","socSites":"Site SOC","journalUnavailable":"Historical event logging is not yet connected to Home Assistant events. Current warnings are available in Diagnostics.","journalNotRecording":"History unavailable","supervisionDelta":"Cell imbalance requires attention","supervisionTemp":"Temperature requires attention","supervisionBoth":"Cell imbalance and temperature require attention"},"de":{"independent":"Unabhängige Standorte","independentHelp":"Jedes Pack gehört zu einem eigenen Standort: Werte werden verglichen, nicht addiert.","comparison":"Standortvergleich","extremes":"Extremwerte der Standorte","minCell":"Niedrigste Zellspannung","maxCell":"Höchste Zellspannung","worstDelta":"Größte Zellabweichung","maxTemperature":"Höchste Temperatur","best":"bester Wert im Verbund","activeIssues":"Aktive Probleme und empfohlene Maßnahmen","open":"Öffnen ›","noIssue":"Keine Probleme","allInRange":"Alle Packs liegen innerhalb der Grenzwerte.","thresholds":"Diagnoseschwellen","bySite":"Details je Standort","warningCritical":"Warnung / kritisch","lowCritical":"niedrig / kritisch","olderThan":"Grenzwert überschritten: veraltete Daten","freshness":"Datenalter","none":"Keine Ereignisse","nothing":"Keine Ereignisse im Zeitraum.","all":"Alle","chargeDischarge":"Laden / Entladen","events":"Ereignisprotokoll","settings":"Einstellungen","eventCount":"{n} Ereignisse · 48 Std.","site":"Standort","power":"Leistung","autonomy":"Restlaufzeit","delta":"Zellabweichung","tempMax":"Max. Temp.","soh":"Mittl. SOH","cycles":"Max. Zyklen","data":"Daten","socSites":"SOC der Standorte","journalUnavailable":"Das Ereignisprotokoll ist noch nicht mit Home-Assistant-Ereignissen verbunden. Aktuelle Warnungen finden Sie unter Diagnose.","journalNotRecording":"Verlauf nicht verfügbar","supervisionDelta":"Zellabweichung prüfen","supervisionTemp":"Temperatur prüfen","supervisionBoth":"Zellabweichung und Temperatur prüfen"}};
+function spGlowView(key,vars={}){return (SP_GLOW_VIEWS_I18N[spLanguage]?.[key]||SP_GLOW_VIEWS_I18N.fr[key]||key).replace(/\{(\w+)\}/g,(_,k)=>String(vars[k]??''))}
+const SP_GLOW_BMS_UI={"fr":{"packView":"Vue du pack","compareBms":"Comparer les BMS","packBms":"BMS du pack","totalPower":"Puissance totale","totalCurrent":"Courant total","worstBms":"Écart cellules (pire BMS)","cellVoltage":"Tension des cellules","stale":"Données anciennes","lastMeasure":"Dernière mesure {time} — les valeurs affichées peuvent ne plus être à jour.","editMode":"Mode modification","readOnly":"Lecture seule","save":"Enregistrer","edit":"Modifier","cancel":"Annuler","compare":"Comparer ›","controlSwitches":"Interrupteurs de contrôle","history":"Historiques","energy":"État énergétique","tempsBalance":"Températures & équilibrage","bmsState":"État du BMS","paramsTab":"Paramètres"},"en":{"packView":"Pack overview","compareBms":"Compare BMS","packBms":"Pack BMS","totalPower":"Total power","totalCurrent":"Total current","worstBms":"Cell imbalance (worst BMS)","cellVoltage":"Cell voltages","stale":"Stale data","lastMeasure":"Last reading {time} — displayed values may be outdated.","editMode":"Edit mode","readOnly":"Read-only","save":"Save","edit":"Edit","cancel":"Cancel","compare":"Compare ›","controlSwitches":"Control switches","history":"History","energy":"Energy status","tempsBalance":"Temperatures & balancing","bmsState":"BMS status","paramsTab":"Parameters"},"de":{"packView":"Pack-Übersicht","compareBms":"BMS vergleichen","packBms":"BMS des Packs","totalPower":"Gesamtleistung","totalCurrent":"Gesamtstrom","worstBms":"Zellabweichung (schlechtestes BMS)","cellVoltage":"Zellspannungen","stale":"Veraltete Daten","lastMeasure":"Letzte Messung {time} — angezeigte Werte können veraltet sein.","editMode":"Bearbeitungsmodus","readOnly":"Nur lesen","save":"Speichern","edit":"Bearbeiten","cancel":"Abbrechen","compare":"Vergleichen ›","controlSwitches":"Steuerschalter","history":"Verlauf","energy":"Energiestatus","tempsBalance":"Temperaturen & Balancierung","bmsState":"BMS-Zustand","paramsTab":"Parameter"}};
+function spGlowBmsUi(key,vars={}){return (SP_GLOW_BMS_UI[spLanguage]?.[key]||SP_GLOW_BMS_UI.fr[key]||key).replace(/\{(\w+)\}/g,(_,k)=>String(vars[k]??''))}
+const SP_GLOW_DIAG_I18N={"fr":{"missing":"{n} BMS non détecté(s) ({found}/{expected})","missingHelp":"Les entités de ce BMS ne suivent pas le nommage attendu : voir « Entités détectées » dans Connexion Home Assistant.","offline":"BMS hors ligne","offlineHelp":"Vérifier la liaison RS485 / USB.","alarmHelp":"Recharger le pack, vérifier la cellule la plus basse.","delta":"Écart cellules {value} mV","deltaHelp":"Surveiller l’équilibrage, contrôler le serrage de la cellule concernée.","temp":"Température {value} °C","tempHelp":"Vérifier la ventilation et le serrage des barres.","lowSoc":"SOC bas {value} %","lowSocHelp":"Prévoir une recharge.","stale":"Données anciennes","staleHelp":"Le BMS ne remonte plus de mesures récentes : vérifier la communication.","weakLow":"Cellule {cell} la plus basse depuis {days} jours","weakLowHelp":"Cellule potentiellement faible : contrôler connexion et capacité.","weakResistance":"Résistance cellule {cell} +{rise} % en 30 j","weakResistanceHelp":"Resserrer la barre / nettoyer le contact de la cellule."},"en":{"missing":"{n} BMS not detected ({found}/{expected})","missingHelp":"BMS entities do not follow the expected naming: see Detected entities in Home Assistant connection settings.","offline":"BMS offline","offlineHelp":"Check RS485 / USB connection.","alarmHelp":"Recharge the pack and inspect the lowest-voltage cell.","delta":"Cell imbalance {value} mV","deltaHelp":"Monitor balancing and check the affected cell connection.","temp":"Temperature {value} °C","tempHelp":"Check ventilation and busbar connections.","lowSoc":"Low SOC {value}%","lowSocHelp":"Recharge the battery.","stale":"Stale data","staleHelp":"No recent BMS measurements: check communication.","weakLow":"Cell {cell} lowest for {days} days","weakLowHelp":"Potentially weak cell: check connection and capacity.","weakResistance":"Cell {cell} resistance +{rise}% in 30 days","weakResistanceHelp":"Tighten the busbar / clean the cell contact."},"de":{"missing":"{n} BMS nicht erkannt ({found}/{expected})","missingHelp":"BMS-Entitäten entsprechen nicht dem erwarteten Namensschema: Erkannte Entitäten in den Home-Assistant-Verbindungseinstellungen prüfen.","offline":"BMS offline","offlineHelp":"RS485-/USB-Verbindung prüfen.","alarmHelp":"Pack laden und Zelle mit niedrigster Spannung prüfen.","delta":"Zellabweichung {value} mV","deltaHelp":"Balancierung überwachen und Anschluss der betroffenen Zelle prüfen.","temp":"Temperatur {value} °C","tempHelp":"Lüftung und Sammelschienenanschlüsse prüfen.","lowSoc":"Niedriger SOC {value} %","lowSocHelp":"Batterie laden.","stale":"Veraltete Daten","staleHelp":"Keine aktuellen BMS-Messwerte: Kommunikation prüfen.","weakLow":"Zelle {cell} seit {days} Tagen am niedrigsten","weakLowHelp":"Möglicherweise schwache Zelle: Anschluss und Kapazität prüfen.","weakResistance":"Zellwiderstand {cell} +{rise} % in 30 Tagen","weakResistanceHelp":"Sammelschiene nachziehen / Zellkontakt reinigen."}};
+function spGlowDiag(key,vars={}){return (SP_GLOW_DIAG_I18N[spLanguage]?.[key]||SP_GLOW_DIAG_I18N.fr[key]||key).replace(/\{(\w+)\}/g,(_,k)=>String(vars[k]??''))}
+const SP_GLOW_PARAM_LABELS={"en":{"bms_smart_sleep_voltage":"Smart Sleep voltage","bms_balance_starting_voltage":"Balancing start voltage","bms_balance_trigger_voltage":"Balancing trigger delta","bms_cell_request_charge_voltage":"Cell charge request voltage","bms_cell_request_float_voltage":"Cell float request voltage","bms_cell_soc100_voltage":"Cell SOC 100% voltage","bms_cell_soc0_voltage":"Cell SOC 0% voltage","bms_cell_voltage_overvoltage_protection":"Cell overvoltage protection","bms_cell_voltage_overvoltage_recovery":"Cell overvoltage recovery","bms_cell_voltage_undervoltage_protection":"Cell undervoltage protection","bms_cell_voltage_undervoltage_recovery":"Cell undervoltage recovery","bms_power_off_voltage":"Power-off voltage","bms_max_charge_current":"Maximum charging current","bms_max_discharge_current":"Maximum discharging current","bms_max_balance_current":"Maximum balancing current","bms_total_battery_capacity_ah":"Total battery capacity","bms_charge_overcurrent_protection_delay":"Charging overcurrent delay","bms_charge_overcurrent_protection_recovery_time":"Charging overcurrent recovery time","bms_discharge_overcurrent_protection_delay":"Discharging overcurrent delay","bms_discharge_overcurrent_protection_recovery_time":"Discharging overcurrent recovery time","bms_short_circuit_protection_delay":"Short-circuit protection delay","bms_short_circuit_protection_recovery_time":"Short-circuit recovery time","bms_charge_overtemperature_protection":"Charging overtemperature protection","bms_charge_overtemperature_protection_recovery":"Charging overtemperature recovery","bms_discharge_overtemperature_protection":"Discharging overtemperature protection","bms_discharge_overtemperature_protection_recovery":"Discharging overtemperature recovery","bms_charge_undertemperature_protection":"Charging undertemperature protection","bms_charge_undertemperature_protection_recovery":"Charging undertemperature recovery","bms_power_tube_overtemperature_protection":"MOS overtemperature protection","bms_power_tube_overtemperature_protection_recovery":"MOS overtemperature recovery"},"de":{"bms_smart_sleep_voltage":"Smart-Sleep-Spannung","bms_balance_starting_voltage":"Startspannung Balancierung","bms_balance_trigger_voltage":"Spannungsdifferenz Balancierung","bms_cell_request_charge_voltage":"Zellspannung Ladeanforderung","bms_cell_request_float_voltage":"Zellspannung Float-Anforderung","bms_cell_soc100_voltage":"Zellspannung SOC 100 %","bms_cell_soc0_voltage":"Zellspannung SOC 0 %","bms_cell_voltage_overvoltage_protection":"Zellüberspannungsschutz","bms_cell_voltage_overvoltage_recovery":"Rücksetzung Zellüberspannung","bms_cell_voltage_undervoltage_protection":"Zellunterspannungsschutz","bms_cell_voltage_undervoltage_recovery":"Rücksetzung Zellunterspannung","bms_power_off_voltage":"Abschaltspannung","bms_max_charge_current":"Maximaler Ladestrom","bms_max_discharge_current":"Maximaler Entladestrom","bms_max_balance_current":"Maximaler Balancierstrom","bms_total_battery_capacity_ah":"Gesamte Batteriekapazität","bms_charge_overcurrent_protection_delay":"Verzögerung Ladeüberstrom","bms_charge_overcurrent_protection_recovery_time":"Rücksetzzeit Ladeüberstrom","bms_discharge_overcurrent_protection_delay":"Verzögerung Entladeüberstrom","bms_discharge_overcurrent_protection_recovery_time":"Rücksetzzeit Entladeüberstrom","bms_short_circuit_protection_delay":"Verzögerung Kurzschlussschutz","bms_short_circuit_protection_recovery_time":"Rücksetzzeit Kurzschluss","bms_charge_overtemperature_protection":"Übertemperaturschutz beim Laden","bms_charge_overtemperature_protection_recovery":"Rücksetzung Ladeübertemperatur","bms_discharge_overtemperature_protection":"Übertemperaturschutz beim Entladen","bms_discharge_overtemperature_protection_recovery":"Rücksetzung Entladeübertemperatur","bms_charge_undertemperature_protection":"Untertemperaturschutz beim Laden","bms_charge_undertemperature_protection_recovery":"Rücksetzung Ladeuntertemperatur","bms_power_tube_overtemperature_protection":"MOS-Übertemperaturschutz","bms_power_tube_overtemperature_protection_recovery":"Rücksetzung MOS-Übertemperatur"}};
+const SP_GLOW_PARAM_GROUPS={"en":{"Tensions cellules":"Cell voltages","Courants & capacité":"Currents & capacity","Protections":"Protections","Thermique":"Thermal"},"de":{"Tensions cellules":"Zellspannungen","Courants & capacité":"Ströme & Kapazität","Protections":"Schutzfunktionen","Thermique":"Temperatur"}};
+function spGlowParamLabel(key,fallback){return SP_GLOW_PARAM_LABELS[spLanguage]?.[key]||fallback}
+function spGlowParamGroup(label){return SP_GLOW_PARAM_GROUPS[spLanguage]?.[label]||label}
+const SP_GLOW_CELL_I18N={"fr":{"measurements":"Mesures","same":"Paramètres identiques sur tous les BMS","different":"{n} paramètre(s) différent(s) entre les BMS","majority":"Les valeurs hors majorité sont surlignées en orange.","showAll":"Tout afficher","onlyDiff":"Seulement les différences","balanced":"Cellules bien équilibrées","balancedText":"Toutes les cellules ont quasiment la même tension (écart {delta} mV).","slight":"Léger écart, rien d’anormal","slightText":"Écart de {delta} mV : normal, l’équilibrage s’en charge.","cellLow":"Cellule {cell} plus basse que les autres","cellHigh":"Cellule {cell} plus haute que les autres","spreadText":"Elle est {diff} mV {side} de la moyenne. Écart total : {delta} mV (alerte à {threshold} mV).","below":"en dessous","above":"au-dessus","weakDays":"Cellule {cell} à surveiller : la plus basse depuis {days} jours.","weakResistance":"Cellule {cell} à surveiller : résistance +{rise} % en 30 jours.","hardwareAlarm":"Alarme matérielle active : {alarms}.","mapIntro":"Les cellules d’un BMS doivent avoir une tension proche. Chaque barre représente un écart à la moyenne : plus elle est courte, plus la tension est proche de la moyenne.","average":"moyenne","vsAverage":"vs moyenne","mapLegend":"Écart à la moyenne du pack ({avg} V)","watchCell":"cellule à surveiller","cellTooltip":"Cellule {cell} : {v} {unit}","cellDeltaTooltip":"Cellule {cell} : {v} V — {delta} mV {direction} de la moyenne","exactAverage":"à la moyenne","zone":"Zone grisée = plage normale","normalRange":"Normal (moins de 8 mV)","smallGap":"Léger écart (8–15 mV)","largeGap":"Écart important (plus de 15 mV)","watchOverTime":"Cellule à surveiller dans le temps"},"en":{"measurements":"Measurements","same":"All BMS parameters match","different":"{n} differing parameter(s) between BMS","majority":"Values differing from the majority are highlighted in orange.","showAll":"Show all","onlyDiff":"Differences only","balanced":"Cells well balanced","balancedText":"Cell voltages are nearly equal (spread {delta} mV).","slight":"Small imbalance, within normal range","slightText":"Spread {delta} mV: normal; balancing can address it.","cellLow":"Cell {cell} lower than the others","cellHigh":"Cell {cell} higher than the others","spreadText":"It is {diff} mV {side} the mean. Total spread: {delta} mV (warning at {threshold} mV).","below":"below","above":"above","weakDays":"Cell {cell} to monitor: lowest for {days} days.","weakResistance":"Cell {cell} to monitor: resistance +{rise}% over 30 days.","hardwareAlarm":"Active BMS hardware alarm: {alarms}.","mapIntro":"BMS cells should have similar voltages. Each bar shows the deviation from the mean: shorter bars mean closer voltages.","average":"average","vsAverage":"vs average","mapLegend":"Deviation from pack average ({avg} V)","watchCell":"cell to monitor","cellTooltip":"Cell {cell}: {v} {unit}","cellDeltaTooltip":"Cell {cell}: {v} V — {delta} mV {direction} the mean","exactAverage":"at the mean","zone":"Shaded area = normal range","normalRange":"Normal (under 8 mV)","smallGap":"Small deviation (8–15 mV)","largeGap":"Large deviation (over 15 mV)","watchOverTime":"Cell to monitor over time"},"de":{"measurements":"Messwerte","same":"Alle BMS-Parameter stimmen überein","different":"{n} abweichende(r) Parameter zwischen den BMS","majority":"Vom Mehrheitswert abweichende Werte sind orange markiert.","showAll":"Alle anzeigen","onlyDiff":"Nur Unterschiede","balanced":"Zellen gut balanciert","balancedText":"Die Zellspannungen sind nahezu gleich (Abweichung {delta} mV).","slight":"Geringe Abweichung, im Normalbereich","slightText":"Abweichung {delta} mV: normal; die Balancierung kann sie ausgleichen.","cellLow":"Zelle {cell} niedriger als die anderen","cellHigh":"Zelle {cell} höher als die anderen","spreadText":"Sie liegt {diff} mV {side} dem Mittelwert. Gesamtabweichung: {delta} mV (Warnung ab {threshold} mV).","below":"unter","above":"über","weakDays":"Zelle {cell} beobachten: seit {days} Tagen mit niedrigster Spannung.","weakResistance":"Zelle {cell} beobachten: Widerstand +{rise} % in 30 Tagen.","hardwareAlarm":"Aktiver BMS-Hardwarealarm: {alarms}.","mapIntro":"Die Zellen eines BMS sollten ähnliche Spannungen haben. Jeder Balken zeigt die Abweichung vom Mittelwert: Je kürzer, desto näher am Mittelwert.","average":"Mittelwert","vsAverage":"ggü. Mittelwert","mapLegend":"Abweichung vom Pack-Mittelwert ({avg} V)","watchCell":"Zelle beobachten","cellTooltip":"Zelle {cell}: {v} {unit}","cellDeltaTooltip":"Zelle {cell}: {v} V — {delta} mV {direction} dem Mittelwert","exactAverage":"auf dem Mittelwert","zone":"Schattierter Bereich = Normalbereich","normalRange":"Normal (unter 8 mV)","smallGap":"Geringe Abweichung (8–15 mV)","largeGap":"Große Abweichung (über 15 mV)","watchOverTime":"Zelle längerfristig beobachten"}};
+function spGlowCell(key,vars={}){return (SP_GLOW_CELL_I18N[spLanguage]?.[key]||SP_GLOW_CELL_I18N.fr[key]||key).replace(/\{(\w+)\}/g,(_,k)=>String(vars[k]??''))}
+const SP_GLOW_DETAIL_I18N={"fr":{"paramDiff":"{n} paramètre(s) différent(s) des autres BMS du pack","watch":"Cellules à surveiller","res30":"Résistance cellule {cell} sur 30 jours","noCell":"Aucune faiblesse persistante détectée","noCellNote":"Pas de cellule durablement basse ni de résistance en hausse sur 30 jours.","life":"Batterie & durée de vie","remaining":"Capacité restante","nominal":"nominale {value} Ah","runtime":"Durée de fonctionnement","voltages":"Tensions des cellules","resistances":"Résistances des cellules","cell":"cellule {n}","average":"Moyenne","difference":"Écart","socHistory":"SOC par BMS","powerHistory":"Puissance par BMS","deltaHistory":"Écart cellules par BMS","tempHistory":"Température MOS par BMS","lowHelp":"Une cellule durablement en bas de la pile indique souvent une capacité plus faible ou une mauvaise connexion.","resHelp":"Une hausse progressive pointe généralement un contact qui se dégrade (barre desserrée, oxydation).","runtimeUnits":"j"},"en":{"paramDiff":"{n} parameter(s) differ from other BMS in this pack","watch":"Cells to monitor","res30":"Cell {cell} resistance over 30 days","noCell":"No persistent cell weakness detected","noCellNote":"No persistently low-voltage cell or rising resistance over 30 days.","life":"Battery & service life","remaining":"Remaining capacity","nominal":"nominal {value} Ah","runtime":"Operating time","voltages":"Cell voltages","resistances":"Cell resistances","cell":"cell {n}","average":"Average","difference":"Difference","socHistory":"SOC by BMS","powerHistory":"Power by BMS","deltaHistory":"Cell imbalance by BMS","tempHistory":"MOS temperature by BMS","lowHelp":"A cell consistently at the lowest voltage may indicate lower capacity or a poor connection.","resHelp":"A gradual increase may indicate a deteriorating connection (loose busbar or oxidation).","runtimeUnits":"d"},"de":{"paramDiff":"{n} Parameter unterscheiden sich von anderen BMS des Packs","watch":"Zellen zur Überwachung","res30":"Widerstand Zelle {cell} über 30 Tage","noCell":"Keine dauerhafte Zellschwäche erkannt","noCellNote":"Keine dauerhaft spannungsschwache Zelle und kein ansteigender Widerstand in 30 Tagen.","life":"Batterie & Lebensdauer","remaining":"Restkapazität","nominal":"Nennwert {value} Ah","runtime":"Betriebsdauer","voltages":"Zellspannungen","resistances":"Zellwiderstände","cell":"Zelle {n}","average":"Mittelwert","difference":"Differenz","socHistory":"SOC je BMS","powerHistory":"Leistung je BMS","deltaHistory":"Zellabweichung je BMS","tempHistory":"MOS-Temperatur je BMS","lowHelp":"Eine dauerhaft spannungsschwache Zelle kann auf geringere Kapazität oder schlechten Kontakt hinweisen.","resHelp":"Ein allmählicher Anstieg kann auf schlechten Kontakt hinweisen (lockere Sammelschiene oder Oxidation).","runtimeUnits":"T"}};
+function spGlowDetail(key,vars={}){return (SP_GLOW_DETAIL_I18N[spLanguage]?.[key]||SP_GLOW_DETAIL_I18N.fr[key]||key).replace(/\{(\w+)\}/g,(_,k)=>String(vars[k]??''))}
+function spGlowRuntime(value){
+ const raw=String(value??'—').trim();
+ // Keep all source values unchanged: format display only for JK compact D/H/M strings.
+ const match=raw.match(/^(\d+)\s*(?:D|d|j|T)\s*(\d+)\s*[Hh]\s*(\d+)\s*[Mm]$/);
+ if(!match)return raw;
+ return match[1]+' '+spGlowDetail('runtimeUnits')+' '+match[2]+' h '+match[3]+' min';
+}
+Object.assign(SP_GLOW_LABELS,{"Température":{"en":"Temperature","de":"Temperatur"}});
+const SP_GLOW_CARD_I18N={"fr":{"historyLoading":"Chargement de l’historique…","historyNone":"Pas d’historique sur la période","more":"Détails ▾","less":"Moins ▴","active":"Actif","inactive":"Inactif","detail":"Détail des sites"},"en":{"historyLoading":"Loading history…","historyNone":"No history for this period","more":"Details ▾","less":"Less ▴","active":"Active","inactive":"Inactive","detail":"Site details"},"de":{"historyLoading":"Verlauf wird geladen…","historyNone":"Kein Verlauf für diesen Zeitraum","more":"Mehr ▾","less":"Weniger ▴","active":"Aktiv","inactive":"Inaktiv","detail":"Standortdetails"}};
+function spGlowCard(key){return SP_GLOW_CARD_I18N[spLanguage]?.[key]||SP_GLOW_CARD_I18N.fr[key]||key}
+const SP_GLOW_TIME_UNITS={"fr":{"s":"s","min":"min","h":"h"},"en":{"s":"s","min":"min","h":"h"},"de":{"s":"s","min":"min","h":"Std."}};
+function spGlowOverview(key,vars={}){return (SP_GLOW_OVERVIEW_I18N[spLanguage]?.[key]||SP_GLOW_OVERVIEW_I18N.fr[key]||key).replace(/\{(\w+)\}/g,(_,k)=>String(vars[k]??''))}
+function spGlowText(key,vars={}){
+ const n=Number(vars.n);
+ if(Number.isFinite(n)&&['watch','alarm'].includes(key)){
+  const forms={
+   fr:{watch:n===1?'1 point à surveiller':n+' points à surveiller',alarm:n===1?'1 alarme active':n+' alarmes actives'},
+   en:{watch:n===1?'1 point to monitor':n+' points to monitor',alarm:n===1?'1 active alarm':n+' active alarms'},
+   de:{watch:n===1?'1 Punkt zur Überwachung':n+' Punkte zur Überwachung',alarm:n===1?'1 aktiver Alarm':n+' aktive Alarme'}
+  };
+  return (forms[spLanguage]||forms.fr)[key];
+ }
+ return (SP_GLOW_DYNAMIC[spLanguage]?.[key]||SP_GLOW_DYNAMIC.fr[key]||key).replace(/\{(\w+)\}/g,(_,name)=>String(vars[name]??''));
+}
+function spTranslateGlow(){
+ if(!document.createTreeWalker||!document.body||typeof NodeFilter==='undefined')return;
+ const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+ let node;
+ while((node=walker.nextNode())){
+  const parent=node.parentElement;
+  if(!parent||/SCRIPT|STYLE|INPUT|TEXTAREA|OPTION/.test(parent.tagName))continue;
+  const original=spOriginalText.get(node)??node.nodeValue;
+  if(!spOriginalText.has(node))spOriginalText.set(node,original);
+  const hit=original.match(/^(\s*)(.*?)(\s*)$/s);
+  if(!hit)continue;
+  const word=hit[2];
+  const prefix=word.match(/^([^\\p{L}\\p{N}]*)(.*)$/u);
+  const lead=prefix?.[1]||'',core=prefix?.[2]||word;
+  const translations=SP_GLOW_LABELS[word]||SP_GLOW_LABELS[core];
+  if(translations)node.nodeValue=hit[1]+(SP_GLOW_LABELS[word]?'':lead)+(translations[spLanguage]||word)+hit[3];
+ }
+}
+
+// Synchronize language between dashboards on the same Home Assistant origin.
+function spSyncLanguage(){
+ try{const saved=localStorage.getItem(SP_LANG_KEY);if(saved&&saved!==spLanguage){spLanguage=spNormalizeLanguage(saved);if(typeof render==='function')render();spApplyLanguage()}}catch(_){}
+}
+if(typeof window.addEventListener==='function'){
+ window.addEventListener('storage',event=>{if(event.key===SP_LANG_KEY)spSyncLanguage()});
+ window.addEventListener('focus',spSyncLanguage);
+}
+function spApplyLanguage(){
+ if(document.documentElement)document.documentElement.lang=spLanguage;
+ let control=document.getElementById('sp-language-switch');
+ if(!control){
+   control=document.createElement('label');control.id='sp-language-switch';
+   control.style.cssText='position:fixed;right:12px;bottom:12px;z-index:100000;background:#091b29;color:#ecf6fb;border:1px solid #32718b;border-radius:9px;padding:5px 8px;font:12px system-ui;display:flex;align-items:center;gap:6px;box-shadow:0 6px 20px #0009';
+   const label=document.createElement('span');label.id='sp-language-label';control.append(label);
+   const select=document.createElement('select');select.id='sp-language-select';select.style.cssText='color:#ecf6fb;background:#102b3b;border:1px solid #32718b;border-radius:5px;padding:4px';
+   for(const [value,name] of [['fr','FR'],['en','EN'],['de','DE']]){const option=document.createElement('option');option.value=value;option.textContent=name;select.append(option)}
+   select.addEventListener('change',e=>spSetLanguage(e.target.value));
+   control.append(select);document.body.append(control);
+ }
+ control.querySelector('#sp-language-label').textContent=spText('language');
+ control.querySelector('#sp-language-select').value=spLanguage;
+ spTranslateGlow();
+}
+if(document.documentElement)document.documentElement.lang=spLanguage;
+
+/* =========================================================
+   CONFIGURATION
+   ========================================================= */
+const TH = { deltaWarn:20, deltaCrit:50, tempWarn:40, tempCrit:50, socWarn:50, socCrit:20, staleSec:30, autonomyFloor:20 };
+const MIN = 60000, NMIN = 7*24*60;                 // historique démo : 7 jours à la minute
+const RANGES = { '1h':60, '24h':1440, '7j':10080 };
+
+/* Définition des paramètres (suffixes = entités HA number.pack_X_bms_Y_<suffixe>) */
+const PARAM_DEF = {
+  'Tensions cellules': [
+    ['bms_smart_sleep_voltage','Tension Smart Sleep','V',2,3.30],['bms_balance_starting_voltage','Tension de début équilibrage','V',2,3.40],
+    ['bms_balance_trigger_voltage','Delta déclenchement équilibrage','V',3,0.005],['bms_cell_request_charge_voltage','Tension cellule demande charge','V',2,3.50],
+    ['bms_cell_request_float_voltage','Tension cellule Float','V',2,3.40],['bms_cell_soc100_voltage','Tension cellule SOC 100 %','V',2,3.45],
+    ['bms_cell_soc0_voltage','Tension cellule SOC 0 %','V',2,2.90],['bms_cell_voltage_overvoltage_protection','Protection surtension cellule','V',2,3.65],
+    ['bms_cell_voltage_overvoltage_recovery','Récupération surtension cellule','V',2,3.55],['bms_cell_voltage_undervoltage_protection','Protection sous-tension cellule','V',2,2.70],
+    ['bms_cell_voltage_undervoltage_recovery','Récupération sous-tension cellule','V',2,2.90],['bms_power_off_voltage',"Tension d'arrêt",'V',2,2.60]],
+  'Courants & capacité': [
+    ['bms_max_charge_current','Courant de charge maximal','A',0,100],['bms_max_discharge_current','Courant de décharge maximal','A',0,150],
+    ['bms_max_balance_current',"Courant d'équilibrage maximal",'A',1,2],['bms_total_battery_capacity_ah','Capacité totale batterie','Ah',0,280]],
+  'Protections': [
+    ['bms_charge_overcurrent_protection_delay','Délai surintensité charge','s',0,30],['bms_charge_overcurrent_protection_recovery_time','Récupération surintensité charge','s',0,60],
+    ['bms_discharge_overcurrent_protection_delay','Délai surintensité décharge','s',0,300],['bms_discharge_overcurrent_protection_recovery_time','Récupération surintensité décharge','s',0,60],
+    ['bms_short_circuit_protection_delay','Délai protection court-circuit','µs',0,1500],['bms_short_circuit_protection_recovery_time','Récupération court-circuit','s',0,5]],
+  'Thermique': [
+    ['bms_charge_overtemperature_protection','Protection surtempérature charge','°C',0,55],['bms_charge_overtemperature_protection_recovery','Récupération surtempérature charge','°C',0,50],
+    ['bms_discharge_overtemperature_protection','Protection surtempérature décharge','°C',0,60],['bms_discharge_overtemperature_protection_recovery','Récupération surtempérature décharge','°C',0,55],
+    ['bms_charge_undertemperature_protection','Protection sous-température charge','°C',0,2],['bms_charge_undertemperature_protection_recovery','Récupération sous-température charge','°C',0,5],
+    ['bms_power_tube_overtemperature_protection','Protection surtempérature MOS','°C',0,80],['bms_power_tube_overtemperature_protection_recovery','Récupération surtempérature MOS','°C',0,70]]
+};
+const SW_DEF = [['charging_switch','MOS charge',true],['discharging_switch','MOS décharge',true],['balance_switch','Équilibrage',true],['heating_switch','Chauffage',false],
+  ['display_always_on_switch','Écran toujours allumé',false],['smart_sleep_switch','Smart Sleep',true],['disable_pcl_module_switch','Désactiver module PCL',false],
+  ['timed_stored_data_switch','Stockage temporisé',false],['charging_floating_mode','Mode Floating charge',true]];
+const PARAM_INDEX = {}; Object.entries(PARAM_DEF).forEach(([g,rows])=>rows.forEach(r=>PARAM_INDEX[r[0]]={g,label:r[1],unit:r[2],dec:r[3]}));
+
+/* =========================================================
+   ÉTAT
+   ========================================================= */
+const S = { mode:'waiting', autoRouteApplied:false, range:'24h', expanded:new Set(), edit:null, modal:null, logFilter:'all', diffOnly:false,
+            ws:null, wsId:1, pending:{}, haStatus:'Non connecté', haUrl:'', histCache:{}, dirty:false };
+let PACKS = [], EVENTS = [];
+const store = { get(k){ try{return localStorage.getItem(k)}catch(e){return null} }, set(k,v){ try{localStorage.setItem(k,v)}catch(e){} }, del(k){ try{localStorage.removeItem(k)}catch(e){} } };
+
+/* =========================================================
+   GÉNÉRATION DES DONNÉES DE DÉMO (physiquement plausibles)
+   ========================================================= */
+let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const r = (a,b) => a + rnd()*(b-a);
+const ocv = s => 2.9 + 0.35*(1-Math.exp(-s/8)) + 0.0009*s + (s>97 ? (s-97)*0.04 : 0);
+
+function makeBms(pack, id, o = {}){
+  const capNom = o.capNom ?? 280, dBase = o.dBase ?? r(4,8), ph = r(0,6), peak = o.peak ?? r(26,38), load = o.load ?? r(5,7.5);
+  const t0 = Date.now() - (NMIN-1)*MIN;
+  const H = { t0, cur:new Array(NMIN), soc:new Array(NMIN), volt:new Array(NMIN), delta:new Array(NMIN), temp:new Array(NMIN) };
+  let s = 60;
+  for (let i=0;i<NMIN;i++){
+    const d = new Date(t0+i*MIN), h = d.getHours()+d.getMinutes()/60, day = Math.floor(i/1440);
+    const cloud = 0.62 + 0.38*Math.sin(i/53+day*1.7+ph)*Math.sin(i/211+ph);
+    const sun = Math.max(0,Math.sin(Math.PI*(h-7)/12))**1.4 * peak * Math.max(0.15,cloud);
+    const ld = load + 5*Math.exp(-((h-20)**2)/3) + 3*Math.exp(-((h-7.5)**2)/1.5) + Math.sin(i/7+ph)*0.7;
+    let c = sun - ld; if (s>=99.5 && c>0) c = Math.min(c,0.4);
+    s = Math.max(2, Math.min(100, s + c/capNom*100/60));
+    H.cur[i]=c; H.soc[i]=s;
+  }
+  const corr = o.soc - H.soc[NMIN-1];
+  for (let i=0;i<NMIN;i++){
+    const d = new Date(t0+i*MIN), h = d.getHours()+d.getMinutes()/60;
+    const sc = Math.max(1, Math.min(100, H.soc[i] + corr*i/(NMIN-1)));
+    H.soc[i] = sc;
+    H.volt[i] = 16*(ocv(sc) + H.cur[i]*0.0006);
+    H.delta[i] = dBase + (sc>92 ? (sc-92)*2.5 : 0) + (sc<15 ? (15-sc)*1.4 : 0) + (Math.sin(i/170+ph)+1)*1.2 + Math.sin(i/41+ph*2)*0.4;
+    H.temp[i] = 17 + 4*Math.sin(Math.PI*(h-10)/12) + Math.abs(H.cur[i])*0.2 + (o.tOff ?? 0) + Math.sin(i/29+ph)*0.6;
+  }
+  // motif des cellules : la cellule faible reste la plus basse
+  const pattern = Array.from({length:16},()=>r(-0.45,0.5));
+  if (o.weak) pattern[o.weak.cell-1] = -0.5;
+  const res30 = Array.from({length:16},(_,c)=>{ const base=r(0.06,0.095); const rise=(o.weak&&o.weak.cell===c+1)?o.weak.resRise/100:r(0,0.04);
+    return Array.from({length:30},(_,d)=>+(base*(1+rise*d/29)+(rnd()-.5)*0.002).toFixed(4)); });
+  const params = {}; Object.values(PARAM_DEF).flat().forEach(p=>params[p[0]]=p[4]);
+  params.bms_total_battery_capacity_ah = capNom; Object.assign(params, o.params||{});
+  const switches = {}; SW_DEF.forEach(s=>switches[s[0]]=s[2]);
+  const b = { pack, id, online:true, ts:Date.now(), H, pattern, res30, params, switches, capNom,
+    soh:o.soh ?? Math.round(r(94,100)), cycles:Math.round(r(40,320)), runtime:`${Math.round(r(80,420))} j ${Math.round(r(0,23))} h`,
+    weak:o.weak ?? {cell:pattern.indexOf(Math.min(...pattern))+1, lowestDays:Math.round(r(1,2)), resRise:0},
+    tOff:o.tOff??0, staleSim:!!o.staleSim, chargeMos:true, dischargeMos:true, alarms:[] };
+  syncFromHistory(b);
+  return b;
+}
+function syncFromHistory(b){
+  const L = b.H.cur.length-1;
+  b.current = b.H.cur[L]; b.soc = b.H.soc[L]; b.voltage = b.H.volt[L]; b.mos = b.H.temp[L];
+  b.t1 = b.mos - 4 - b.tOff*0.6; b.t2 = b.t1 + 0.8;
+  b.power = b.voltage*b.current; b.capRem = b.capNom*b.soc/100;
+  b.deltaMv = b.H.delta[L];
+  const avg = b.voltage/16, mn=Math.min(...b.pattern), mx=Math.max(...b.pattern);
+  b.cells = b.pattern.map(p => avg + (p-(mn+mx)/2)/(mx-mn)*b.deltaMv/1000);
+  b.res = b.res30.map(a=>a.at(-1));
+  b.balance = (b.deltaMv>15 && b.soc>88 && b.switches.balance_switch) ? Math.min(b.params.bms_max_balance_current, 0.15+b.deltaMv/60) : 0;
+  b.alarms = b.soc < 15 ? ['Sous-tension cellule'] : [];
+  b.chargeStatus = b.current>0.3 ? (b.soc>97?'Charge (Float)':'Charge (Bulk)') : b.current<-0.3 ? 'Décharge' : 'Repos';
+}
+
+function buildDemo(){
+  S.mode='demo';
+  seed = 11;
+  PACKS = [
+    { id:1, name:'Pack 1 - Real', link:'USB/RS485', bms:[] },
+    { id:2, name:'Pack 2 - Lab',  link:'USB/RS485', bms:[] },
+    { id:3, name:'Pack 3 - Lab',  link:'USB/RS485', bms:[] },
+    { id:4, name:'Pack 4 - Lab',  link:'USB/RS485', bms:[] },
+  ];
+  const P = PACKS;
+  P[0].bms = [ makeBms(1,1,{soc:74}), makeBms(1,2,{soc:72, dBase:24, weak:{cell:7,lowestDays:6,resRise:22}, params:{bms_max_charge_current:80}}) ];
+  P[1].bms = [ makeBms(2,1,{soc:63}), makeBms(2,2,{soc:61, staleSim:true}) ];
+  P[2].bms = [ makeBms(3,1,{soc:46, weak:{cell:12,lowestDays:2,resRise:18}}), makeBms(3,2,{soc:44, tOff:25}) ];
+  P[3].bms = [ makeBms(4,1,{soc:86}), makeBms(4,2,{soc:85}), makeBms(4,3,{soc:87, params:{bms_balance_trigger_voltage:0.010}}), makeBms(4,4,{soc:12, load:7.5}) ];
+  EVENTS = buildEvents();
+}
+
+/* Journal construit à partir de l'historique */
+function buildEvents(){
+  const ev = [], now = Date.now(), from = NMIN - 48*60;
+  const add = (t,lvl,cat,pack,bms,txt,det='') => ev.push({t,lvl,cat,pack,bms,txt,det});
+  PACKS.forEach(p=>{
+    let state=null, cand=null, cnt=0;
+    for (let i=from;i<NMIN;i+=5){
+      const c = p.bms.reduce((a,b)=>a+b.H.cur[i],0);
+      const st = c>3?'chg':c<-3?'dis':'idle';
+      if (state===null){state=st;continue}
+      if (st!==state){ if(st===cand){ if(++cnt>=6){ const t=p.bms[0].H.t0+(i-25)*MIN;
+          add(t,'info','flow',p.id,null, st==='chg'?'Début de charge':st==='dis'?'Début de décharge':'Passage au repos', `${f(Math.abs(c),1)} A sur le pack`); state=st; cand=null; } } else {cand=st;cnt=1} } else cand=null;
+    }
+    p.bms.forEach(b=>{
+      let bal=false, hot=false, low=false;
+      for (let i=from;i<NMIN;i+=2){
+        const t=b.H.t0+i*MIN, isBal=b.H.delta[i]>15&&b.H.soc[i]>88, isHot=b.H.temp[i]>=TH.tempWarn, isLow=b.H.soc[i]<15;
+        if(isBal!==bal){ add(t,isBal?'bal':'ok','bal',p.id,b.id,isBal?'Équilibrage démarré':'Équilibrage terminé',`Δ ${f(b.H.delta[i],0)} mV · SOC ${f(b.H.soc[i],0)} %`); bal=isBal; }
+        if(isHot!==hot){ add(t,isHot?'warn':'ok','alarm',p.id,b.id,isHot?`Température MOS ≥ ${TH.tempWarn} °C`:'Température MOS revenue à la normale',`${f(b.H.temp[i],1)} °C`); hot=isHot; }
+        if(isLow!==low){ add(t,isLow?'crit':'ok','alarm',p.id,b.id,isLow?'Alarme : sous-tension cellule':'Alarme sous-tension levée',`SOC ${f(b.H.soc[i],0)} %`); low=isLow; }
+      }
+    });
+  });
+  add(now-26*3600e3,'info','param',4,3,'Paramètre modifié','Delta déclenchement équilibrage : 0,005 → 0,010 V');
+  add(now-31*3600e3,'info','param',1,2,'Paramètre modifié','Courant de charge maximal : 100 → 80 A');
+  return ev.sort((a,b)=>b.t-a.t);
+}
+
+/* =========================================================
+   CALCULS
+   ========================================================= */
+const bn = b => b.key==='master' ? 'BMS master' : `BMS ${b.id}`;
+const tmax = b => Math.max(b.t1,b.t2,b.mos);
+const isStale = b => (Date.now()-b.ts)/1000 > TH.staleSec;
+function agg(list){
+  const on = list.filter(b=>b.online), n = on.length||1, sum = k => on.reduce((a,b)=>a+(b[k]||0),0);
+  return { online:on.length>0, count:list.length, voltage:sum('voltage')/n, current:sum('current'), power:sum('power'),
+    soc:sum('soc')/n, capRem:sum('capRem'), capNom:sum('capNom'), delta:Math.max(0,...on.map(b=>b.deltaMv)), temp:Math.max(0,...on.map(tmax)),
+    balancing:on.some(b=>b.balance>0), alarms:on.flatMap(b=>b.alarms.map(a=>`${bn(b)} · ${a}`)), stale:on.some(isStale), ts:Math.min(...list.map(b=>b.ts)) };
+}
+const lvl = (v,w,c,inv=false) => inv ? (v<=c?'crit':v<=w?'warn':'ok') : (v>=c?'crit':v>=w?'warn':'ok');
+const socL = s => lvl(s,TH.socWarn,TH.socCrit,true), dL = d => lvl(d,TH.deltaWarn,TH.deltaCrit), tL = t => lvl(t,TH.tempWarn,TH.tempCrit);
+function stateL(a){ if(!a.online) return 'off'; if(a.alarms.length||dL(a.delta)==='crit'||tL(a.temp)==='crit') return 'crit';
+  if(dL(a.delta)==='warn'||tL(a.temp)==='warn'||a.stale) return 'warn'; return a.balancing?'bal':'ok'; }
+const allBms = () => PACKS.flatMap(p=>p.bms);
+
+function autonomy(capRem, capNom, current){
+  const fmt = h => h>99 ? '> 99 h' : `${Math.floor(h)} h ${String(Math.round((h%1)*60)).padStart(2,'0')}`;
+  if (current < -0.3){ const h=(capRem - TH.autonomyFloor/100*capNom)/-current; return {v:h<=0?spGlowText('reached'):fmt(h), sub:spGlowText('before',{pct:TH.autonomyFloor}), ic:'⏳', mode:'dis'}; }
+  if (current > 0.3){ const h=(capNom-capRem)/current; return {v:fmt(h), sub:spGlowText('before',{pct:100}), ic:'⚡', mode:'chg'}; }
+  return {v:'—', sub:spGlowText('idle'), ic:'•', mode:'idle'};
+}
+
+function spGlowOfflineHelp(p){
+  const transport=S.lastStateMap?.get(GLOBAL_SUMMARY_ID)?.attributes?.pack_transports?.['pack_'+p.id];
+  if(transport==='tcp') return {fr:'Vérifier la connexion TCP/IP et la passerelle.',en:'Check the TCP/IP connection and gateway.',de:'TCP/IP-Verbindung und Gateway prüfen.'}[spLanguage]||'Vérifier la connexion TCP/IP et la passerelle.';
+  if(transport==='serial') return spGlowDiag('offlineHelp');
+  return {fr:'Vérifier la liaison de communication du pack.',en:'Check the pack communication link.',de:'Kommunikationsverbindung des Packs prüfen.'}[spLanguage]||'Vérifier la liaison de communication du pack.';
+}
+function issues(){
+  const out=[];
+  PACKS.forEach(p=>{
+    if(p.communicating===false) out.push({lvl:'crit',where:p.name,href:'#/pack/'+p.id,txt:spGlowDiag('offline'),act:spGlowOfflineHelp(p)});
+    if(p.expectedBms && p.bms.length<p.expectedBms) out.push({lvl:'warn',where:p.name,href:'#/settings',txt:spGlowDiag('missing',{n:p.expectedBms-p.bms.length,found:p.bms.length,expected:p.expectedBms}),act:spGlowDiag('missingHelp')});
+  });
+  PACKS.forEach(p=>p.bms.forEach(b=>{
+    const t=tmax(b), where=`${p.name} · ${bn(b)}`, href=`#/pack/${p.id}/bms/${b.id}`;
+    if(!b.online){
+      // Do not reinterpret frozen cell/temperature/alarms as live problems.
+      // A whole-pack outage already has one pack-level issue above.
+      if(p.communicating!==false) out.push({lvl:'crit',where,href:href+'/alarms',txt:spGlowDiag('offline'),act:spGlowOfflineHelp(p)});
+      return;
+    }
+    b.alarms.forEach(a=>out.push({lvl:'crit',where,href:href+'/alarms',txt:a,act:spGlowDiag('alarmHelp')}));
+    if(b.deltaMv>=TH.deltaWarn) out.push({lvl:dL(b.deltaMv),where,href:href+'/live',txt:spGlowDiag('delta',{value:f(b.deltaMv,0)}),act:spGlowDiag('deltaHelp')});
+    if(t>=TH.tempWarn) out.push({lvl:tL(t),where,href:href+'/live',txt:spGlowDiag('temp',{value:f(t,1)}),act:spGlowDiag('tempHelp')});
+    if(b.soc<=TH.socCrit && !b.alarms.length) out.push({lvl:'warn',where,href:href+'/live',txt:spGlowDiag('lowSoc',{value:f(b.soc,0)}),act:spGlowDiag('lowSocHelp')});
+    if(isStale(b)) out.push({lvl:'warn',where,href:href+'/live',txt:spGlowDiag('stale'),act:spGlowDiag('staleHelp')});
+    if(b.weak.lowestDays>=5) out.push({lvl:'warn',where,href:href+'/diag',txt:spGlowDiag('weakLow',{cell:b.weak.cell,days:b.weak.lowestDays}),act:spGlowDiag('weakLowHelp')});
+    if(b.weak.resRise>=15) out.push({lvl:'warn',where,href:href+'/diag',txt:spGlowDiag('weakResistance',{cell:b.weak.cell,rise:b.weak.resRise}),act:spGlowDiag('weakResistanceHelp')});
+  }));
+  return out.sort((a,b)=>(a.lvl==='crit'?0:1)-(b.lvl==='crit'?0:1));
+}
+
+/* Séries pour graphes : {t:[], v:[]} sur la fenêtre choisie */
+const HIST_KEYS = { power:['puissance_totale',1], voltage:['tension_totale_volt',1], current:['courant_total',1], temp:['mos_temp',1], soc:['soc_pourcentage',1], delta:['cell_voltage_delta',1000] };
+function series(b, key, range){
+  const mins = RANGES[range];
+  if (S.mode==='ha'){
+    const [suf,mult] = HIST_KEYS[key], ent=`sensor.pack_${b.pack}_bms_${bmsKey(b)}_${suf}`, ck=ent+'|'+range;
+    const c = S.histCache[ck];
+    if (!c){ fetchHistory(ent, mins, mult, ck); return null; }
+    return c==='loading' ? null : c;
+  }
+  const H=b.H, L=H.cur.length, step = mins<=60?1:mins<=1440?5:30, t=[], v=[];
+  const src = key==='power' ? null : H[{voltage:'volt',current:'cur',temp:'temp',soc:'soc',delta:'delta'}[key]];
+  for (let i=Math.max(0,L-mins); i<L; i+=step){
+    let acc=0,n=0; for(let j=i;j<Math.min(L,i+step);j++){ acc += key==='power' ? H.cur[j]*H.volt[j] : src[j]; n++; }
+    t.push(H.t0+(i+step/2)*MIN); v.push(acc/n);
+  }
+  return {t,v};
+}
+/* Valeur il y a N minutes (démo) pour tendances */
+function ago(list, key, m){
+  if (S.mode==='ha' || !list[0].H) return null;
+  const val = b => { const H=b.H, i=H.cur.length-1-m; return key==='soc'?H.soc[i]:key==='delta'?H.delta[i]:key==='temp'?H.temp[i]:H.cur[i]*H.volt[i]; };
+  if (key==='soc') return list.reduce((a,b)=>a+val(b),0)/list.length;
+  if (key==='power') return list.reduce((a,b)=>a+val(b),0);
+  return Math.max(...list.map(val));
+}
+function sparkData(list, key){
+  if (S.mode==='ha' || !list[0].H) return null;
+  const out=[]; for(let k=47;k>=0;k--) out.push(ago(list,key,k*30)); return out;
+}
+
+/* =========================================================
+   HELPERS UI
+   ========================================================= */
+const f = (v,d=1) => Number(v).toLocaleString(spLocale(),{minimumFractionDigits:d,maximumFractionDigits:d});
+const pw = w => Math.abs(w)>=1000 ? `${f(w/1000,2)}<small>kW</small>` : `${f(w,0)}<small>W</small>`;
+const COL = {ok:'var(--ok)',warn:'var(--warn)',crit:'var(--crit)',bal:'var(--bal)',off:'var(--off)'};
+const flowTxt = c => c>0.3 ? ['↑ '+spGlowOverview('flowCharge'),'flow'] : c<-0.3 ? ['↓ '+spGlowOverview('flowDischarge'),'flow'] : ['• '+spGlowOverview('flowIdle'),''];
+const stTxt = new Proxy({},{get:(_,k)=>spGlowOverview({ok:'normal',warn:'watch',crit:'critical',bal:'balance',off:'offline'}[k]||String(k))});
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fresh = ts => `<span class="fresh" data-ts="${ts}"></span>`;
+function relTime(ts){const s=Math.max(0,Math.round((Date.now()-ts)/1000));if(s<3)return spGlowOverview('justNow');const unit=s<60?'s':s<3600?'min':'h';const n=unit==='s'?s:unit==='min'?Math.round(s/60):Math.round(s/3600);return spGlowOverview('ago',{n,unit:SP_GLOW_TIME_UNITS[spLanguage]?.[unit]||unit})}
+
+function trendHtml(now, before, unit, dec, badWhenUp, perHour=true){
+  if (before==null) return '';
+  const d = now-before, th = Math.pow(10,-dec)/2;
+  if (Math.abs(d) < th) return `<span class="trend">→ stable</span>`;
+  const up = d>0, cls = badWhenUp==null ? '' : (up===badWhenUp ? (up?'up-bad':'down-bad') : (up?'up-good':'down-good'));
+  return `<span class="trend ${cls}">${up?'↗':'↘'} ${up?'+':''}${f(d,dec)}${unit}${perHour?'/h':''}</span>`;
+}
+function spark(data, color){
+  if (!data) return '';
+  const mn=Math.min(...data), mx=Math.max(...data), rg=(mx-mn)||1;
+  const pts=data.map((v,i)=>`${(i/(data.length-1)*100).toFixed(1)},${(22-(v-mn)/rg*20).toFixed(1)}`).join(' ');
+  return `<svg viewBox="0 0 100 24" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>`;
+}
+const kpi = (lbl,val,sub='',l='',right='') => `<div class="card kpi ${l}"><div class="lbl"><span>${lbl}</span>${right}</div><div class="val">${val}</div>${sub?`<div class="sub">${sub}</div>`:''}</div>`;
+const batt = s => `<div class="batt" style="--s:${s};--c:${COL[socL(s)]}"><div class="cap"></div><div class="in"><div class="fill"></div></div><div class="pct">${Math.round(s)}%</div></div>`;
+const mini = (l,v,c='') => `<div class="mini ${c}"><div class="l">${l}</div><div class="v">${v}</div></div>`;
+const socKpi = (s,sub='',right='') => `<div class="card kpi"><div class="lbl"><span>SOC</span>${right}</div><div class="val" style="color:${COL[socL(s)]}">${f(s,0)}<small>%</small></div><div class="bar"><i style="width:${s}%;--c:${COL[socL(s)]}"></i></div>${sub?`<div class="sub">${sub}</div>`:''}</div>`;
+
+/* ---------- Graphe interactif ---------- */
+const CHARTS = {};
+function chart(id, title, list, unit, dec, thresholds=[], opts={}){
+  const range = opts.range || S.range, cp = !!opts.compact;
+  const ready = list.filter(s=>s.data && s.data.t.length>1);
+  const head = `<div class="t"><span>${title}</span>${ready.length===1?`<b>${f(ready[0].data.v.at(-1),dec)} ${unit}</b>`:''}</div>`;
+  if (!ready.length) return `<div class="${cp?'mchart':'card'} chart">${head}<div class="ch-empty">${S.mode==='ha'&&list.some(x=>x.data==null)?spGlowCard('historyLoading'):spGlowCard('historyNone')}</div></div>`;
+  const now=Date.now(), t0=now-RANGES[range]*MIN;
+  let mn=Infinity, mx=-Infinity; ready.forEach(s=>s.data.v.forEach(v=>{if(v<mn)mn=v;if(v>mx)mx=v}));
+  if(opts.yMin!=null) mn=Math.min(mn,opts.yMin); if(opts.yMax!=null) mx=Math.max(mx,opts.yMax);
+  const rg0=(mx-mn)||1; const ths = thresholds.filter(th=>opts.forceTh || (th.v>=mn-rg0*0.6 && th.v<=mx+rg0*0.6));
+  ths.forEach(th=>{mn=Math.min(mn,th.v);mx=Math.max(mx,th.v)});
+  const pad=(mx-mn)*0.08||1; if(opts.yMin==null) mn-=pad; if(opts.yMax==null) mx+=pad;
+  const X=t=>(t-t0)/(now-t0)*1000, Y=v=>(1-(v-mn)/(mx-mn))*100;
+  const paths = ready.map(s=>{ const d=s.data.t.map((t,i)=>(i?'L':'M')+X(t).toFixed(1)+' '+Y(s.data.v[i]).toFixed(2)).join(' ');
+    return (ready.length===1?`<path d="${d} L${X(s.data.t.at(-1)).toFixed(1)} 100 L${X(s.data.t[0]).toFixed(1)} 100 Z" fill="${s.color}" opacity=".12"/>`:'')+
+      `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>`; }).join('');
+  const thl = ths.map(th=>`<line x1="0" x2="1000" y1="${Y(th.v)}" y2="${Y(th.v)}" stroke="${th.color}" stroke-dasharray="4 4" vector-effect="non-scaling-stroke" opacity=".8"/>`).join('');
+  const thLabels = ths.map(th=>`<span class="ch-th" style="top:${Y(th.v)}%;color:${th.color}">${th.label}</span>`).join('');
+  CHARTS[id] = { list:ready, unit, dec, t0, t1:now, range };
+  const fmtX = t => new Date(t).toLocaleString(spLocale(), range==='7j'?{weekday:'short',hour:'2-digit'}:{hour:'2-digit',minute:'2-digit'});
+  return `<div class="${cp?'mchart':'card'} chart">${head}
+    <div class="ch-plot" data-chart="${id}"><span class="ch-y" style="top:0">${f(mx,dec)}</span><span class="ch-y" style="top:50%">${f((mx+mn)/2,dec)}</span><span class="ch-y" style="top:100%">${f(mn,dec)}</span>
+      ${[25,50,75].map(y=>`<i class="ch-grid" style="top:${y}%"></i>`).join('')}
+      <svg viewBox="0 0 1000 100" preserveAspectRatio="none">${thl}${paths}</svg>${thLabels}<div class="ch-cross"></div><div class="ch-tip"></div></div>
+    <div class="ch-x"><span>${fmtX(t0)}</span><span>${fmtX(t0+(now-t0)/4)}</span><span>${fmtX((t0+now)/2)}</span><span>${fmtX(t0+(now-t0)*3/4)}</span><span>${spGlowOverview(cp?'nowShort':'now')}</span></div>
+    ${ready.length>1?`<div class="ch-legend">${ready.map(s=>`<span style="--c:${s.color}">${s.name}</span>`).join('')}</div>`:''}</div>`;
+}
+function nearest(arr,t){ let lo=0,hi=arr.length-1; while(hi-lo>1){const m=(lo+hi)>>1; if(arr[m]<t)lo=m; else hi=m;} return Math.abs(arr[lo]-t)<Math.abs(arr[hi]-t)?lo:hi; }
+document.addEventListener('pointermove', e=>{
+  const plot = e.target.closest && e.target.closest('.ch-plot');
+  document.querySelectorAll('.ch-plot').forEach(p=>{ if(p!==plot){ p.querySelector('.ch-cross').style.display='none'; p.querySelector('.ch-tip').style.display='none'; } });
+  if(!plot) return;
+  const c = CHARTS[plot.dataset.chart]; if(!c) return;
+  const rc = plot.getBoundingClientRect(), fx = Math.max(0,Math.min(1,(e.clientX-rc.left)/rc.width)), t = c.t0 + fx*(c.t1-c.t0);
+  const cross=plot.querySelector('.ch-cross'), tip=plot.querySelector('.ch-tip');
+  cross.style.display='block'; cross.style.left=(fx*100)+'%';
+  const time = new Date(t).toLocaleString(spLocale(),{weekday:c.range==='7j'?'short':undefined,hour:'2-digit',minute:'2-digit'});
+  tip.innerHTML = `<div style="color:var(--mut);margin-bottom:3px">${time}</div>` + c.list.map(s=>{ const i=nearest(s.data.t,t); return `<div><i style="background:${s.color}"></i>${c.list.length>1?s.name+' : ':''}<b>${f(s.data.v[i],c.dec)} ${c.unit}</b></div>`; }).join('');
+  tip.style.display='block';
+  const tw = tip.offsetWidth; tip.style.left = (fx*rc.width + 12 + tw > rc.width ? fx*rc.width - tw - 12 : fx*rc.width + 12) + 'px';
+});
+const rangeSeg = () => `<div class="seg">${Object.keys(RANGES).map(k=>`<button data-act="range" data-v="${k}" class="${S.range===k?'on':''}">${k}</button>`).join('')}</div>`;
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+function spGlowLabel(fr){return SP_GLOW_LABELS[fr]?.[spLanguage]||fr}
+function sidebar(route){
+  const iss = issues(), crit = iss.filter(i=>i.lvl==='crit').length;
+  const L=(href,label,dot='',extra='')=>`<a href="#${href}" class="${route===href||(route.startsWith(href+'/')&&href.startsWith('/pack'))?'on':''}">${dot?`<span class="dot ${dot}"></span>`:''}${label}${extra}</a>`;
+  let h=`<div class="brand"><div class="logo">⚡</div><div><b>JK-BMS Multipack</b><small>SmartPhoton</small></div><button class="side-close" data-act="menu-close" aria-label="Fermer le menu">✕</button></div><nav class="nav">
+  <div class="nav-sec">Parc</div>${L('/',`🏠 ${spGlowLabel('Vue d’ensemble')}`)}${L('/aggregation',`📍 ${spGlowLabel('Comparatif des sites')}`)}
+  ${L('/diagnostics',`🩺 ${spGlowLabel('Diagnostics')}`,'',iss.length?`<span class="badge ${crit?'':'warn'}">${iss.length}</span>`:'')}${L('/journal',`📜 ${spGlowLabel('Journal')}`)}
+  <div class="nav-sec">Sites</div>`;
+  PACKS.forEach(p=>{
+    h+=L('/pack/'+p.id,p.name,stateL(agg(p.bms)));
+    if(route.startsWith('/pack/'+p.id)) h+=`<div class="sub">${p.bms.map(b=>L(`/pack/${p.id}/bms/${b.id}`,bn(b),stateL(agg([b])))).join('')}</div>`;
+  });
+  h+=`</nav><div class="side-foot nav">
+    <button data-act="theme">${document.documentElement.dataset.theme==='dark'?'☀️ '+spGlowLabel('Thème clair'):'🌙 '+spGlowLabel('Thème sombre')}</button>
+    <a href="#/wall">🖥️ ${spGlowLabel('Mode écran mural')}</a>${L('/settings','🔌 '+spGlowLabel('Connexion Home Assistant'))}
+    <div class="mode"><span class="dot ${S.mode==='ha'?'ok pulse':'warn'}"></span>${S.mode==='ha'?spGlowLabel('Connecté à Home Assistant'):S.mode==='demo'?spGlowLabel('Données de démonstration'):spGlowLabel('En attente de Home Assistant')}</div></div>`;
+  return h;
+}
+function bottomNav(route){
+  const iss=issues().length;
+  const it=(href,ic,l,b='')=>`<a href="#${href}" class="${(route===href||(href==='/'&&route.startsWith('/pack')))?'on':''}"><span>${ic}</span>${l}${b}</a>`;
+  return it('/','🏠','Packs')+it('/aggregation','📍','Comparer')+it('/diagnostics','🩺','Diagnostic',iss?`<i class="badge">${iss}</i>`:'')+it('/journal','📜','Journal')+it('/settings','⚙️','Réglages');
+}
+function header(crumbs,title,pills=''){
+  return `<div class="top"><div><button class="burger" data-act="menu-open">☰ Menu</button>
+  <div class="crumbs">${crumbs}</div><h1>${title}</h1></div><div class="pills">${pills}</div></div>`;
+}
+
+/* =========================================================
+   PAGES
+   ========================================================= */
+function statusBanner(big=false){
+  const iss=issues(), crit=iss.filter(i=>i.lvl==='crit'), warn=iss.filter(i=>i.lvl==='warn'), nb=allBms().length;
+  const l = crit.length?'crit':warn.length?'warn':'ok';
+  const title = crit.length ? spGlowText('alarm',{n:crit.length})+(warn.length?' · '+spGlowText('watch',{n:warn.length}):'')
+              : warn.length ? spGlowText('watch',{n:warn.length}) : spGlowLabel('Tout va bien');
+  const sub = iss.length ? iss.slice(0,big?3:2).map(i=>`${i.where} : ${i.txt}`).join(' · ') : spGlowText('inRange',{sites:PACKS.length,bms:nb});
+  return `<a class="banner ${l}" href="#/diagnostics"><div class="ic">${l==='crit'?'⛔':l==='warn'?'⚠️':'✅'}</div><div><b>${title}</b><small>${sub}</small></div><span class="go">Voir le diagnostic ›</span></a>`;
+}
+
+function fleetStats(){
+  const ag=PACKS.map(p=>({p,a:agg(p.bms)}));
+  const live=ag.filter(x=>x.a.online&&!x.a.stale).length;
+  const active=ag.filter(x=>x.a.online);
+  const low=active.slice().sort((x,y)=>x.a.soc-y.a.soc)[0]||null;
+  const minBms=allBms().filter(b=>b.online).sort((a,b)=>a.soc-b.soc)[0]||null;
+  const dis=active.map(x=>({...x,au:autonomy(x.a.capRem,x.a.capNom,x.a.current),h:x.a.current<-0.3?(x.a.capRem-TH.autonomyFloor/100*x.a.capNom)/-x.a.current:Infinity})).sort((x,y)=>x.h-y.h);
+  return {ag,live,low,minBms,short:dis[0]||{h:Infinity,p:{name:'—'},au:{v:'—',sub:'—'}}};
+}
+function fleetKpis(){
+  const F=fleetStats(), cap=agg(allBms());
+  return `<div class="fleet-kpis">
+    ${kpi('📡 '+spGlowLabel('Sites à jour'),`${F.live} / ${PACKS.length}`,spGlowOverview(F.live<PACKS.length?'stale':'allConnected'),F.live<PACKS.length?'warn':'ok')}
+    ${kpi('🔋 '+spGlowLabel('SOC le plus bas'),`${F.low?f(F.low.a.soc,0):'—'}<small>%</small>`,`${F.low?esc(F.low.p.name):'—'} · ${spGlowOverview('minBms')} : ${F.minBms?f(F.minBms.soc,0):'—'} %`,F.low?socL(F.low.a.soc):'warn')}
+    ${kpi('⏳ '+spGlowLabel('Autonomie la plus courte'),F.short.h===Infinity?'—':F.short.au.v,F.short.h===Infinity?spGlowOverview('noDischarge'):`${esc(F.short.p.name)} · ${F.short.au.sub}`,F.short.h<6?'warn':'')}
+    ${kpi('🏭 '+spGlowLabel('Capacité du parc'),`${f(cap.capRem,0)}<small>/ ${f(cap.capNom,0)} Ah</small>`,`${PACKS.length} ${spGlowOverview('sites')} · ${allBms().length} BMS`)}
+  </div>`;
+}
+function fleetStrip(){
+  const head=`<div class="fl-row head"><span>Site</span><span>SOC</span><span>État</span><span>Puissance</span><span>Autonomie</span><span class="fl-fresh">Données</span></div>`;
+  return `<div class="card fleet" style="padding:0">${head}${PACKS.map(p=>{
+    const a=agg(p.bms), st=stateL(a), au=autonomy(a.capRem,a.capNom,a.current), moving=Math.abs(a.current)>0.3;
+    const dur=Math.max(0.5,2.5-Math.abs(a.power)/900);
+    return `<div class="fl-row ${a.stale?'stale':''}" data-href="#/pack/${p.id}">
+      <div class="fl-name"><b><span class="dot ${st}"></span>${esc(p.name)}</b><small>${stTxt[st]} · ${a.count} BMS${a.alarms.length?` · <span style="color:var(--crit)">${a.alarms.length} alarme</span>`:''}</small></div>
+      <div class="fl-soc"><span style="color:${COL[socL(a.soc)]};min-width:42px">${a.online?f(a.soc,0)+' %':'—'}</span><div class="bar"><i style="width:${a.online?a.soc:0}%;--c:${COL[socL(a.soc)]}"></i></div></div>
+      <div class="mflow fl-state">${!a.online?'<span class="stb idle">HORS LIGNE</span>':moving?(a.current>0?'<span class="stb chg"><i class="arw">▲</i>Se recharge</span>':'<span class="stb dis"><i class="arw">▼</i>Alimente le site</span>'):'<span class="stb idle"><i class="arw">■</i>Au repos</span>'}</div>
+      <div class="fl-v fl-pw">${a.online?pw(Math.abs(a.power)).replace('<small>',' <small style="display:inline">'):'—'}<small>${!a.online?'OFFLINE':moving?(a.current>0?'entrant':'sortant'):'—'}</small></div>
+      <div class="fl-v fl-au">${a.online?au.v:'—'}<small>${a.online?au.sub:'Données figées'}</small></div>
+      <div class="fl-fresh">${!a.online?'<span class="pill crit">OFFLINE</span> ':''}${fresh(a.ts)}</div></div>`;
+  }).join('')}</div>`;
+}
+
+function packCard(p){
+  const a=agg(p.bms), st=stateL(a), au=autonomy(a.capRem,a.capNom,a.current), open=S.expanded.has(p.id);
+  const soc1=ago(p.bms,'soc',60), d1=ago(p.bms,'delta',60), t1=ago(p.bms,'temp',60), stale=a.stale||!a.online;
+  return `<div class="card link ${stale?'stale':''}" data-href="#/pack/${p.id}">${!a.online?'<span class="pill crit stale-tag">PACK OFFLINE · DONNÉES FIGÉES</span>':stale?'<span class="pill warn stale-tag">⏱ Données anciennes</span>':''}
+    <div><div class="pack-head"><div><h3><span class="dot ${st}"></span>${esc(p.name)}</h3>
+      <div class="st">${stTxt[st].toUpperCase()} · ${a.count} BMS · ${p.link}</div></div>
+      <span class="pill ${flowTxt(a.current)[1]}">${a.online?flowTxt(a.current)[0]:spGlowDiag('offline')}</span></div>
+    <div class="pack-body">${a.online?batt(a.soc):'<div class="pill crit">OFFLINE</div>'}<div class="big3">
+      <div><div class="l">${spGlowLabel('Puissance')}</div><div class="v">${a.online?pw(a.power):'—'}</div>${trendHtml(a.soc,soc1,' %',1,null)}</div>
+      <div><div class="l">${spGlowLabel('Écart cellules')}</div><div class="v ${dL(a.delta)==='ok'?'':dL(a.delta)}">${a.online?f(a.delta,0):'—'}<small>${a.online?'mV':''}</small></div>${trendHtml(a.delta,d1,' mV',0,true)}</div>
+      <div><div class="l">${au.ic} ${spGlowLabel('Autonomie')}</div><div class="v">${a.online?au.v:'—'}</div><span class="trend">${a.online?au.sub:'Données figées'}</span></div>
+    </div></div>
+    <div class="minicharts">
+      ${chart(`pc${p.id}-soc`,spGlowLabel('SOC · 24 h'),[{name:'SOC',color:'var(--s-soc)',data:packSeries(p,'soc','24h')}],'%',0,[],{compact:true,range:'24h',yMin:0,yMax:100})}
+      ${chart(`pc${p.id}-d`,spGlowLabel('Écart cellules · 24 h'),[{name:'Écart',color:'var(--s-delta)',data:packSeries(p,'delta','24h')}],'mV',0,[{v:TH.deltaWarn,label:'',color:'var(--warn)'}],{compact:true,range:'24h',yMin:0,forceTh:true})}
+      ${chart(`pc${p.id}-t`,spGlowLabel('Temp. max · 24 h'),[{name:'Temp.',color:'var(--s-temp)',data:packSeries(p,'temp','24h')}],'°C',1,[{v:TH.tempWarn,label:'',color:'var(--warn)'}],{compact:true,range:'24h',forceTh:true})}
+    </div>
+    <div class="details ${open?'open':''}"><div class="minis">
+      ${mini(spGlowLabel('Tension'),a.online?f(a.voltage,2)+'<small> V</small>':'—')}${mini(spGlowLabel('Courant'),a.online?f(a.current,1)+'<small> A</small>':'—')}
+      ${mini(spGlowLabel('Temp. max'),a.online?f(a.temp,1)+'<small> °C</small> '+trendHtml(a.temp,t1,'°',1,true).replace('class="trend','style="font-size:10px" class="trend'):'—',a.online&&tL(a.temp)!=='ok'?tL(a.temp):'')}
+      ${mini(spGlowLabel('Capacité'),a.online?f(a.capRem,0)+'<small> / '+f(a.capNom,0)+' Ah</small>':'—')}${mini(spGlowLabel('Équilibrage'),!a.online?'—':a.balancing?`<span style="color:var(--bal)">${spGlowCard('active')}</span>`:spGlowCard('inactive'))}${mini(spGlowLabel('Alarmes'),!a.online?'—':a.alarms.length?`<span style="color:var(--crit)">${a.alarms.length}</span>`:'0')}
+    </div></div>
+    <div class="cardfoot"><div class="pills">${a.balancing?'<span class="pill bal">⚖ Équilibrage</span>':''}${a.alarms.map(x=>`<span class="pill crit">⚠ ${x}</span>`).join('')}</div>
+      <div class="pills">${fresh(a.ts)}<button class="more" data-act="exp" data-id="${p.id}">${spGlowCard(open?'less':'more')}</button></div></div></div>
+  </div>`;
+}
+
+function pageOverview(){
+  let h=header('Parc','Supervision des sites',`<span class="pill ${S.mode==='ha'?'ok':'warn'}"><span class="dot ${S.mode==='ha'?'ok pulse':'warn'}"></span>${S.mode==='ha'?'Live HA':'Démo'}</span>`);
+  h+=statusBanner();
+  h+=fleetKpis()+fleetStrip()+`
+  <h2>${spGlowCard('detail')}</h2><div class="grid g2">${PACKS.map(packCard).join('')}</div>
+  <div class="note">${spGlowOverview('footerRecorder')}</div>`;
+  return h;
+}
+
+function pageAggregation(){
+  const all=allBms().filter(b=>b.online), ag=PACKS.map(p=>agg(p.bms)), t=agg(all);
+  let cmin={v:9},cmax={v:0},worst={d:0},hot={t:0};
+  PACKS.forEach(p=>p.bms.filter(b=>b.online).forEach(b=>{
+    b.cells.forEach((v,i)=>{ if(v<cmin.v) cmin={v,w:`${p.name} · ${bn(b)} · C${i+1}`}; if(v>cmax.v) cmax={v,w:`${p.name} · ${bn(b)} · C${i+1}`}; });
+    if(b.deltaMv>worst.d) worst={d:b.deltaMv,w:`${p.name} · ${bn(b)}`};
+    if(tmax(b)>hot.t) hot={t:tmax(b),w:`${p.name} · ${bn(b)}`};
+  }));
+  const rows=PACKS.map(p=>{const a=agg(p.bms);return {p,a,au:autonomy(a.capRem,a.capNom,a.current)}});
+  const best=(fn,lowGood)=>{const v=rows.filter(r=>r.a.online).map(fn);return v.length?(lowGood?Math.min(...v):Math.max(...v)):NaN};
+  const cell=(v,txt,isBest,l='')=>`<td class="num" style="${l?`color:${COL[l]}`:''}">${txt}${isBest?'<span title="'+spGlowView('best')+'">★</span>':''}</td>`;
+  let h=header(spGlowLabel('Parc'),spGlowLabel('Comparatif des sites'));
+  h+=`<div class="alert info"><span class="ic">📍</span><div><b>${spGlowView('independent')}</b><small>${spGlowView('independentHelp')}</small></div></div>
+  <h2>${spGlowView('comparison')}</h2><div class="card tblwrap"><table class="tbl"><tr><th>${spGlowView('site')}</th><th class="num">SOC</th><th class="num">${spGlowView('power')}</th><th class="num">${spGlowView('autonomy')}</th><th class="num">${spGlowView('delta')}</th><th class="num">${spGlowView('tempMax')}</th><th class="num">${spGlowView('soh')}</th><th class="num">${spGlowView('cycles')}</th><th class="num">${spGlowView('data')}</th></tr>
+  ${rows.map(({p,a,au})=>{const bs=p.bms;const soh=bs.reduce((x,b)=>x+b.soh,0)/bs.length, cyc=Math.max(...bs.map(b=>b.cycles));
+    return `<tr data-href="#/pack/${p.id}" style="cursor:pointer"><td><span class="dot ${stateL(a)}"></span> <a href="#/pack/${p.id}" style="color:var(--txt);font-weight:600">${esc(p.name)}</a></td>
+    ${a.online?cell(a.soc,f(a.soc,0)+' %',a.soc===best(r=>r.a.soc),socL(a.soc)):'<td class="num">—</td>'}<td class="num">${a.online?pw(a.power).replace(/<\/?small>/g,' '):'—'}</td><td class="num">${a.online?au.v:'—'}</td>
+    ${a.online?cell(a.delta,f(a.delta,0)+' mV',a.delta===best(r=>r.a.delta,true),dL(a.delta)):'<td class="num">—</td>'}${a.online?cell(a.temp,f(a.temp,1)+' °C',false,tL(a.temp)):'<td class="num">—</td>'}
+    <td class="num">${a.online?f(soh,0)+' %':'—'}</td><td class="num">${a.online?cyc:'—'}</td><td class="num">${fresh(a.ts)}</td></tr>`}).join('')}</table></div>
+  <h2>${spGlowView('extremes')}</h2><div class="grid g4">
+    ${kpi(spGlowView('minCell'),all.length?f(cmin.v,3)+'<small>V</small>':'—',all.length?cmin.w:'')}${kpi(spGlowView('maxCell'),all.length?f(cmax.v,3)+'<small>V</small>':'—',all.length?cmax.w:'')}
+    ${kpi(spGlowView('worstDelta'),all.length?f(worst.d,0)+'<small>mV</small>':'—',all.length?worst.w:'',all.length?dL(worst.d):'')}${kpi(spGlowView('maxTemperature'),all.length?f(hot.t,1)+'<small>°C</small>':'—',all.length?hot.w:'',all.length?tL(hot.t):'')}
+  </div>
+  <h2>${spGlowView('socSites')} ${rangeSeg()}</h2>
+  ${chart('agg-soc',spGlowView('socSites'),PACKS.map((p,i)=>({name:p.name,color:['var(--s-soc)','var(--flow)','var(--s-cur)','var(--s-temp)'][i%4],data:packSeries(p,'soc')})),'%',0,[{v:TH.socCrit,label:`${TH.socCrit} %`,color:'var(--crit)'}])}`;
+  return h;
+}
+function packSeries(p,key,range=S.range){ // SOC : moyenne · puissance : somme · écart/temp : pire BMS
+  const ss=p.bms.map(b=>series(b,key,range)); if(ss.some(s=>!s)) return null;
+  if (S.mode==='ha') return ss[0];
+  const red = key==='power' ? a=>a.reduce((x,y)=>x+y,0) : key==='soc' ? a=>a.reduce((x,y)=>x+y,0)/a.length : a=>Math.max(...a);
+  return {t:ss[0].t, v:ss[0].v.map((_,i)=>red(ss.map(s=>s.v[i])))};
+}
+
+function pageDiagnostics(){
+  const iss=issues(), l=iss.some(i=>i.lvl==='crit')?'crit':iss.length?'warn':'ok';
+  let h=header(spGlowLabel('Parc'),spGlowLabel('Diagnostics'));
+  h+=statusBanner(true)+`<h2>${spGlowView('activeIssues')}</h2><div class="grid">`;
+  h+= iss.length ? iss.map(i=>`<div class="alert ${i.lvl}"><span class="ic">${i.lvl==='crit'?'⛔':'⚠️'}</span><div><b>${i.txt}</b><small>${i.where} — ${i.act}</small></div><a class="btn act" href="${i.href}">${spGlowView('open')}</a></div>`).join('')
+                 : `<div class="alert ok"><span class="ic">✅</span><div><b>${spGlowView('noIssue')}</b><small>${spGlowView('allInRange')}</small></div></div>`;
+  h+=`</div><h2>${spGlowView('thresholds')}</h2><div class="grid g4">
+    ${kpi(spGlowLabel('Écart cellules'),`${TH.deltaWarn}<small>/ ${TH.deltaCrit} mV</small>`,spGlowView('warningCritical'))}
+    ${kpi(spGlowLabel('Température'),`${TH.tempWarn}<small>/ ${TH.tempCrit} °C</small>`,spGlowView('warningCritical'))}
+    ${kpi('SOC',`${TH.socWarn}<small>/ ${TH.socCrit} %</small>`,spGlowView('lowCritical'))}
+    ${kpi(spGlowView('freshness'),`${TH.staleSec}<small>s</small>`,spGlowView('olderThan'))}
+  </div><h2>${spGlowView('bySite')}</h2><div class="grid g4">`;
+  PACKS.forEach(p=>{const a=agg(p.bms);h+=`<a class="card link" href="#/pack/${p.id}"><b style="display:flex;gap:8px;align-items:center"><span class="dot ${stateL(a)}"></span>${esc(p.name)}</b><table class="tbl">
+    <tr><td>Écart cellules</td><td class="num" style="color:${COL[dL(a.delta)]}">${a.online?f(a.delta,0)+' mV':'—'}</td></tr><tr><td>Temp. max</td><td class="num" style="color:${COL[tL(a.temp)]}">${a.online?f(a.temp,1)+' °C':'—'}</td></tr><tr><td>SOC</td><td class="num">${a.online?f(a.soc,0)+' %':'—'}</td></tr></table></a>`});
+  return h+'</div>';
+}
+
+function eventsList(list, max=200){
+  if(!list.length) return `<div class="alert ok"><span class="ic">✅</span><div><b>${spGlowView('none')}</b><small>${spGlowView('nothing')}</small></div></div>`;
+  let h='', day='';
+  list.slice(0,max).forEach(e=>{
+    const d=new Date(e.t), dl=d.toLocaleDateString(spLocale(),{weekday:'long',day:'numeric',month:'long'});
+    if(dl!==day){ h+=`<div class="day">${dl}</div>`; day=dl; }
+    const p=PACKS.find(x=>x.id===e.pack);
+    h+=`<div class="ev"><time>${d.toLocaleTimeString(spLocale(),{hour:'2-digit',minute:'2-digit'})}</time><span class="dot ${e.lvl==='info'?'':e.lvl}" style="${e.lvl==='info'?'background:var(--flow)':''}"></span>
+      <div><b>${e.txt}</b><small>${p?esc(p.name):''}${e.bms?` · BMS ${e.bms}`:''}${e.det?' — '+e.det:''}</small></div></div>`;
+  });
+  return `<div class="card events">${h}</div>`;
+}
+function pageJournal(){
+  const cats={all:spGlowView('all'),alarm:spGlowLabel('Alarmes'),bal:spGlowLabel('Équilibrage'),flow:spGlowView('chargeDischarge'),param:spGlowView('settings')};
+  const list=EVENTS.filter(e=>S.logFilter==='all'||e.cat===S.logFilter);
+  if(S.mode==='ha')return header(spGlowLabel('Parc'),spGlowView('events'),`<span class="pill">${spGlowView('journalNotRecording')}</span>`)+
+    `<div class="alert info"><span class="ic">ℹ️</span><div><b>${spGlowView('journalNotRecording')}</b><small>${spGlowView('journalUnavailable')}</small></div></div>`;
+  return header(spGlowLabel('Parc'),spGlowView('events'),`<span class="pill">${spGlowView('eventCount',{n:EVENTS.length})}</span>`)+
+    `<div class="seg" style="margin-bottom:12px">${Object.entries(cats).map(([k,l])=>`<button data-act="filter" data-v="${k}" class="${S.logFilter===k?'on':''}">${l}</button>`).join('')}</div>`+eventsList(list);
+}
+
+function heatmap(p){
+  const all=p.bms.flatMap(b=>b.cells), avg=all.reduce((a,c)=>a+c,0)/all.length, span=15;
+  let h=`<div class="heat"><div class="row"><span></span>${Array.from({length:16},(_,i)=>`<span class="hd">C${i+1}</span>`).join('')}</div>`;
+  p.bms.forEach(b=>{
+    h+=`<div class="row"><a class="lb" href="#/pack/${p.id}/bms/${b.id}">${bn(b)}</a>`+b.cells.map((v,i)=>{
+      const dev=(v-avg)*1000, t=Math.max(-1,Math.min(1,dev/span)), rgb=t<0?'var(--heat-lo)':'var(--heat-hi)';
+      const weak = b.weak.resRise>=15||b.weak.lowestDays>=5 ? b.weak.cell===i+1 : false;
+      return `<span class="hc ${weak?'weak':''}" style="background:rgba(${rgb},${(Math.abs(t)*0.85).toFixed(2)})" title="${bn(b)} · ${spGlowCell('cellTooltip',{cell:i+1,v:f(v,3),unit:'V'})} (${dev>0?'+':''}${f(dev,0)} mV ${spGlowCell('vsAverage')})">${dev>0?'+':''}${f(dev,0)}</span>`;
+    }).join('')+`</div>`;
+  });
+  return h+`</div><div class="heatlegend">−${span} mV <i></i> +${span} mV · ${spGlowCell('mapLegend',{avg:f(avg,3)})} · <span style="outline:2px dashed var(--warn);padding:0 4px;border-radius:4px">${spGlowCell('watchCell')}</span></div>`;
+}
+
+function cellReport(b){
+  const avg=b.cells.reduce((a,c)=>a+c,0)/b.cells.length, devs=b.cells.map(v=>(v-avg)*1000);
+  const wi=devs.reduce((w,d,i)=>Math.abs(d)>Math.abs(devs[w])?i:w,0), wd=devs[wi], spread=b.deltaMv;
+  const suspect = (b.weak.lowestDays>=5||b.weak.resRise>=15) ? b.weak.cell : null;
+  let lvl, title, text;
+  if (spread < 10){ lvl='ok'; title=spGlowCell('balanced'); text=spGlowCell('balancedText',{delta:f(spread,0)}); }
+  else if (spread < TH.deltaWarn){ lvl='ok'; title=spGlowCell('slight'); text=spGlowCell('slightText',{delta:f(spread,0)}); }
+  else { lvl=dL(spread); const c=suspect?suspect-1:wi, d=devs[c];
+    title=spGlowCell(d<0?'cellLow':'cellHigh',{cell:c+1});
+    text=spGlowCell('spreadText',{diff:f(Math.abs(d),0),side:spGlowCell(d<0?'below':'above'),delta:f(spread,0),threshold:TH.deltaWarn}); }
+  if (suspect) text += ' 🔎 '+(b.weak.lowestDays>=5?spGlowCell('weakDays',{cell:suspect,days:b.weak.lowestDays}):spGlowCell('weakResistance',{cell:suspect,rise:b.weak.resRise}));
+  if (b.alarms.length) text += ' ⛔ '+spGlowCell('hardwareAlarm',{alarms:b.alarms.join(', ')});
+  return {avg,devs,lvl,title,text,suspect,wi};
+}
+function cellMap(p){
+  const reps=p.bms.map(cellReport), maxAbs=Math.max(...reps.flatMap(r=>r.devs.map(Math.abs)));
+  const scale=Math.max(20, Math.ceil(maxAbs/10)*10);
+  const devCls=(d,i,r)=> r.suspect===i+1 ? 'sus' : Math.abs(d)>=15 ? 'big' : Math.abs(d)>=8 ? 'mid' : 'ok';
+  return `<div class="cm-intro">${spGlowCell('mapIntro')}</div>
+  <div class="grid ${p.bms.length>1?'g2':''}">${p.bms.map((b,k)=>{ const r=reps[k];
+    return `<div class="cm">
+      <div class="cm-head"><span class="ic">${r.lvl==='ok'?'✅':r.lvl==='warn'?'⚠️':'⛔'}</span><div><b>${bn(b)} · ${r.title}</b><small>${r.text}</small></div></div>
+      <div class="cm-plot">
+        <span class="cm-y" style="top:0">+${scale} mV</span><span class="cm-y" style="top:50%">${spGlowCell('average')}<br><b>${f(r.avg,3)} V</b></span><span class="cm-y" style="top:100%">−${scale} mV</span>
+        <i class="cm-zone" style="top:${50-8/scale*50}%;height:${16/scale*50}%"></i><i class="cm-mid"></i>
+        <div class="cm-bars">${r.devs.map((d,i)=>{ const h=Math.max(1.5,Math.min(1,Math.abs(d)/scale)*50);
+          return `<div class="cm-col ${devCls(d,i,r)}" title="${spGlowCell('cellDeltaTooltip',{cell:i+1,v:f(b.cells[i],3),delta:f(Math.abs(d),0),direction:spGlowCell(d<0?'below':'above')})}${r.suspect===i+1?' · '+spGlowCell('watchCell'):''}">
+            <i style="${d>=0?`bottom:50%`:`top:50%`};height:${h}%"></i>${r.suspect===i+1?'<em>🔎</em>':''}</div>`; }).join('')}</div>
+      </div>
+      <div class="cm-x">${b.cells.map((_,i)=>`<span>${i+1}</span>`).join('')}</div>
+    </div>`; }).join('')}</div>
+  <div class="cm-legend"><span style="--c:var(--ok)">${spGlowCell('normalRange')}</span><span style="--c:var(--warn)">${spGlowCell('smallGap')}</span><span style="--c:var(--crit)">${spGlowCell('largeGap')}</span><span style="--c:var(--flow)">🔎 ${spGlowCell('watchOverTime')}</span><span class="cm-z">${spGlowCell('zone')}</span></div>`;
+}
+
+const SP_GLOW_OFFLINE_UI={
+ fr:{title:'Pack hors ligne — mesures instantanées indisponibles',detail:'Les valeurs BMS et les courbes ci-dessous sont historiques. Elles ne représentent pas le fonctionnement actuel du pack.',missing:'Mesure indisponible',past:'Dernières valeurs enregistrées'},
+ en:{title:'Pack offline — live measurements unavailable',detail:'BMS readings and charts below are historical and do not represent the pack’s current operation.',missing:'Measurement unavailable',past:'Last recorded readings'},
+ de:{title:'Pack offline – aktuelle Messwerte nicht verfügbar',detail:'Die folgenden BMS-Werte und Diagramme stammen aus dem Verlauf. Sie zeigen nicht den aktuellen Zustand des Packs.',missing:'Messwert nicht verfügbar',past:'Letzte gespeicherte Messwerte'}
+};
+function spGlowOfflineUi(key){return (SP_GLOW_OFFLINE_UI[spLanguage]||SP_GLOW_OFFLINE_UI.fr)[key]||key}
+function pagePack(p, tab){
+  const a=agg(p.bms), st=stateL(a), au=autonomy(a.capRem,a.capNom,a.current), offline=!a.online;
+  let h=header(`<a href="#/">Parc</a> › Sites`,esc(p.name),`<span class="pill ${st}"><span class="dot ${st}"></span>${stTxt[st]}</span><span class="pill">${p.link}</span>${fresh(a.ts)}`);
+  h+=`<div class="tabs" style="margin-bottom:16px"><a href="#/pack/${p.id}" class="${tab!=='compare'?'on':''}">${spGlowBmsUi('packView')}</a><a href="#/pack/${p.id}/compare" class="${tab==='compare'?'on':''}">⚖️ ${spGlowBmsUi('compareBms')}</a></div>`;
+  if(offline) h+=`<div class="alert crit" role="status"><span class="ic">⛔</span><div><b>${spGlowOfflineUi('title')}</b><small>${spGlowOfflineUi('detail')}</small></div></div>`;
+  if (tab==='compare') return h+compareView(p);
+  h+=`<div class="grid g4">
+    ${offline?kpi(spGlowBmsUi('totalPower'),'—',spGlowOfflineUi('missing')):kpi(spGlowBmsUi('totalPower'),pw(a.power),flowTxt(a.current)[0],'flow',trendHtml(a.power/1000,ago(p.bms,'power',60)==null?null:ago(p.bms,'power',60)/1000,' kW',2,null,false))}
+    ${offline?kpi('SOC','—',spGlowOfflineUi('missing')):socKpi(a.soc,`${f(a.capRem,0)} / ${f(a.capNom,0)} Ah`,trendHtml(a.soc,ago(p.bms,'soc',60),' %',1,null))}
+    ${offline?kpi(spGlowLabel('Autonomie'),'—',spGlowOfflineUi('missing')):kpi(au.ic+' '+spGlowLabel('Autonomie'),au.v,au.sub)}
+    ${offline?kpi(spGlowBmsUi('worstBms'),'—',spGlowOfflineUi('missing')):kpi(spGlowBmsUi('worstBms'),f(a.delta,0)+'<small>mV</small>','',dL(a.delta),trendHtml(a.delta,ago(p.bms,'delta',60),' mV',0,true))}
+    ${kpi('Tension',offline?'—':f(a.voltage,2)+'<small>V</small>',offline?spGlowOfflineUi('missing'):'')}${kpi(spGlowBmsUi('totalCurrent'),offline?'—':f(a.current,1)+'<small>A</small>',offline?spGlowOfflineUi('missing'):'')}
+    ${offline?kpi('Température max','—',spGlowOfflineUi('missing')):kpi('Température max',f(a.temp,1)+'<small>°C</small>','',tL(a.temp),trendHtml(a.temp,ago(p.bms,'temp',60),'°',1,true))}
+    ${offline?kpi(spGlowLabel('Équilibrage'),'—',spGlowOfflineUi('missing')):kpi(spGlowLabel('Équilibrage'),spGlowCard(a.balancing?'active':'inactive'),'',a.balancing?'bal':'')}
+  </div>
+  <h2>${spGlowBmsUi('cellVoltage')} ${offline?`<span class="pill warn">${spGlowOfflineUi('past')}</span>`:''}</h2><div class="grid ${p.bms.length>1?'g2':''}">${p.bms.map(b=>`<a class="card link" href="#/pack/${p.id}/bms/${b.id}/live">
+    <div class="pack-head"><h3 style="font-size:15px"><span class="dot ${stateL(agg([b]))}"></span>${bn(b)}</h3><span class="pill ${dL(b.deltaMv)==='ok'?'':dL(b.deltaMv)}">écart ${f(b.deltaMv,0)} mV</span></div>
+    ${cellsBlock(b.cells,'V',3,undefined,b.balance>0?b.cells.indexOf(Math.max(...b.cells)):-1)}
+    <div class="legend"><span style="--c:var(--crit)">Min ${f(Math.min(...b.cells),3)} V (C${b.cells.indexOf(Math.min(...b.cells))+1})</span><span style="--c:var(--ok)">Max ${f(Math.max(...b.cells),3)} V (C${b.cells.indexOf(Math.max(...b.cells))+1})</span></div></a>`).join('')}</div>
+  <h2>${spGlowBmsUi('packBms')}</h2><div class="grid g2">`;
+  p.bms.forEach(b=>{
+    const s=stateL(agg([b])), t=tmax(b), stale=isStale(b)||!b.online;
+    h+=`<div class="card link ${stale?'stale':''}" data-href="#/pack/${p.id}/bms/${b.id}">${stale?`<span class="pill warn stale-tag">⏱ Données anciennes</span>`:''}<div>
+      <div class="pack-head"><div><h3><span class="dot ${s}"></span>${bn(b)}</h3><div class="st">${b.chargeStatus.toUpperCase()} · ${stTxt[s].toUpperCase()}</div></div>
+      <span class="pill ${b.online?flowTxt(b.current)[1]:'off'}">${b.online?flowTxt(b.current)[0]:spGlowOverview('offline')}</span></div>
+      <div class="pack-body">${batt(b.soc)}<div class="minis">
+        ${mini('Puissance',f(b.power,0)+'<small> W</small>')}${mini('Tension',f(b.voltage,2)+'<small> V</small>')}${mini('Courant',f(b.current,1)+'<small> A</small>')}
+        ${mini('Écart cellules',f(b.deltaMv,0)+'<small> mV</small>',dL(b.deltaMv)==='ok'?'':dL(b.deltaMv))}${mini('Temp. max',f(t,1)+'<small> °C</small>',tL(t)==='ok'?'':tL(t))}${mini('Capacité',f(b.capRem,0)+'<small> / '+b.capNom+' Ah</small>')}
+      </div></div>
+      <div class="cardfoot"><div class="pills">${b.balance>0?`<span class="pill bal">⚖ ${f(b.balance,2)} A</span>`:''}${b.alarms.map(x=>`<span class="pill crit">⚠ ${x}</span>`).join('')}</div>${fresh(b.ts)}</div></div>
+    </div>`;
+  });
+  const colors=['var(--s-soc)','var(--flow)','var(--s-cur)','var(--s-temp)'];
+  const ms=key=>p.bms.map((b,i)=>({name:bn(b),color:colors[i%4],data:series(b,key,S.range)}));
+  h+=`</div><h2>${spGlowBmsUi('history')} ${rangeSeg()}</h2><div class="grid g2">
+    ${chart(`p${p.id}-soc`,spGlowDetail('socHistory'),ms('soc'),'%',0,[{v:TH.socCrit,label:'20 %',color:'var(--crit)'}])}
+    ${chart(`p${p.id}-pw`,spGlowDetail('powerHistory'),ms('power'),'W',0)}
+    ${chart(`p${p.id}-d`,spGlowDetail('deltaHistory'),ms('delta'),'mV',0,[{v:TH.deltaWarn,label:`${TH.deltaWarn} mV`,color:'var(--warn)'},{v:TH.deltaCrit,label:`${TH.deltaCrit} mV`,color:'var(--crit)'}])}
+    ${chart(`p${p.id}-t`,spGlowDetail('tempHistory'),ms('temp'),'°C',1,[{v:TH.tempWarn,label:`${TH.tempWarn} °C`,color:'var(--warn)'},{v:TH.tempCrit,label:`${TH.tempCrit} °C`,color:'var(--crit)'}])}
+  </div>`;
+  return h;
+}
+
+function paramDiffs(p,b){ // {suffix: [{id,val}]} valeurs différentes chez les autres BMS du pack
+  const out={}; Object.keys(PARAM_INDEX).forEach(k=>{ const o=p.bms.filter(x=>x!==b&&x.params[k]!=null&&b.params[k]!=null&&Math.abs(x.params[k]-b.params[k])>1e-9); if(o.length) out[k]=o.map(x=>({id:x.id,val:x.params[k]})); });
+  return out;
+}
+function compareView(p){
+  const rows=[], cols=p.bms;
+  const meas=[['SOC',b=>f(b.soc,0)+' %'],['Tension',b=>f(b.voltage,2)+' V'],['Courant',b=>f(b.current,1)+' A'],['Écart cellules',b=>f(b.deltaMv,0)+' mV'],['Temp. max',b=>f(tmax(b),1)+' °C'],['SOH',b=>b.soh+' %'],['Cycles',b=>b.cycles],['Résistance moy.',b=>f(b.res.reduce((a,c)=>a+c,0)/16*1000,0)+' mΩ']];
+  let nd=0;
+  rows.push(`<tr class="sec"><td colspan="${cols.length+1}">${spGlowCell('measurements')}</td></tr>`);
+  if(!S.diffOnly) meas.forEach(([l,fn])=>rows.push(`<tr><td>${spGlowLabel(l)}</td>${cols.map(b=>`<td class="num">${b.online?fn(b):'—'}</td>`).join('')}</tr>`));
+  Object.entries(PARAM_DEF).forEach(([g,list])=>{
+    const body=list.map(([k,l,u,d])=>{ const vals=cols.map(b=>b.params[k]); const counts={}; vals.forEach(v=>counts[v]=(counts[v]||0)+1);
+      const major=+Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0]; const diff=Object.keys(counts).length>1; if(diff) nd++;
+      if(S.diffOnly&&!diff) return '';
+      return `<tr class="${diff?'diff':''}"><td>${spGlowParamLabel(k,l)}</td>${vals.map(v=>`<td class="num ${diff&&v!==major?'odd':''}">${f(v,d)} ${u}</td>`).join('')}</tr>`; }).join('');
+    if(body) rows.push(`<tr class="sec"><td colspan="${cols.length+1}">${spGlowParamGroup(g)}</td></tr>`+body);
+  });
+  return `<div class="alert ${nd?'warn':'ok'}"><span class="ic">${nd?'⚠️':'✅'}</span><div><b>${nd?spGlowCell('different',{n:nd}):spGlowCell('same')}</b><small>${spGlowCell('majority')}</small></div>
+    <button class="btn act" data-act="diffonly">${spGlowCell(S.diffOnly?'showAll':'onlyDiff')}</button></div>
+    <div class="card tblwrap" style="margin-top:12px"><table class="tbl"><tr><th></th>${cols.map(b=>`<th class="num"><a href="#/pack/${p.id}/bms/${b.id}/params">${bn(b)}</a></th>`).join('')}</tr>${rows.join('')}</table></div>`;
+}
+
+function cellsBlock(vals, unit, dec, scaleMin, balIdx=-1, highBad=false){
+  const mn=Math.min(...vals), mx=Math.max(...vals), lo=scaleMin??(mn-((mx-mn)||.01)*1.5), rg=(mx-lo)||1;
+  const iMin=vals.indexOf(mn), iMax=vals.indexOf(mx);
+  return `<div class="cells">${vals.map((v,i)=>`<div class="cell ${i===iMin?(highBad?'max':'min'):i===iMax?(highBad?'min':'max'):''} ${i===balIdx?'balc':''}" title="${spGlowCell('cellTooltip',{cell:i+1,v:f(v,dec),unit})}">
+    <span class="v">${f(v,dec)}</span><div class="col" style="height:${Math.max(6,(v-lo)/rg*100)}%"></div><span class="n">${i+1}</span></div>`).join('')}</div>`;
+}
+
+function pageBms(p,b,tab){
+  const d=b.deltaMv, t=tmax(b), base=`#/pack/${p.id}/bms/${b.id}/`, st=stateL(agg([b])), au=autonomy(b.capRem,b.capNom,b.current), offline=!b.online, stale=isStale(b)||offline;
+  const diffs=paramDiffs(p,b), nd=Object.keys(diffs).length;
+  let h=header(`<a href="#/">Parc</a> › <a href="#/pack/${p.id}">${esc(p.name)}</a>`,bn(b),
+    `<span class="pill ${st}"><span class="dot ${st}"></span>${stTxt[st]}</span>${offline?`<span class="pill off">${spGlowOfflineUi('past')}</span>`:`<span class="pill ${flowTxt(b.current)[1]}">${flowTxt(b.current)[0]}</span>`}<span class="pill ${stale?'warn':''}">⏱ ${fresh(b.ts)}</span>`);
+  h+=`<div class="bmssel">${p.bms.map(x=>`<a href="#/pack/${p.id}/bms/${x.id}/${tab}" class="${x===b?'on':''}"><span class="dot ${stateL(agg([x]))}"></span>${bn(x)}</a>`).join('')}</div>
+  <div class="tabs">${[['live','📊 Live'],['params','⚙️ '+spGlowBmsUi('paramsTab')+(nd?` <span class="pill warn" style="padding:0 6px">${nd}≠</span>`:'')],['diag','🩺 '+spGlowLabel('Diagnostic')],['alarms','🚨 '+spGlowLabel('Alarmes')+(b.alarms.length?` <span class="pill crit" style="padding:0 6px">${b.alarms.length}</span>`:'')]].map(([k,l])=>`<a href="${base}${k}" class="${tab===k?'on':''}">${l}</a>`).join('')}</div>`;
+  if(stale) h+=`<div class="alert warn" style="margin-top:14px"><span class="ic">⏱</span><div><b>${spGlowBmsUi('stale')}</b><small>${spGlowBmsUi('lastMeasure',{time:relTime(b.ts)})}</small></div></div>`;
+  const one=b=>[b];
+
+  if(tab==='live'){
+    h+=`<h2>${spGlowBmsUi('energy')}</h2><div class="grid g4">
+      ${kpi('Puissance',pw(b.power),flowTxt(b.current)[0],'flow')}
+      ${socKpi(b.soc,`${f(b.capRem,1)} / ${b.capNom} Ah`,trendHtml(b.soc,ago(one(b),'soc',60),' %',1,null))}
+      ${kpi(au.ic+' '+spGlowLabel('Autonomie'),au.v,au.sub)}
+      ${kpi('Écart cellules',f(d,0)+'<small>mV</small>',`moy. ${f(b.voltage/16,3)} V`,dL(d),trendHtml(d,ago(one(b),'delta',60),' mV',0,true))}
+    </div>
+    <h2>Cellules</h2><div class="card">${cellsBlock(b.cells,'V',3,undefined,b.balance>0?b.cells.indexOf(Math.max(...b.cells)):-1)}
+      <div class="legend"><span style="--c:var(--crit)">Min ${f(Math.min(...b.cells),3)} V (C${b.cells.indexOf(Math.min(...b.cells))+1})</span><span style="--c:var(--ok)">Max ${f(Math.max(...b.cells),3)} V (C${b.cells.indexOf(Math.max(...b.cells))+1})</span><span style="--c:var(--s-volt)">Autres cellules</span>${b.balance>0?'<span style="--c:var(--bal)">En équilibrage</span>':''}</div></div>
+    <div class="grid g2" style="margin-top:12px">
+      <div><h2>${spGlowBmsUi('tempsBalance')}</h2><div class="card"><table class="tbl">
+        <tr><td>Sonde batterie 1</td><td class="num">${f(b.t1,1)} °C</td></tr><tr><td>Sonde batterie 2</td><td class="num">${f(b.t2,1)} °C</td></tr>
+        <tr><td>MOS ${trendHtml(b.mos,ago(one(b),'temp',60),'°',1,true)}</td><td class="num" style="color:${COL[tL(b.mos)]}">${f(b.mos,1)} °C</td></tr>
+        <tr><td>Courant d’équilibrage</td><td class="num" style="color:${b.balance>0?'var(--bal)':''}">${b.balance>0?f(b.balance,2)+' A':'Inactif'}</td></tr></table></div></div>
+      <div><h2>${spGlowBmsUi('bmsState')}</h2><div class="card"><table class="tbl">
+        <tr><td>MOS charge</td><td class="num"><span class="tg ${b.chargeMos?'on':''}"></span></td></tr><tr><td>MOS décharge</td><td class="num"><span class="tg ${b.dischargeMos?'on':''}"></span></td></tr>
+        <tr><td>État de charge</td><td class="num">${b.chargeStatus}</td></tr><tr><td>Alarme</td><td class="num">${b.alarms.length?`<span style="color:var(--crit)">${b.alarms.join(', ')}</span>`:'<span style="color:var(--ok)">Aucune</span>'}</td></tr></table></div></div>
+    </div>
+    <h2>${spGlowBmsUi('history')} ${rangeSeg()}</h2><div class="grid g2">
+      ${chart(`b-pw`,'Puissance',[{name:'Puissance',color:'var(--flow)',data:series(b,'power',S.range)}],'W',0,[{v:0,label:'0',color:'var(--dim)'}])}
+      ${chart(`b-soc`,'SOC',[{name:'SOC',color:'var(--s-soc)',data:series(b,'soc',S.range)}],'%',1,[{v:TH.socCrit,label:`${TH.socCrit} %`,color:'var(--crit)'}])}
+      ${chart(`b-v`,'Tension',[{name:'Tension',color:'var(--s-volt)',data:series(b,'voltage',S.range)}],'V',2)}
+      ${chart(`b-c`,'Courant',[{name:'Courant',color:'var(--s-cur)',data:series(b,'current',S.range)}],'A',1,[{v:0,label:'0',color:'var(--dim)'}])}
+      ${chart(`b-d`,'Écart cellules',[{name:'Δ',color:'var(--s-delta)',data:series(b,'delta',S.range)}],'mV',0,[{v:TH.deltaWarn,label:`${TH.deltaWarn} mV`,color:'var(--warn)'},{v:TH.deltaCrit,label:`${TH.deltaCrit} mV`,color:'var(--crit)'}])}
+      ${chart(`b-t`,'Température MOS',[{name:'MOS',color:'var(--s-temp)',data:series(b,'temp',S.range)}],'°C',1,[{v:TH.tempWarn,label:`${TH.tempWarn} °C`,color:'var(--warn)'},{v:TH.tempCrit,label:`${TH.tempCrit} °C`,color:'var(--crit)'}])}
+    </div>`;
+  }
+
+  if(tab==='params'){
+    const key=`${p.id}-${b.id}`, E=S.edit&&S.edit.key===key?S.edit:null;
+    const changes = E ? Object.keys(E.values).filter(k=>+E.values[k]!==b.params[k]).length + Object.keys(E.sw).filter(k=>E.sw[k]!==b.switches[k]).length : 0;
+    h+=`<div class="alert ${E?'info':'ok'}" style="margin-top:16px"><span class="ic">${E?'✏️':'🔒'}</span><div><b>${spGlowBmsUi(E?'editMode':'readOnly')}</b><small>${E?'Les changements ne sont envoyés au BMS qu’après confirmation.':'Cliquez sur « Modifier » pour changer un réglage. Chaque envoi demande une confirmation.'}</small></div>
+      <div class="act pills">${E?`<button class="btn" data-act="cancel">${spGlowBmsUi('cancel')}</button><button class="btn primary" data-act="save" ${changes?'':'disabled'}>${spGlowBmsUi('save')}${changes?` (${changes})`:''}</button>`:`<button class="btn primary" data-act="edit" data-key="${key}">✏️ ${spGlowBmsUi('edit')}</button>`}</div></div>`;
+    if(nd) h+=`<div class="alert warn" style="margin-top:10px"><span class="ic">≠</span><div><b>${spGlowDetail('paramDiff',{n:nd})}</b><small>Surlignés ci-dessous — vérifiez qu’il ne s’agit pas d’une erreur de réglage.</small></div><a class="btn act" href="#/pack/${p.id}/compare">${spGlowBmsUi('compare')}</a></div>`;
+    h+=`<h2>${spGlowBmsUi('controlSwitches')}</h2><div class="card"><div class="grid g3" style="gap:0 24px">${SW_DEF.map(([k,l])=>{ const v=E&&k in E.sw?E.sw[k]:b.switches[k], ch=E&&k in E.sw&&E.sw[k]!==b.switches[k];
+      return `<div class="sw-row"><span>${spGlowLabel(l)}</span><button class="tg ${v?'on':''} ${ch?'changed':''}" ${E?`data-act="sw" data-k="${k}"`:'disabled'} aria-label="${spGlowLabel(l)}"></button></div>`; }).join('')}</div></div>
+    <div class="grid g2">${Object.entries(PARAM_DEF).map(([g,rows])=>`<div><h2>${spGlowParamGroup(g)}</h2><div class="card"><table class="tbl">${rows.map(([k,l,u,dc])=>{
+      const v=b.params[k], df=diffs[k], ev=E&&k in E.values?E.values[k]:v, ch=E&&k in E.values&&+E.values[k]!==v;
+      return `<tr class="${df?'diff':''}"><td>${spGlowParamLabel(k,l)}${df?`<span class="tdiff">≠ ${df.map(x=>`${bn(x)} : ${f(x.val,dc)} ${u}`).join(' · ')}</span>`:''}</td>
+        <td class="num ${df?'odd':''}">${E?`<input class="inp ${ch?'changed':''}" type="number" step="${Math.pow(10,-dc)}" value="${ev}" data-param="${k}"> ${u}`:`${f(v,dc)} ${u}`}</td></tr>`; }).join('')}</table></div></div>`).join('')}</div>`;
+  }
+
+  if(tab==='diag'){
+    const rmn=Math.min(...b.res)*1000, rmx=Math.max(...b.res)*1000, cavg=b.voltage/16;
+    const watch=[]; if(b.weak.lowestDays>=5) watch.push(['📉',spMessage('weakLow',{cell:b.weak.cell,days:b.weak.lowestDays}),spGlowDetail('lowHelp')]);
+    if(b.weak.resRise>=15) watch.push(['🔧',spMessage('weakResistance',{cell:b.weak.cell,rise:b.weak.resRise}),spGlowDetail('resHelp')]);
+    h+=`<h2>${spGlowDetail('watch')}</h2>`+(watch.length?`<div class="grid g2">${watch.map(w=>`<div class="alert warn"><span class="ic">${w[0]}</span><div><b>${w[1]}</b><small>${w[2]}</small></div></div>`).join('')}</div>
+      <div class="card chart" style="margin-top:12px"><div class="t"><span>${spGlowDetail('res30',{cell:b.weak.cell})}</span><b>${f(b.res30[b.weak.cell-1].at(-1)*1000,0)} mΩ</b></div><div style="height:60px">${spark(b.res30[b.weak.cell-1],'var(--warn)').replace('<svg','<svg style="width:100%;height:60px"')}</div></div>`
+      :`<div class="alert ok"><span class="ic">✅</span><div><b>${spGlowDetail('noCell')}</b><small>${spGlowDetail('noCellNote')}</small></div></div>`);
+    h+=`<h2>${spGlowDetail('life')}</h2><div class="grid g4">
+      ${kpi(spGlowDetail('remaining'),f(b.capRem,1)+'<small>Ah</small>',spGlowDetail('nominal',{value:b.capNom}))}${kpi('SOH',b.soh+'<small>%</small>','',b.soh<90?'warn':'ok')}
+      ${kpi('Cycles',b.cycles)}${kpi(spGlowDetail('runtime'),spGlowRuntime(b.runtime))}</div>
+    <h2>${spGlowDetail('voltages')}</h2><div class="grid g4">
+      ${kpi('Min',f(Math.min(...b.cells),3)+'<small>V</small>',spGlowDetail('cell',{n:b.cells.indexOf(Math.min(...b.cells))+1}))}${kpi(spGlowDetail('average'),f(cavg,3)+'<small>V</small>')}
+      ${kpi('Max',f(Math.max(...b.cells),3)+'<small>V</small>',spGlowDetail('cell',{n:b.cells.indexOf(Math.max(...b.cells))+1}))}${kpi(spGlowDetail('difference'),f(d,0)+'<small>mV</small>','',dL(d))}
+    </div><div class="card" style="margin-top:12px">${cellsBlock(b.cells,'V',3)}</div>
+    <h2>${spGlowDetail('resistances')}</h2><div class="grid g4">
+      ${kpi('Min',f(rmn,0)+'<small>mΩ</small>')}${kpi(spGlowDetail('average'),f(b.res.reduce((a,c)=>a+c,0)/16*1000,0)+'<small>mΩ</small>')}${kpi('Max',f(rmx,0)+'<small>mΩ</small>',spGlowDetail('cell',{n:b.res.indexOf(Math.max(...b.res))+1}))}${kpi(spGlowDetail('difference'),f(rmx-rmn,0)+'<small>mΩ</small>')}
+    </div><div class="card" style="margin-top:12px">${cellsBlock(b.res.map(x=>x*1000),'mΩ',0,0,-1,true)}</div>`;
+  }
+
+  if(tab==='alarms'){
+    const on=b.alarms.length>0;
+    const diagnostics=[];
+    if(d>=TH.deltaWarn)diagnostics.push(`${spMessage('delta')} ${f(d,0)} mV (${spMessage('warning')} ${TH.deltaWarn} / ${spMessage('critical')} ${TH.deltaCrit} mV)`);
+    if(t>=TH.tempWarn)diagnostics.push(`${spMessage('temp')} ${f(t,1)} °C (${spMessage('warning')} ${TH.tempWarn} / ${spMessage('critical')} ${TH.tempCrit} °C)`);
+    const diagCrit=d>=TH.deltaCrit||t>=TH.tempCrit;
+    h+=`<h2>${spText('hardware')}</h2><div class="alert ${on?'crit':'ok'}" style="margin-top:16px"><span class="ic">${on?'🚨':'✅'}</span><div><b>${on?spText('hardwareActive'):spText('noHardware')}</b><small>${on?esc(b.alarms.join(' · ')):spText('hardwareExplanation')}</small></div></div>
+    <h2>${spText('supervision')}</h2>
+    <div class="alert ${diagnostics.length?(diagCrit?'crit':'warn'):'ok'}" style="margin-top:10px"><span class="ic">${diagnostics.length?'⚠️':'✅'}</span><div><b>${diagnostics.length?spGlowView(d>=TH.deltaWarn&&t>=TH.tempWarn?'supervisionBoth':d>=TH.deltaWarn?'supervisionDelta':'supervisionTemp'):spText('noSupervision')}</b><small>${diagnostics.length?esc(diagnostics.join(' · ')):spText('supervisionExplanation')} — ${spText('supervisionIndependent')}</small></div></div>
+    <div class="grid g2"><div><h2>Statut</h2><div class="card"><table class="tbl"><tr><td>Alarme matérielle BMS</td><td class="num">${on?'Oui':'Non'}</td></tr><tr><td>État général (inclut diagnostics)</td><td class="num">${stTxt[st]}</td></tr><tr><td>Liste des alarmes matérielles</td><td class="num">${on?esc(b.alarms.join(', ')):'—'}</td></tr></table></div></div>
+    <div><h2>Contexte</h2><div class="card"><table class="tbl"><tr><td>Écart cellules</td><td class="num">${f(d,0)} mV</td></tr><tr><td>Température MOS</td><td class="num">${f(b.mos,1)} °C</td></tr><tr><td>MOS charge</td><td class="num">${b.chargeMos?'ON':'OFF'}</td></tr><tr><td>MOS décharge</td><td class="num">${b.dischargeMos?'ON':'OFF'}</td></tr></table></div></div></div>
+    <h2>${spGlowView('events')}</h2>${S.mode==='ha'?'<div class="alert info"><span class="ic">ℹ️</span><div><b>'+spGlowView('journalNotRecording')+'</b><small>'+spGlowView('journalUnavailable')+'</small></div></div>':eventsList(EVENTS.filter(e=>e.pack===p.id&&(e.bms===b.id||e.bms==null)),60)}`;
+  }
+  return h;
+}
+
+function pageWall(){
+  const F=fleetStats();
+  let h=`<div class="wall-top"><div class="wall-clock" id="wallclock">${new Date().toLocaleTimeString(spLocale(),{hour:'2-digit',minute:'2-digit'})}</div>
+    <div class="pills"><button class="btn" data-act="fs">⛶ ${spGlowLabel('Plein écran')}</button><a class="btn" href="#/">✕ ${spGlowLabel('Quitter')}</a></div></div>`;
+  h+=statusBanner(true)+`<div class="wall-kpis">
+    <div class="card kpi ${F.live<PACKS.length?'warn':'ok'}"><div class="lbl">📡 ${spGlowLabel('Sites à jour')}</div><div class="val">${F.live}<small>/ ${PACKS.length}</small></div></div>
+    <div class="card kpi"><div class="lbl">🔋 ${spGlowLabel('SOC le plus bas')} · ${F.low?esc(F.low.p.name):'—'}</div><div class="val" style="color:${F.low?COL[socL(F.low.a.soc)]:COL.off}">${F.low?f(F.low.a.soc,0)+'<small>%</small>':'—'}</div></div>
+    <div class="card kpi"><div class="lbl">⏳ ${spGlowLabel('Autonomie la plus courte')}${F.short.h===Infinity?'':' · '+esc(F.short.p.name)}</div><div class="val">${F.short.h===Infinity?'—':F.short.au.v}</div></div></div>
+    <div class="wall-packs">${PACKS.map(p=>{const a=agg(p.bms),s=stateL(a);return `<div class="card"><h3><span class="dot ${s}" style="width:14px;height:14px"></span>${esc(p.name)}</h3>
+      <div class="soc" style="color:${a.online?COL[socL(a.soc)]:COL.off}">${a.online?f(a.soc,0)+'<small>%</small>':'—'}</div>
+      <div class="row"><span>${a.online?flowTxt(a.current)[0].split(' ')[0]+' '+(Math.abs(a.power)>=1000?f(a.power/1000,2)+' kW':f(a.power,0)+' W'):spGlowOverview('offline')}</span><span>⏳ ${a.online?autonomy(a.capRem,a.capNom,a.current).v:'—'}</span></div><div class="row"><span style="color:${a.online?COL[dL(a.delta)]:COL.off}">Δ ${a.online?f(a.delta,0)+' mV':'—'}</span><span style="color:${a.online?COL[tL(a.temp)]:COL.off}">${a.online?f(a.temp,0)+' °C':'—'}</span></div></div>`}).join('')}</div>`;
+  return h;
+}
+
+function pageSettings(){
+  const url=S.haUrl||store.get('jk-ha-url')||'ws://homeassistant.local:8123/api/websocket';
+  return header('Parc','Connexion Home Assistant')+`<div class="grid g2">
+  <div class="card"><h3 style="margin-top:0">Se connecter à vos vraies entités</h3>
+    <p style="color:var(--mut);margin-top:0">La page se connecte en WebSocket à Home Assistant et lit les entités <code>sensor.pack_X_bms_Y_*</code>. Les packs et BMS sont détectés automatiquement.</p>
+    <div class="field"><label>URL WebSocket</label><input type="text" id="ha-url" value="${esc(url)}"></div>
+    <div class="field"><label>Jeton d’accès longue durée (Profil › Sécurité)</label><input type="password" id="ha-token" value="${esc(store.get('jk-ha-token')||'')}" placeholder="eyJhbGciOi…"></div>
+    <label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--mut);margin-bottom:14px"><input type="checkbox" id="ha-remember" ${store.get('jk-ha-token')?'checked':''}> Mémoriser sur ce navigateur</label>
+    <div class="pills">${S.hass?'':S.mode==='ha'?`<button class="btn danger" data-act="ha-off">Déconnecter</button>`:`<button class="btn primary" data-act="ha-on">Connecter</button>`}<span class="pill ${S.mode==='ha'?'ok':''}">${esc(S.haStatus)}</span></div>
+  </div>
+  <div class="card"><h3 style="margin-top:0">Bon à savoir</h3><ul style="color:var(--mut);padding-left:18px;margin:0;line-height:1.7">
+    <li>Ouvrez cette page en local (fichier) ou en <b>http</b> si HA est en http : un navigateur bloque le WebSocket non chiffré depuis une page https.</li>
+    <li>Les historiques viennent de l’API <code>history/history_during_period</code> (Recorder).</li>
+    <li>Les modifications de paramètres appellent <code>number.set_value</code> et <code>switch.turn_on/off</code>, toujours après confirmation.</li>
+    <li>Le jeton n’est envoyé qu’à votre Home Assistant.</li></ul></div></div>${entityReport()}`;
+}
+function entityReportText(){
+  const st=S.lastStates||[], lines=[];
+  PACKS.forEach(p=>{ lines.push(`${p.name} (pack ${p.id}) : ${p.bms.length} BMS détecté(s)${p.expectedBms?` / ${p.expectedBms} attendu(s)`:''}`);
+    p.bms.forEach(b=>lines.push(`  ${bn(b)} : ${st.filter(x=>x.entity_id.includes(`pack_${p.id}_bms_${bmsKey(b)}_`)).length} entités`));
+    if(p.summaryAttrs) lines.push('  attributs résumé : '+Object.entries(p.summaryAttrs).filter(([k,v])=>typeof v!=='object').map(([k,v])=>`${k}=${v}`).join(' · ').slice(0,600)); });
+  const cand=st.map(x=>x.entity_id).filter(id=>!ENT_RE.test(id) && /(tension_totale|cell_?1_volt|soc_pourcentage|courant_total|puissance_totale|jk_?bms|_bms_?\d)/i.test(id)).sort();
+  lines.push('', `Entités BMS non reconnues (${cand.length}) :`, ...cand.slice(0,80).map(x=>'  '+x));
+  return lines.join('\n');
+}
+function entityReport(){
+  if(S.mode!=='ha') return '';
+  return `<h2>Entités détectées</h2><div class="card"><p style="color:var(--mut);margin-top:0">Si un BMS manque, ses entités apparaissent dans « non reconnues ». Copiez ce rapport et envoyez-le pour adapter la détection.</p>
+    <pre id="ent-report" style="white-space:pre-wrap;font:12px/1.5 var(--mono);background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px;max-height:420px;overflow:auto;margin:0 0 12px">${esc(entityReportText())}</pre>
+    <button class="btn primary" data-act="copy-report">📋 Copier le rapport</button></div>`;
+}
+
+/* =========================================================
+   CONNEXION HOME ASSISTANT (WebSocket)
+   ========================================================= */
+function wsSend(msg, cb){
+  if(S.hass){ S.hass.connection.sendMessagePromise(msg).then(r=>cb&&cb(r)).catch(()=>cb&&cb(null)); return; }
+  const id=S.wsId++; msg.id=id; if(cb) S.pending[id]=cb; S.ws.send(JSON.stringify(msg)); return id; }
+const haReady = () => !!S.hass || (S.ws && S.ws.readyState===1);
+/* Page intégrée dans Home Assistant (même origine) : on réutilise la session HA, sans jeton */
+function tryParentHass(){
+  try{
+    if(window.parent===window) return false;
+    const el=window.parent.document.querySelector('home-assistant'); const hass=el&&el.hass;
+    if(!hass||!hass.connection) return false;
+    S.hass=hass; S.haStatus='Connecté automatiquement (page intégrée à Home Assistant)';
+    buildFromStates(Object.values(hass.states));
+    hass.connection.subscribeEvents(ev=>{ if(ev.data&&ev.data.new_state) applyHaEventState(ev.data.new_state); },'state_changed');
+    return S.mode==='ha';
+  }catch(e){ return false; }
+}
+function connectHA(url, token){
+  try{ S.ws && S.ws.close(); }catch(e){}
+  S.haStatus='Connexion…'; render();
+  let ws; try{ ws=new WebSocket(url); }catch(e){ S.haStatus='URL invalide'; render(); return; }
+  S.ws=ws;
+  ws.onmessage = ev => {
+    const m=JSON.parse(ev.data);
+    if(m.type==='auth_required') ws.send(JSON.stringify({type:'auth',access_token:token}));
+    else if(m.type==='auth_invalid'){ S.haStatus='Jeton refusé'; render(); }
+    else if(m.type==='auth_ok'){
+      S.haStatus='Authentifié, lecture des entités…'; render();
+      wsSend({type:'get_states'}, res=>{ buildFromStates(res); wsSend({type:'subscribe_events',event_type:'state_changed'}); });
+    }
+    else if(m.type==='result' && S.pending[m.id]){ const cb=S.pending[m.id]; delete S.pending[m.id]; cb(m.success?m.result:null, m); }
+    else if(m.type==='event' && m.event && m.event.data && m.event.data.new_state){ applyHaEventState(m.event.data.new_state); }
+  };
+  ws.onerror = () => { S.haStatus='Erreur de connexion'; render(); };
+  ws.onclose = () => { if(S.mode==='ha'){ S.haStatus='Connexion perdue'; render(); } };
+}
+const ENT_RE = /^(sensor|binary_sensor|number|switch)\.pack_(\d+)_bms_(\d+|master)_(.+)$/i;
+const GLOBAL_SUMMARY_ID = 'sensor.smartphoton_jk_bms_multi_pack_global_summary';
+const GLOW_DIAGNOSTICS_ID = 'sensor.smartphoton_jk_bms_multi_pack_diagnostics';
+// Step 13F / HA global summary is the authority on pack connectivity.
+// An available retained voltage value is NOT evidence of a live BMS.
+function glowResolvePackConnectivity(map){
+  if(!map) return null;
+  const state=map.get(GLOBAL_SUMMARY_ID);
+  const available=s=>s && !['unknown','unavailable','none',''].includes(String(s.state??'').toLowerCase());
+  if(available(state)){
+    const a=state.attributes||{};
+    if(Array.isArray(a.online_packs)&&Array.isArray(a.offline_packs)){
+      const result=new Map();
+      for(const id of a.online_packs) if(/^pack_[1-5]$/.test(String(id))) result.set(String(id),true);
+      for(const id of a.offline_packs) if(/^pack_[1-5]$/.test(String(id))) result.set(String(id),false);
+      return result;
+    }
+  }
+  // Older summaries: Premium diagnostics may still expose PACK_OFFLINE.
+  const diag=map.get(GLOW_DIAGNOSTICS_ID);
+  if(!available(diag)) return null;
+  const issues=Array.isArray(diag.attributes?.active_issues)?diag.attributes.active_issues:[];
+  const result=new Map();
+  for(const issue of issues){
+    if(issue?.code!=='PACK_OFFLINE') continue;
+    const ids=[...(Array.isArray(issue.packs)?issue.packs:[]),issue.pack_id];
+    for(const id of ids) if(/^pack_[1-5]$/.test(String(id))) result.set(String(id),false);
+  }
+  return result.size?result:null;
+}
+function syncGlowPackConnectivity(){
+  if(S.mode!=='ha') return;
+  const availability=glowResolvePackConnectivity(S.lastStateMap);
+  for(const p of PACKS){
+    const id='pack_'+p.id;
+    p.communicating=availability?.has(id)?availability.get(id):null;
+    for(const b of p.bms){
+      b.online=(b.haVoltageOnline!==false) && p.communicating!==false;
+    }
+  }
+}
+
+function configuredPackIdsFromStates(states){
+  const summary=states.find(s=>s.entity_id===GLOBAL_SUMMARY_ID);
+  const ids=summary?.attributes?.configured_pack_ids;
+  // Anciennes installations : aucun filtrage si l'attribut n'existe pas.
+  if(!Array.isArray(ids)||!ids.every(id=>typeof id==='string'&&/^pack_[1-5]$/.test(id))) return null;
+  return [...new Set(ids)].sort();
+}
+function applyHaEventState(s){
+  if(!s||!s.entity_id) return;
+  S.lastStateMap?.set(s.entity_id,s);
+  if(s.entity_id===GLOBAL_SUMMARY_ID){
+    const next=configuredPackIdsFromStates([s]);
+    if(next!==null && JSON.stringify(next)!==JSON.stringify(S.configuredPackIds)){
+      // Si HA avait encore l'ancienne topologie, réévaluer l'accueil seulement
+      // lorsque l'utilisateur est toujours sur la vue globale par défaut.
+      if((!location.hash||location.hash==='#/') && next.length===1) S.autoRouteApplied=false;
+      // La topologie peut arriver après les premières entités HA.
+      // Reconstruire alors la liste sans effacer les entités du registre HA.
+      buildFromStates([...S.lastStateMap.values()]);
+    }
+    syncGlowPackConnectivity();
+    S.dirty=true;
+    return;
+  }
+  if(s.entity_id===GLOW_DIAGNOSTICS_ID){syncGlowPackConnectivity();S.dirty=true;return;}
+  const m=s.entity_id.match(ENT_RE);
+  if(m && S.configuredPackIds?.includes(`pack_${m[2]}`) &&
+     !PACKS.some(p=>p.id===+m[2] && p.bms.some(b=>b.id===bmsId(m[3])))){
+    buildFromStates([...S.lastStateMap.values()]);
+    return;
+  }
+  if(applyState(s)){syncGlowPackConnectivity();S.dirty=true;}
+}
+const bmsId = k => /^master$/i.test(k) ? 1 : +k;          // BMS_master = BMS n°1
+const bmsKey = b => b.key || b.id;                          // morceau réel du nom d'entité
+function blankBms(pack,id){ const params={},switches={}; Object.values(PARAM_DEF).flat().forEach(p=>params[p[0]]=null); SW_DEF.forEach(s=>switches[s[0]]=null);
+  return {pack,id,online:true,haVoltageOnline:true,ts:0,cells:Array(16).fill(0),res:Array(16).fill(0),voltage:0,current:0,power:0,soc:0,capRem:0,capNom:0,t1:0,t2:0,mos:0,balance:0,deltaMv:0,
+    soh:0,cycles:0,runtime:'—',chargeStatus:'—',alarms:[],chargeMos:false,dischargeMos:false,params,switches,weak:{cell:1,lowestDays:0,resRise:0},res30:null}; }
+function buildFromStates(states){
+  if(!states){ S.haStatus='Lecture impossible'; render(); return; }
+  S.lastStates=states;
+  S.lastStateMap=new Map(states.filter(s=>s&&s.entity_id).map(s=>[s.entity_id,s]));
+  S.configuredPackIds=configuredPackIdsFromStates(states);
+  const configured = S.configuredPackIds && new Set(S.configuredPackIds.map(id=>+id.slice(5)));
+  const packs={};
+  states.forEach(s=>{ const m=s.entity_id.match(ENT_RE); if(!m) return; const pi=+m[2], bi=bmsId(m[3]);
+    if(configured && !configured.has(pi)) return;
+    packs[pi] ||= {id:pi,name:`Pack ${pi}`,link:'HA',bms:{}}; if(!packs[pi].bms[bi]){ packs[pi].bms[bi]=blankBms(pi,bi); packs[pi].bms[bi].key=m[3].toLowerCase(); } });
+  states.forEach(s=>{ const m=s.entity_id.match(/^sensor\.smartphoton_jk_bms_multi_pack_pack_(\d+)_summary$/); if(m&&packs[+m[1]]){ const a=s.attributes||{};
+    packs[+m[1]].name = a.pack_name || a.name || (a.friendly_name||'').replace(/\s*summary$/i,'') || packs[+m[1]].name;
+    packs[+m[1]].expectedBms = +a.bms_count || null; packs[+m[1]].summaryAttrs = a; } });
+  const list=Object.values(packs).sort((a,b)=>a.id-b.id).map(p=>({...p,bms:Object.values(p.bms).sort((a,b)=>a.id-b.id)}));
+  if(!list.length){ PACKS=[]; S.mode='waiting'; S.haStatus='Aucune entité pack_X_bms_Y trouvée'; render(); return; }
+  PACKS=list; EVENTS=[]; S.mode='ha'; S.histCache={};
+  states.forEach(applyState);
+  syncGlowPackConnectivity();
+  S.haStatus=`Connecté · ${list.length} packs, ${allBms().length} BMS`;
+  // N'appliquer la navigation automatique qu'à la première connexion,
+  // jamais lors d'une navigation volontaire de l'utilisateur.
+  if(!S.autoRouteApplied && (S.configuredPackIds!==null || PACKS.length===1)){
+    S.autoRouteApplied=true;
+    if(!location.hash || location.hash==='#/' ){
+      if(PACKS.length===1){
+        const p=PACKS[0];
+        // En mono-pack, commencer sur le premier BMS, y compris si plusieurs
+        // BMS partagent ce pack. La page BMS propose déjà leur sélecteur.
+        // Les routes explicitement demandées restent prioritaires.
+        if(p.bms.length) location.hash=`#/pack/${p.id}/bms/${p.bms[0].id}/live`;
+      }
+    }
+  }
+  render();
+}
+function applyState(s){
+  const m=s.entity_id.match(ENT_RE); if(!m) return false;
+  const p=PACKS.find(x=>x.id===+m[2]); const b=p&&p.bms.find(x=>x.id===bmsId(m[3])); if(!b) return false;
+  const k=m[4], raw=s.state, v=parseFloat(raw), ts=Date.parse(s.last_updated||s.last_changed)||Date.now();
+  if(raw==='unavailable'||raw==='unknown'){ if(k==='tension_totale_volt'){b.haVoltageOnline=false;b.online=false;} return true; }
+  b.ts=Math.max(b.ts,ts);
+  const map={tension_totale_volt:'voltage',courant_total:'current',puissance_totale:'power',soc_pourcentage:'soc',capacite_restante_ah:'capRem',capacite_batterie_ah:'capNom',
+    sonde_1_temp:'t1',sonde_2_temp:'t2',mos_temp:'mos',balance_courant:'balance',soh_pourcentage:'soh',nombre_cycle:'cycles'};
+  let mm;
+  if(map[k]){ b[map[k]]=v; if(k==='tension_totale_volt'){b.haVoltageOnline=true;b.online=true;} }
+  else if(k==='cell_voltage_delta') b.deltaMv=v*1000;
+  else if(k==='total_runtime_formatted') b.runtime=raw;
+  else if(k==='charge_status_text') b.chargeStatus=raw;
+  else if(k==='alarm_list'){ b.alarmRaw = (!raw||/^\s*(ok|none|normal|aucune?( alarme)?s?|no( active)? alarms?|pas d.?alarme|-|0|\[\])\s*$/i.test(raw)) ? [] : raw.replace(/[\[\]']/g,'').split(/[,;|]/).map(x=>x.trim()).filter(Boolean); }
+  else if(k==='alarm_active') b.alarmActive = raw==='on';
+  else if(k==='switch_charge') b.chargeMos = raw==='on';
+  else if(k==='switch_decharge') b.dischargeMos = raw==='on';
+  else if((mm=k.match(/^cell_(\d+)_volt$/))) b.cells[+mm[1]-1]=v;
+  else if((mm=k.match(/^cell_(\d+)_ohm$/))) b.res[+mm[1]-1]=v;
+  else if(m[1]==='number' && k in b.params) b.params[k]=v;
+  else if(m[1]==='switch'){ const sk=k.replace(/_active_polling$/,''); if(sk in b.switches) b.switches[sk]=raw==='on'; }
+  else return false;
+  if(!b.deltaMv && b.cells.some(Boolean)){ const c=b.cells.filter(Boolean); b.deltaMv=(Math.max(...c)-Math.min(...c))*1000; }
+  if(b.capNom==null||!b.capNom) b.capNom = b.params.bms_total_battery_capacity_ah||0;
+  const list=b.alarmRaw||[];
+  b.alarms = b.alarmActive===false ? [] : b.alarmActive===true ? (list.length?list:['Alarme active (détail non fourni)']) : list;
+  return true;
+}
+function fetchHistory(ent, mins, mult, ck){
+  if(!haReady()) return;
+  S.histCache[ck]='loading';
+  const end=new Date(), start=new Date(end-mins*MIN);
+  wsSend({type:'history/history_during_period',start_time:start.toISOString(),end_time:end.toISOString(),entity_ids:[ent],minimal_response:true,no_attributes:true}, res=>{
+    const arr=(res&&res[ent])||[], t=[], v=[];
+    arr.forEach(x=>{ const val=parseFloat(x.s); const ts=(x.lu||x.lc)*1000||Date.parse(x.last_updated||x.last_changed); if(!isNaN(val)&&ts){ t.push(Math.max(ts,start.getTime())); v.push(val*mult); } });
+    if(t.length){ t.push(Date.now()); v.push(v.at(-1)); }
+    S.histCache[ck]={t,v}; S.dirty=true;
+  });
+}
+function callService(domain, service, data){
+  if(S.mode!=='ha'||!haReady()) return Promise.reject(new Error('Home Assistant non connecté'));
+  if(S.hass) return Promise.resolve().then(()=>S.hass.callService(domain,service,data));
+  return new Promise((resolve,reject)=>wsSend({type:'call_service',domain,service,service_data:data},
+    (result,response)=>response&&response.success ? resolve(result) : reject(new Error('Service Home Assistant refusé'))));
+}
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+function openModal(html){ S.modal=true; document.getElementById('modal').innerHTML=`<div class="modal-bg" data-act="close-bg"><div class="modal">${html}</div></div>`; }
+function closeModal(){ S.modal=null; document.getElementById('modal').innerHTML=''; render(); }
+function currentBms(){ const m=(location.hash||'').match(/^#\/pack\/(\d+)\/bms\/(\d+)/); if(!m) return null; const p=PACKS.find(x=>x.id==m[1]); return p&&{p,b:p.bms.find(x=>x.id==m[2])}; }
+
+function toggleMenu(open){
+  document.getElementById('side').classList.toggle('open',open);
+  document.getElementById('scrim').classList.toggle('open',open);
+  document.body.classList.toggle('menu-open',open);
+}
+document.getElementById('scrim').addEventListener('click',()=>toggleMenu(false));
+addEventListener('keydown',e=>{ if(e.key==='Escape') toggleMenu(false); });
+let touchX=null; const sideEl=document.getElementById('side');
+sideEl.addEventListener('touchstart',e=>{touchX=e.touches[0].clientX},{passive:true});
+sideEl.addEventListener('touchend',e=>{ if(touchX!=null && touchX-e.changedTouches[0].clientX>60) toggleMenu(false); touchX=null; },{passive:true});
+document.addEventListener('click', e=>{
+  const el=e.target.closest('[data-act]');
+  if(!el){ const card=e.target.closest('[data-href]'); if(card && !e.target.closest('a,button,.ch-plot')) location.hash=card.dataset.href; return; }
+  const act=el.dataset.act;
+  if(act==='menu-open'){ toggleMenu(true); return; }
+  if(act==='menu-close'){ toggleMenu(false); return; }
+  if(act==='exp'){ e.stopPropagation(); const id=+el.dataset.id; S.expanded.has(id)?S.expanded.delete(id):S.expanded.add(id); render(); }
+  else if(act==='range'){ S.range=el.dataset.v; render(); }
+  else if(act==='filter'){ S.logFilter=el.dataset.v; render(); }
+  else if(act==='diffonly'){ S.diffOnly=!S.diffOnly; render(); }
+  else if(act==='theme'){ const t=document.documentElement.dataset.theme==='dark'?'light':'dark'; document.documentElement.dataset.theme=t; store.set('jk-theme',t); render(); }
+  else if(act==='fs'){ const d=document.documentElement; (document.fullscreenElement?document.exitFullscreen():d.requestFullscreen&&d.requestFullscreen())?.catch?.(()=>{}); }
+  else if(act==='edit'){ if(S.mode!=='ha'||!haReady()) return; S.edit={key:el.dataset.key,values:{},sw:{}}; render(); }
+  else if(act==='cancel'){ S.edit=null; render(); }
+  else if(act==='sw'){ const c=currentBms(); const k=el.dataset.k; const cur=k in S.edit.sw?S.edit.sw[k]:c.b.switches[k]; S.edit.sw[k]=!cur; render(); }
+  else if(act==='save'){
+    const {p,b}=currentBms(), E=S.edit, list=[];
+    Object.entries(E.values).forEach(([k,v])=>{ if(+v!==b.params[k]){ const d=PARAM_INDEX[k]; list.push({k,type:'num',label:spGlowParamLabel(k,d.label),from:`${f(b.params[k],d.dec)} ${d.unit}`,to:`${f(+v,d.dec)} ${d.unit}`,v:+v}); }});
+    Object.entries(E.sw).forEach(([k,v])=>{ if(v!==b.switches[k]) list.push({k,type:'sw',label:spGlowLabel(SW_DEF.find(s=>s[0]===k)[1]),from:b.switches[k]?'ON':'OFF',to:v?'ON':'OFF',v}); });
+    const risky=list.some(x=>/charging_switch|discharging_switch|protection|power_off/.test(x.k));
+    S.pendingChanges={p,b,list};
+    openModal(`<h3>${spMessage('sendChanges',{count:list.length,bms:bn(b)})}</h3><small style="color:var(--mut)">${esc(p.name)}</small>
+      <ul>${list.map(x=>`<li>${x.label} : <b>${x.from}</b> → <b style="color:var(--flow)">${x.to}</b></li>`).join('')}</ul>
+      ${risky?`<div class="alert warn"><span class="ic">⚠️</span><div><b>${spMessage('sensitive')}</b><small>${spMessage('sensitiveNote')}</small></div></div>`:''}
+      <div class="row"><button class="btn" data-act="close">Annuler</button><button class="btn ${risky?'danger':'primary'}" data-act="confirm">${spMessage('confirmSend')}</button></div>`);
+  }
+  else if(act==='confirm'){
+    const {p,b,list}=S.pendingChanges;
+    // Ne jamais écrire localement la valeur demandée : seul un nouvel état HA
+    // provenant de la relecture du BMS doit modifier l'affichage.
+    list.forEach(x=>{
+      const domain=x.type==='num'?'number':'switch';
+      const service=x.type==='num'?'set_value':(x.v?'turn_on':'turn_off');
+      const entity_id=x.type==='num'
+        ? `number.pack_${p.id}_bms_${bmsKey(b)}_${x.k}`
+        : `switch.pack_${p.id}_bms_${bmsKey(b)}_${x.k}_active_polling`;
+      const data=x.type==='num'?{entity_id,value:x.v}:{entity_id};
+      callService(domain,service,data).then(()=>{
+        EVENTS.unshift({t:Date.now(),lvl:'info',cat:'param',pack:p.id,bms:b.id,
+          txt:spMessage('commandSent'),det:`${x.label} : ${x.from} → ${x.to} · ${spMessage('readback')}`});
+      }).catch(err=>{
+        EVENTS.unshift({t:Date.now(),lvl:'crit',cat:'param',pack:p.id,bms:b.id,
+          txt:spMessage('commandRejected'),det:`${x.label} : ${String(err.message||err)}`});
+      });
+    });
+    S.pendingChanges=null; S.edit=null; closeModal();
+  }
+  else if(act==='copy-report'){ const t=entityReportText(); const done=()=>{el.textContent='✅ Copié';};
+    (navigator.clipboard?navigator.clipboard.writeText(t).then(done):Promise.reject()).catch(()=>{ const r=document.createRange(); r.selectNodeContents(document.getElementById('ent-report')); const sel=getSelection(); sel.removeAllRanges(); sel.addRange(r); try{document.execCommand('copy');done();}catch(_){} }); }
+  else if(act==='close') closeModal();
+  else if(act==='close-bg'){ if(e.target===el) closeModal(); }
+  else if(act==='ha-on'){
+    const url=document.getElementById('ha-url').value.trim(), tok=document.getElementById('ha-token').value.trim();
+    S.haUrl=url; store.set('jk-ha-url',url);
+    if(document.getElementById('ha-remember').checked) store.set('jk-ha-token',tok); else store.del('jk-ha-token');
+    if(!tok){ S.haStatus='Jeton manquant'; render(); return; }
+    connectHA(url,tok);
+  }
+  else if(act==='ha-off'){ try{S.ws&&S.ws.close()}catch(_){} S.ws=null; S.mode='waiting'; PACKS=[]; EVENTS=[]; S.haStatus='Déconnecté'; render(); }
+});
+document.addEventListener('input', e=>{
+  if(e.target.dataset.param && S.edit){ S.edit.values[e.target.dataset.param]=e.target.value;
+    const {b}=currentBms(); e.target.classList.toggle('changed', +e.target.value!==b.params[e.target.dataset.param]);
+    const n=Object.keys(S.edit.values).filter(k=>+S.edit.values[k]!==b.params[k]).length+Object.keys(S.edit.sw).filter(k=>S.edit.sw[k]!==b.switches[k]).length;
+    const btn=document.querySelector('[data-act="save"]'); if(btn){ btn.disabled=!n; btn.textContent='Enregistrer'+(n?` (${n})`:''); } }
+});
+
+/* =========================================================
+   ROUTEUR & RENDU
+   ========================================================= */
+let lastRoute=null;
+function render(){
+  const route=(location.hash||'#/').slice(1)||'/', m=route.match(/^\/pack\/(\d+)(?:\/(compare)|\/bms\/(\d+)(?:\/(\w+))?)?/);
+  const app=document.getElementById('app'); app.classList.toggle('wall', route==='/wall');
+  for(const k in CHARTS) delete CHARTS[k];
+  let html;
+  if(route==='/settings') html=pageSettings();
+  else if(!PACKS.length && S.mode!=='demo') html=header('SmartPhoton','En attente des données JK-BMS')+`<div class="alert info"><span class="ic">🔌</span><div><b>${esc(S.haStatus)}</b><small>Ouvrez Glow depuis le tableau de bord Home Assistant. Si la session ne peut pas être réutilisée, configurez une connexion dans les réglages. Aucune donnée fictive n’est affichée.</small></div></div><p><a class="btn primary" href="#/settings">Connexion Home Assistant</a></p>`;
+  else if(route==='/wall') html=pageWall();
+  else if(m){ const p=PACKS.find(x=>x.id==m[1]); const b=m[3]&&p?.bms.find(x=>x.id==m[3]);
+    html = b ? pageBms(p,b,m[4]||'live') : p ? pagePack(p,m[2]) : pageOverview(); }
+  else if(route==='/aggregation') html=pageAggregation();
+  else if(route==='/diagnostics') html=pageDiagnostics();
+  else if(route==='/journal') html=pageJournal();
+  else if(route==='/settings') html=pageSettings();
+  else html=pageOverview();
+  document.getElementById('main').innerHTML=html;
+  document.getElementById('side').innerHTML=sidebar(route);
+  if(lastRoute!==route){ toggleMenu(false); lastRoute=route; }
+  document.getElementById('bnav').innerHTML=route==='/wall'?'':bottomNav(route);
+  document.getElementById('bnav').style.display=route==='/wall'?'none':'';
+  tickFresh();
+  spTranslateGlow();
+}
+function tickFresh(){
+  document.querySelectorAll('.fresh').forEach(el=>{ const ts=+el.dataset.ts; if(!ts){el.textContent='—';return;} el.textContent=relTime(ts); el.classList.toggle('old',(Date.now()-ts)/1000>TH.staleSec); });
+  const c=document.getElementById('wallclock'); if(c) c.textContent=new Date().toLocaleTimeString(spLocale(),{hour:'2-digit',minute:'2-digit'});
+}
+const canAutoRender = () => !S.edit && !S.modal && !(document.activeElement && /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) && !document.querySelector('.ch-plot:hover');
+addEventListener('hashchange',()=>{ S.edit=null; render(); scrollTo(0,0); });
+setInterval(tickFresh,1000);
+setInterval(()=>{ if(S.mode==='ha' && S.dirty && canAutoRender()){ S.dirty=false; render(); } },1000);
+
+/* Simulation live (démo) : nouvelle mesure toutes les 5 s, un point d'historique par minute */
+let tick=0;
+setInterval(()=>{
+  if(S.mode!=='demo') return; tick++;
+  allBms().forEach(b=>{
+    if(b.staleSim && tick%15!==0) return;           // ce BMS « décroche » pour montrer la détection de données anciennes
+    const H=b.H, L=H.cur.length-1;
+    H.cur[L] += (Math.random()-.5)*0.6; H.soc[L]=Math.max(1,Math.min(100,H.soc[L]+H.cur[L]*5/3600/b.capNom*100));
+    H.volt[L]=16*(ocv(H.soc[L])+H.cur[L]*0.0006); H.delta[L]=Math.max(1,H.delta[L]+(Math.random()-.5)*0.6); H.temp[L]+= (Math.random()-.5)*0.15;
+    if(tick%12===0){ ['cur','soc','volt','delta','temp'].forEach(k=>{ H[k].push(H[k][L]); H[k].shift(); }); H.t0+=MIN; }
+    const wasAlarm=b.alarms.length; syncFromHistory(b); b.ts=Date.now();
+    if(!wasAlarm && b.alarms.length) EVENTS.unshift({t:Date.now(),lvl:'crit',cat:'alarm',pack:b.pack,bms:b.id,txt:'Alarme : sous-tension cellule',det:`SOC ${f(b.soc,0)} %`});
+  });
+  if(canAutoRender()) render();
+},5000);
+
+/* Démarrage */
+document.documentElement.dataset.theme = store.get('jk-theme') || (matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
+if(new URLSearchParams(location.search).get('demo')==='1'){
+  buildDemo();
+}else{
+  S.mode='waiting';
+  S.haStatus='Connexion automatique en attente';
+  // La session HA peut devenir disponible après le chargement de l'iframe.
+  if(!tryParentHass()){
+    let attempts=0;
+    const retry=setInterval(()=>{
+      if(S.mode==='ha'||++attempts>=15){ clearInterval(retry); return; }
+      tryParentHass();
+    },2000);
+  }
+}
+render();spApplyLanguage();
+</script>
+<script src="/local/smartphoton_jkbms_multipack/glow/journal.js"></script>
+</body>
+</html>

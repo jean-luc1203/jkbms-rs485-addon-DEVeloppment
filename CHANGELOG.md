@@ -1,3 +1,49 @@
+## 1.0.0-dev75.7.1 — 2026-11-03 — GLOW visual qualification follow-up (HAOS Test only)
+
+- Correct FR/EN/DE alert and warning plural forms; translate Recorder notice, graph time axis, German expand button, and diagnostic temperature threshold label.
+- Localize BMS navigation tabs (Parameters, Diagnostics, Alarms), clarify persistent-weak-cell detection, and format BMS operating time only at presentation time.
+- In BMS Alarms, explicitly distinguish cell imbalance and temperature warnings instead of always suggesting both.
+- **HA journal limitation:** live HA mode currently initializes an empty in-memory EVENTS list; do not present zero events as a verified 48-hour history. Display a localized history-unavailable notice in global log and BMS alarms. Event recording is not implemented by this patch; demo events remain available in demo mode.
+- No changes to RS485/Active Polling, MQTT, BMS writes/readback, licensing, SCADA, or Premium. Candidate for HAOS Test .184 only; production .217 unchanged.
+
+## 1.0.0-dev75.7 — 2026-11-03 — GLOW FR/EN/DE qualification (HAOS Test only)
+
+- Complete FR/EN/DE coverage for GLOW fleet KPIs, freshness indicators, comparisons, diagnostics, events, pack and BMS views, cell-map tooltips, trends and history titles.
+- Translate computed diagnostic messages and recommended actions at display time. Preserve raw hardware alarm codes and avoid falsely attributing any hardware alarm to low SOC.
+- Localize labels for all 30 BMS parameters and the comparison/edit confirmation screens without changing parameter suffixes, Home Assistant entity IDs or writes.
+- Add regression coverage in `tests/dev75-7-glow-i18n.test.cjs`; preserve existing SCADA, Premium, MQTT, Legacy and Active Polling behavior.
+- Qualification candidate only: merge into HAOS Test installation branch after validation; production .217 remains untouched.
+
+## 1.0.0-dev74.3.1 — 2026-10-31 — HA existing dashboard titles sync hotfix
+
+- Fix `dashboard_sync.js` existing-dashboard metadata update: resolve stored `dashboard_id` using `lovelace/dashboards/list`, then update title/icon/sidebar flags through `lovelace/dashboards/update` without unsupported `url_path` or `mode` fields.
+- Previous implementation silently ignored the WebSocket metadata update error: dashboard content saved, but sidebar retained old titles. DEV74.3.1 fails and logs when metadata update fails.
+- Keep `smart-jkbms-glow`, `smart-jkbms-scada`, and `smart-jkbms-multipack` URLs unchanged. Restore intended titles `JK-BMS MultiPack`, `JK-BMS SCADA`, and `JK-BMS Diagnostics`.
+- Add regression mock covering the three existing registrations, first-create case, unknown registration, and explicit HA metadata-update rejection.
+- No changes to BMS serial/CAN, MQTT, license, Node-RED flows, Active Polling, alarm thresholds or commands.
+
+## 1.0.0-dev74.3 — 2026-10-31 — Concise JK-BMS sidebar and Diagnostics landing (draft)
+
+- HA sidebar names: `JK-BMS MultiPack` (Glow), `JK-BMS SCADA`, and `JK-BMS Diagnostics`, keeping existing URL paths and Premium registration.
+- Diagnostics becomes the first tab in the previous Multi-Pack Premium Lovelace dashboard, with Agrégation second; obsolete top-level Packs overview removed. Pack/BMS detailed subviews and their links remain available.
+- Restore real Step 13G threshold attributes (50 mV cell delta, 50 °C) in both HA compact diagnostic publishers; display unavailable values as —, not 0 mV.
+- Forward a bounded, concise `active_issues` list so the Diagnostics tab can describe active alarms consistently with the reported issue count.
+- Regression coverage: `tests/dev74-3-diagnostics-menu.test.cjs`. Candidate stays isolated from DEV74.2; do not deploy before physical alarm/write tests and owner approval.
+- **Scope:** UI navigation/metadata and diagnostic HA summary attributes only; no changes to alarm rule thresholds, BMS command engine, physical transports, or licensing logic.
+
+## 1.0.0-dev74.2 — 2026-10-31 — SCADA Responsive & BMS readability (TEST)
+
+- SCADA `v0.39` adapts its operator screens to desktop, Home Assistant iframe, laptop and narrow mobile viewports.
+- Increased BMS telemetry/status typography, hit targets and wrapping in Pack, BMS, Conduite and technical parameter views.
+- Industrial process view reflows source, diagnostic and pack cards rather than hiding them at narrow widths.
+- Fixed grid row shrink/overlap at narrow widths and Installation KPI overflow above Recorder trends at desktop widths.
+- Compact desktop Installation rail without obscuring process information; moved SCADA status/demo footer into the normal scrolling document.
+- Reset modal scroll at Pack → BMS → Conduite navigation while preserving scroll position on asynchronous BMS command readback updates; opaque mobile sticky header.
+- Added `tests/dev74-scada-responsive.test.cjs` and `docs/DEV74_SCADA_RESPONSIVE.md`.
+- **Scope:** SCADA presentation + add-on version / checks only. Retains DEV74 Glow/SCADA Premium registration and DEV73 physical address 0 discovery fix; no intended RS485, MQTT, command, alarm or licensing logic changes.
+- **Validation:** Firefox screenshots on local demo at 360px–desktop; SCADA in HAOS Test `.184` on live data (physical BMS 0/2 + three simulated TCP packs), 4 packs, 11 BMS, 30/30 numeric parameters per BMS shown. BMS write commands not exercised in this layout phase.
+- **Deployment caution:** Update the **existing** DEV74 repository/slug to retain its installed Premium identity. Never run two Multi-Pack test add-ons concurrently; HAOS Production `.217` unchanged.
+
 ## 1.0.0-dev73 CANDIDATE — 2026-10-18 — Physical BMS 0 SETUP Discovery (branch only)
 - Fix the remaining Active Polling address-0 MQTT/HA Discovery mismatch: the `Active Polling SETUP discovery` Node-RED function previously remapped physical JK address `0` to the Broadcasting-only name `master`, while SETUP rediscovery keys used `BMS_0`.
 - Preserve `BMS_0` consistently for Active Polling MQTT control/state topics, Home Assistant numeric SETUP entities, device identifiers, state tracking, migration cleanup and reconnect-triggered rediscovery.
