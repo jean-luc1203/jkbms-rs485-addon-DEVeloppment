@@ -205,6 +205,16 @@ async function run(){
  assert.match(script,/return \{source,trigger,release,writable:scadaCommandAvailability\(p,b\)\.ok/);
  assert.match(script,/scadaCommandAvailability\(packId,bms\)\.ok && SCADA_WRITABLE_CONTROL_KEYS/);
  assert.match(script,/const input=st\.available&&scadaCommandAvailability\(packId,bms\)\.ok/);
+ assert.match(script,/if\(!scadaCommandAvailability\(p,b\)\.ok\)throw new Error\(SCADA_COMMAND_UNCERTAIN\)/);
+ assert.match(script,/if\(!scadaCommandAvailability\(packId,bms\)\.ok\)\{setParameterCommand/);
+ assert.match(script,/if\(!scadaCommandAvailability\(packId,bms\)\.ok\)\{[\s\S]*?setControlCommand/);
+ const flows=JSON.parse(fs.readFileSync('rootfs/etc/node-red/flows.json','utf8'));
+ const engineNode=flows.find(n=>n.id==='a47300000000000e');
+ assert.ok(engineNode,'Scoped Active Polling command router missing');
+ assert.match(engineNode.func,/command_rejected_offline_stale_or_authorization/);
+ const cfg=fs.readFileSync('config.yaml','utf8');
+ assert.match(cfg,/^version: 1\.0\.0-dev80\.0$/m);
+
  console.log('PASS dev80-0-command-offline-safety.test.cjs');
 }
 run().catch(err=>{console.error(err);process.exitCode=1;});
