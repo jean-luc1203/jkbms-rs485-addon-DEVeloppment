@@ -1976,6 +1976,18 @@ const BMS_DRY_STATUS_DEFS=[
  {key:'dry_contact_1',label:'Dry1',desc:'État réel du contact sec DRY1',bit:'0x02'},
  {key:'dry_contact_2',label:'Dry2',desc:'État réel du contact sec DRY2',bit:'0x04'}
 ];
+// DEV80: UI guard is advisory; Active Polling independently requires recent
+// physical LIVE data on the same transport session before any RTU write.
+const SCADA_COMMAND_MAX_LIVE_AGE_S=12;
+const SCADA_COMMAND_UNCERTAIN='Communication perdue pendant la commande : résultat physique inconnu. Vérifier le BMS avant toute nouvelle action.';
+function scadaCommandAvailability(packId,bms){
+ const p=currentPacks.find(x=>x.id===String(packId));
+ if(!p||p.online!==true)return {ok:false,reason:'Pack hors ligne : commande bloquée.'};
+ const b=readBms(packId,bms),age=Number(b?.ageSec);
+ if(!b||b.ageSec==null||!Number.isFinite(age)||age<0||age>SCADA_COMMAND_MAX_LIVE_AGE_S)
+  return {ok:false,reason:'Données BMS absentes ou périmées : commande bloquée.'};
+ return {ok:true,reason:''};
+}
 function controlBool(v){
  const x=String(v??'').trim().toLowerCase();
  if(['on','1','true','active','enabled','open'].includes(x))return true;
@@ -2047,7 +2059,7 @@ function dryContext(p,b,n){
  const source=readDryConfigField(p,b,`dry${n}_trigger`),trigger=readDryConfigField(p,b,`dry${n}_trigger_value`),release=readDryConfigField(p,b,`dry${n}_release_value`);
  const h=getHass(),valid=[source,trigger,release].every(s=>s.available&&Number(s.attrs.observed_at)>Date.now()-180000);
  const controls=['trigger','trigger_value','release_value'].every(k=>{const s=h?.states?.[dryControlEntity(p,b,`dry${n}_${k}`)];return s&&!['unknown','unavailable'].includes(s.state)});
- return {source,trigger,release,writable:valid&&controls&&!!h&&typeof h.callService==='function'};
+ return {source,trigger,release,writable:scadaCommandAvailability(p,b).ok&&valid&&controls&&!!h&&typeof h.callService==='function'};
 }
 function dryDraft(p,b,key,v){dryDrafts[dryKey(p,b,key)]=v}
 const SP_DRY_DISPLAY_I18N={"fr":{"trigger":"Déclencheur configuré","threshold":"Seuil de déclenchement","release":"Seuil de relâchement","unknown":"ÉTAT NON EXPOSÉ","active":"CONTACT ACTIF","inactive":"CONTACT INACTIF","celsius":"Seuils en °C : correspondance observée sur votre BMS (60/50).","raw":"Seuils bruts signés : échelle non confirmée, aucune conversion automatique.","inactiveThreshold":"Seuils sans effet attendu pour cette source ; ils peuvent être préparés avant activation.","hysteresis":"Hystérésis contrôlée avant chaque écriture.","write":"Écriture unitaire · confirmation · relecture STATIC · audit","read":"Lecture seule : attendre des données récentes et les entités Active Polling.","fields":"{count}/3 champs lus · état physique LIVE indépendant.","statusOk":"✓ CONFIRMÉ · relecture STATIC réelle","statusPending":"↻ Attente de la relecture du BMS…"},"en":{"trigger":"Configured trigger","threshold":"Trigger threshold","release":"Release threshold","unknown":"STATUS NOT EXPOSED","active":"CONTACT ACTIVE","inactive":"CONTACT INACTIVE","celsius":"Thresholds in °C: correspondence observed on this BMS (60/50).","raw":"Signed raw thresholds: scale unconfirmed; no automatic conversion.","inactiveThreshold":"Thresholds are not expected to apply to this source; prepare them before activation if needed.","hysteresis":"Hysteresis checked before every write.","write":"Individual write · confirmation · STATIC readback · audit","read":"Read only: wait for recent data and Active Polling entities.","fields":"{count}/3 fields read · independent LIVE contact state.","statusOk":"✓ CONFIRMED · actual STATIC readback","statusPending":"↻ Waiting for BMS readback…"},"de":{"trigger":"Konfigurierter Auslöser","threshold":"Auslöseschwelle","release":"Rücksetzschwelle","unknown":"STATUS NICHT VERFÜGBAR","active":"KONTAKT AKTIV","inactive":"KONTAKT INAKTIV","celsius":"Schwellenwerte in °C: an diesem BMS beobachtete Zuordnung (60/50).","raw":"Vorzeichenbehaftete Rohschwellen: Skalierung unbestätigt; keine automatische Umrechnung.","inactiveThreshold":"Für diese Quelle haben die Schwellen voraussichtlich keine Wirkung; sie können vor der Aktivierung vorbereitet werden.","hysteresis":"Hysterese wird vor jedem Schreiben geprüft.","write":"Einzelschreiben · Bestätigung · STATIC-Rücklesen · Audit","read":"Nur Lesen: auf aktuelle Daten und Active-Polling-Entitäten warten.","fields":"{count}/3 Felder gelesen · unabhängiger LIVE-Kontaktstatus.","statusOk":"✓ BESTÄTIGT · tatsächliches STATIC-Rücklesen","statusPending":"↻ Warten auf BMS-Rücklesen…"}};
@@ -2111,6 +2123,8 @@ function requestDryCommand(p,b,key){
 }
 async function executeDryCommand(c){
  const p=c.packId,b=c.bms,key=c.key,id=dryKey(p,b,key),h=getHass();
+ const availability=scadaCommandAvailability(p,b);
+ if(!availability.ok){dryCommands[id]={status:'error',message:availability.reason};refreshDryCards();return}
  if(dryBusy(p,b)||!h||typeof h.callService!=='function')return;
  const requestId='dry-'+(globalThis.crypto?.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2));
  dryCommands[id]={status:'sending',requestId};document.activeElement?.blur();refreshDryCards();
@@ -2121,6 +2135,7 @@ async function executeDryCommand(c){
   dryCommands[id].status='pending';refreshDryCards();
   while(Date.now()<deadline){
    await sleepControl(300);
+   if(!scadaCommandAvailability(p,b).ok)throw new Error(SCADA_COMMAND_UNCERTAIN);
    const st=getHass()?.states?.[`sensor.${p}_bms_${b}_dry_command_result`],a=st?.attributes||{};
    if(a.request_id!==requestId||a.control!==key||Number(a.requested_value)!==c.target)continue;
    if(a.status==='confirmed'&&Number(a.readback_value)===c.target){
@@ -2159,7 +2174,7 @@ function commandClock(ts){return new Date(ts||Date.now()).toLocaleTimeString(spS
 function getControlCommand(packId,bms,key){return controlCommandState[controlCommandId(packId,bms,key)]||null}
 function setControlCommand(packId,bms,key,data){controlCommandState[controlCommandId(packId,bms,key)]={...(getControlCommand(packId,bms,key)||{}),...data}}
 function commandableControl(packId,bms,def,state){
- return SCADA_WRITABLE_CONTROL_KEYS.has(def.key) && state?.available===true && state?.fallback!==true && typeof state?.entity==='string' && state.entity.startsWith('switch.') && state.entity.includes('_active_polling') && state.source.includes('ACTIVE POLLING');
+ return scadaCommandAvailability(packId,bms).ok && SCADA_WRITABLE_CONTROL_KEYS.has(def.key) && state?.available===true && state?.fallback!==true && typeof state?.entity==='string' && state.entity.startsWith('switch.') && state.entity.includes('_active_polling') && state.source.includes('ACTIVE POLLING');
 }
 function commandStatusHtml(cmd){
  if(!cmd)return '';
@@ -2313,7 +2328,7 @@ function renderParameterCard(packId,bms,def){
  const st=readParameterState(packId,bms,def,true),cmd=getParameterCommand(packId,bms,def.key);const cls=[!st.available?'unavailable':'',cmd?.status==='sending'||cmd?.status==='pending'?'pending':'',cmd?.status==='success'?'success':'',cmd?.status==='error'?'error':''].filter(Boolean).join(' ');
  const current=st.available?formatParameterValue(st.value,st.unit,st.step):spParamUi('noEntity');
  const meta=parameterRangeLabel(st);const source=st.entity||spParamUi('noEntity');
- const input=st.available?`<div class="param-editor"><input id="param-input-${def.key}" type="number" value="${st.value}" ${st.min!=null?`min="${st.min}"`:''} ${st.max!=null?`max="${st.max}"`:''} step="${st.step||'any'}"><button onclick="requestParameterCommand('${packId}','${bms}','${def.key}')" >${spParamUi('modify')}</button></div>`:'';
+ const input=st.available&&scadaCommandAvailability(packId,bms).ok?`<div class="param-editor"><input id="param-input-${def.key}" type="number" value="${st.value}" ${st.min!=null?`min="${st.min}"`:''} ${st.max!=null?`max="${st.max}"`:''} step="${st.step||'any'}"><button onclick="requestParameterCommand('${packId}','${bms}','${def.key}')" >${spParamUi('modify')}</button></div>`:'';
  return `<div class="param-card ${cls}"><div class="param-card-top"><h4>${spParamDefinition(def,'label')}</h4><div class="param-current">${current}</div></div><div class="param-desc">${spParamDefinition(def,'desc')}</div>${input}<div class="param-meta"><span class="param-source" title="${source}">HA</span><span class="param-range">${meta}</span></div>${parameterStatusHtml(cmd)}</div>`;
 }
 function renderReadonlyParameterCard(packId,bms,def){const st=readParameterState(packId,bms,def,false),source=st.entity||spParamUi('noEntity');return `<div class="param-card readonly ${st.available?'':'unavailable'}"><div class="param-card-top"><h4>${spParamDefinition(def,'label')}</h4><div class="param-current">${formatReadonlyParameterValue(def,st)}</div></div><div class="param-desc">${spParamDefinition(def,'desc')}</div><div class="param-meta"><span class="param-source" title="${source}">HA</span><span class="param-range">${spParamUi('readonly')}${st.unit?` · ${st.unit}`:''}</span></div></div>`}
@@ -2333,7 +2348,10 @@ function openBmsTechnicalParameters(packId,bms,preserveScroll=false){
 function refreshParameterWorkspace(packId,bms){if(!currentParameterContext||currentParameterContext.packId!==String(packId)||currentParameterContext.bms!==String(bms))return;if(!document.getElementById('scadaOverlay').classList.contains('open'))return;const panel=document.querySelector('#scadaOverlay .detail-panel');const at=panel.scrollTop,drafts=spCaptureParameterDrafts();openBmsTechnicalParameters(packId,bms,true);spRestoreParameterDrafts(drafts);panel.scrollTop=at}
 function findParameterDef(key){for(const s of BMS_PARAMETER_SECTIONS){const d=s.items.find(x=>x.key===key);if(d)return d}return null}
 function requestParameterCommand(packId,bms,key){
- const def=findParameterDef(key),p=currentPacks.find(x=>x.id===packId);if(!def||!p)return;const st=readParameterState(packId,bms,def,true);const el=document.getElementById(`param-input-${key}`);const target=parameterNumber(el?.value);
+ const def=findParameterDef(key),p=currentPacks.find(x=>x.id===packId);if(!def||!p)return;
+ const availability=scadaCommandAvailability(packId,bms);
+ if(!availability.ok){setParameterCommand(packId,bms,key,{status:'error',completedAt:Date.now(),message:availability.reason});refreshParameterWorkspace(packId,bms);return}
+ const st=readParameterState(packId,bms,def,true);const el=document.getElementById(`param-input-${key}`);const target=parameterNumber(el?.value);
  if(!st.available||!st.entity||target===null){setParameterCommand(packId,bms,key,{status:'error',completedAt:Date.now(),message:'paramètre ou valeur indisponible'});refreshParameterWorkspace(packId,bms);return}
  const min=st.min,max=st.max;if(min!=null&&target<min||max!=null&&target>max){setParameterCommand(packId,bms,key,{status:'error',completedAt:Date.now(),message:`hors plage ${min}…${max}`});refreshParameterWorkspace(packId,bms);return}
  const tol=Math.max(1e-6,Number(st.step||0)*0.05);if(Math.abs(target-st.value)<=tol)return;
@@ -2345,16 +2363,23 @@ function requestParameterCommand(packId,bms,key){
  const go=document.getElementById('controlConfirmGo');go.classList.toggle('danger',def.critical===true);go.textContent='CONFIRMER MODIFICATION';document.getElementById('controlConfirmLayer').classList.add('open');
 }
 async function executeParameterCommand(packId,bms,key,target){
- const def=findParameterDef(key),p=currentPacks.find(x=>x.id===packId),h=getHass();if(!def||!p||!h||typeof h.callService!=='function')return;const st=readParameterState(packId,bms,def,true);if(!st.available||!st.entity){setParameterCommand(packId,bms,key,{status:'error',completedAt:Date.now(),message:'entité Home Assistant indisponible'});refreshParameterWorkspace(packId,bms);return}
+ const def=findParameterDef(key),p=currentPacks.find(x=>x.id===packId),h=getHass();if(!def||!p||!h||typeof h.callService!=='function')return;
+ const availability=scadaCommandAvailability(packId,bms);
+ if(!availability.ok){setParameterCommand(packId,bms,key,{status:'error',completedAt:Date.now(),message:availability.reason});refreshParameterWorkspace(packId,bms);return}
+ const st=readParameterState(packId,bms,def,true);if(!st.available||!st.entity){setParameterCommand(packId,bms,key,{status:'error',completedAt:Date.now(),message:'entité Home Assistant indisponible'});refreshParameterWorkspace(packId,bms);return}
  const startedAt=Date.now();setParameterCommand(packId,bms,key,{status:'sending',target,entity:st.entity,startedAt,message:''});refreshParameterWorkspace(packId,bms);addOperatorEvent('Paramètre',`${p.name} · BMS ${bms} · ${def.label} ${formatParameterValue(st.value,st.unit,st.step)} → ${formatParameterValue(target,st.unit,st.step)} envoyé`);
  try{await h.callService('number','set_value',{entity_id:st.entity,value:Number(target)})}catch(err){setParameterCommand(packId,bms,key,{status:'error',completedAt:Date.now(),message:'appel Home Assistant refusé'});refreshParameterWorkspace(packId,bms);console.warn(`SmartPhoton SCADA parameter ${key} failed`,err);return}
  setParameterCommand(packId,bms,key,{status:'pending'});refreshParameterWorkspace(packId,bms);const started=Date.now(),tol=Math.max(1e-6,Number(st.step||0)*0.1);
- while(Date.now()-started<CONTROL_COMMAND_TIMEOUT_MS){await sleepControl(400);const latest=readParameterState(packId,bms,def,true);if(latest.available&&Math.abs(Number(latest.value)-Number(target))<=tol){setParameterCommand(packId,bms,key,{status:'success',completedAt:Date.now(),message:'retour BMS confirmé'});addOperatorEvent('Paramètre',`${p.name} · BMS ${bms} · ${def.label} confirmé à ${formatParameterValue(latest.value,latest.unit,latest.step)}`);refreshParameterWorkspace(packId,bms);return}}
+ while(Date.now()-started<CONTROL_COMMAND_TIMEOUT_MS){await sleepControl(400);
+  if(!scadaCommandAvailability(packId,bms).ok){setParameterCommand(packId,bms,key,{status:'error',completedAt:Date.now(),message:SCADA_COMMAND_UNCERTAIN});refreshParameterWorkspace(packId,bms);return}
+  const latest=readParameterState(packId,bms,def,true);if(latest.available&&Math.abs(Number(latest.value)-Number(target))<=tol){setParameterCommand(packId,bms,key,{status:'success',completedAt:Date.now(),message:'retour BMS confirmé'});addOperatorEvent('Paramètre',`${p.name} · BMS ${bms} · ${def.label} confirmé à ${formatParameterValue(latest.value,latest.unit,latest.step)}`);refreshParameterWorkspace(packId,bms);return}}
  setParameterCommand(packId,bms,key,{status:'error',completedAt:Date.now(),message:'timeout 15 s · valeur BMS non confirmée'});addOperatorEvent('Paramètre',`${p.name} · BMS ${bms} · ${def.label} non confirmé (timeout)`);refreshParameterWorkspace(packId,bms);
 }
 
 function requestControlCommand(packId,bms,key,target){
  const def=BMS_CONTROL_DEFS.find(x=>x.key===key);const b=readBms(packId,bms);const p=currentPacks.find(x=>x.id===packId);if(!def||!b||!p)return;
+ const availability=scadaCommandAvailability(packId,bms);
+ if(!availability.ok){setControlCommand(packId,bms,key,{status:'error',completedAt:Date.now(),message:availability.reason});refreshControlWorkspace(packId,bms);return}
  const state=readControlState(packId,bms,def,b);
  if(!commandableControl(packId,bms,def,state)){
    setControlCommand(packId,bms,key,{status:'error',completedAt:Date.now(),message:'commande non disponible dans ce mode'});refreshControlWorkspace(packId,bms);return;
@@ -2412,6 +2437,8 @@ function confirmControlCommand(){
 function sleepControl(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
 async function executeControlCommand(packId,bms,key,target){
  const p=currentPacks.find(x=>x.id===packId);const b=readBms(packId,bms);const def=BMS_CONTROL_DEFS.find(x=>x.key===key);if(!p||!b||!def)return;
+ const availability=scadaCommandAvailability(packId,bms);
+ if(!availability.ok){setControlCommand(packId,bms,key,{status:'error',completedAt:Date.now(),message:availability.reason});refreshControlWorkspace(packId,bms);return}
  const state=readControlState(packId,bms,def,b);const h=getHass();
  if(!commandableControl(packId,bms,def,state)||!h||typeof h.callService!=='function'){
    setControlCommand(packId,bms,key,{status:'error',completedAt:Date.now(),message:'service Home Assistant indisponible'});refreshControlWorkspace(packId,bms);return;
@@ -2430,6 +2457,11 @@ async function executeControlCommand(packId,bms,key,target){
  const started=Date.now();
  while(Date.now()-started<CONTROL_COMMAND_TIMEOUT_MS){
    await sleepControl(400);
+   if(!scadaCommandAvailability(packId,bms).ok){
+    setControlCommand(packId,bms,key,{status:'error',completedAt:Date.now(),message:SCADA_COMMAND_UNCERTAIN});
+    addOperatorEvent('Commande',`${p.name} · BMS ${bms} · ${def.label} ${human} non confirmé : communication perdue`);
+    refreshControlWorkspace(packId,bms);return;
+   }
    const latestB=readBms(packId,bms);const latest=readControlState(packId,bms,def,latestB);
    if(latest.available===true && latest.on===Boolean(target)){
      const completedAt=Date.now();
