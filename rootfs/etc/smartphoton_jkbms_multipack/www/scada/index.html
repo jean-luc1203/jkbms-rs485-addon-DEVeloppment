@@ -1979,6 +1979,7 @@ const BMS_DRY_STATUS_DEFS=[
 // DEV80: UI guard is advisory; Active Polling independently requires recent
 // physical LIVE data on the same transport session before any RTU write.
 const SCADA_COMMAND_MAX_LIVE_AGE_S=12;
+const SCADA_COMMAND_UNCERTAIN='Communication perdue pendant la commande : résultat physique inconnu. Vérifier le BMS avant toute nouvelle action.';
 function scadaCommandAvailability(packId,bms){
  const p=currentPacks.find(x=>x.id===String(packId));
  if(!p||p.online!==true)return {ok:false,reason:'Pack hors ligne : commande bloquée.'};
@@ -2134,6 +2135,7 @@ async function executeDryCommand(c){
   dryCommands[id].status='pending';refreshDryCards();
   while(Date.now()<deadline){
    await sleepControl(300);
+   if(!scadaCommandAvailability(p,b).ok)throw new Error(SCADA_COMMAND_UNCERTAIN);
    const st=getHass()?.states?.[`sensor.${p}_bms_${b}_dry_command_result`],a=st?.attributes||{};
    if(a.request_id!==requestId||a.control!==key||Number(a.requested_value)!==c.target)continue;
    if(a.status==='confirmed'&&Number(a.readback_value)===c.target){
@@ -2368,7 +2370,9 @@ async function executeParameterCommand(packId,bms,key,target){
  const startedAt=Date.now();setParameterCommand(packId,bms,key,{status:'sending',target,entity:st.entity,startedAt,message:''});refreshParameterWorkspace(packId,bms);addOperatorEvent('Paramètre',`${p.name} · BMS ${bms} · ${def.label} ${formatParameterValue(st.value,st.unit,st.step)} → ${formatParameterValue(target,st.unit,st.step)} envoyé`);
  try{await h.callService('number','set_value',{entity_id:st.entity,value:Number(target)})}catch(err){setParameterCommand(packId,bms,key,{status:'error',completedAt:Date.now(),message:'appel Home Assistant refusé'});refreshParameterWorkspace(packId,bms);console.warn(`SmartPhoton SCADA parameter ${key} failed`,err);return}
  setParameterCommand(packId,bms,key,{status:'pending'});refreshParameterWorkspace(packId,bms);const started=Date.now(),tol=Math.max(1e-6,Number(st.step||0)*0.1);
- while(Date.now()-started<CONTROL_COMMAND_TIMEOUT_MS){await sleepControl(400);const latest=readParameterState(packId,bms,def,true);if(latest.available&&Math.abs(Number(latest.value)-Number(target))<=tol){setParameterCommand(packId,bms,key,{status:'success',completedAt:Date.now(),message:'retour BMS confirmé'});addOperatorEvent('Paramètre',`${p.name} · BMS ${bms} · ${def.label} confirmé à ${formatParameterValue(latest.value,latest.unit,latest.step)}`);refreshParameterWorkspace(packId,bms);return}}
+ while(Date.now()-started<CONTROL_COMMAND_TIMEOUT_MS){await sleepControl(400);
+  if(!scadaCommandAvailability(packId,bms).ok){setParameterCommand(packId,bms,key,{status:'error',completedAt:Date.now(),message:SCADA_COMMAND_UNCERTAIN});refreshParameterWorkspace(packId,bms);return}
+  const latest=readParameterState(packId,bms,def,true);if(latest.available&&Math.abs(Number(latest.value)-Number(target))<=tol){setParameterCommand(packId,bms,key,{status:'success',completedAt:Date.now(),message:'retour BMS confirmé'});addOperatorEvent('Paramètre',`${p.name} · BMS ${bms} · ${def.label} confirmé à ${formatParameterValue(latest.value,latest.unit,latest.step)}`);refreshParameterWorkspace(packId,bms);return}}
  setParameterCommand(packId,bms,key,{status:'error',completedAt:Date.now(),message:'timeout 15 s · valeur BMS non confirmée'});addOperatorEvent('Paramètre',`${p.name} · BMS ${bms} · ${def.label} non confirmé (timeout)`);refreshParameterWorkspace(packId,bms);
 }
 
@@ -2453,6 +2457,11 @@ async function executeControlCommand(packId,bms,key,target){
  const started=Date.now();
  while(Date.now()-started<CONTROL_COMMAND_TIMEOUT_MS){
    await sleepControl(400);
+   if(!scadaCommandAvailability(packId,bms).ok){
+    setControlCommand(packId,bms,key,{status:'error',completedAt:Date.now(),message:SCADA_COMMAND_UNCERTAIN});
+    addOperatorEvent('Commande',`${p.name} · BMS ${bms} · ${def.label} ${human} non confirmé : communication perdue`);
+    refreshControlWorkspace(packId,bms);return;
+   }
    const latestB=readBms(packId,bms);const latest=readControlState(packId,bms,def,latestB);
    if(latest.available===true && latest.on===Boolean(target)){
      const completedAt=Date.now();
