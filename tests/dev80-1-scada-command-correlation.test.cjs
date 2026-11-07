@@ -9,13 +9,13 @@ const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert.ok(script,'SCADA inline JS exists');
 new vm.Script(script,{filename:'scada/index.html'});
 const config=fs.readFileSync('config.yaml','utf8');
-assert.match(config,/version: 1\.0\.0-dev80\.[12]/);
+assert.match(config,/version: 1\.0\.0-dev80\.[123]/);
 const flow=JSON.parse(fs.readFileSync(root+'node-red/flows.json','utf8'));
 assert.equal(flow.length,449,'preserve all Node-RED nodes');
 for(const n of flow)if(typeof n.func==='string')new vm.Script('(function(){'+n.func+'})');
 for(const id of ['34cada0000000002','74a0000000000002']){
  const n=flow.find(x=>x.id===id);
- assert.ok(n&&n.func.includes('v=dev80-'+(config.includes('dev80.2')?'2':'1')),'dashboard iframe cache-bust updated: '+id);
+ assert.ok(n&&n.func.includes('v=dev80-'+(config.match(/dev80\.([123])/ )?.[1]||'1')),'dashboard iframe cache-bust updated: '+id);
 }
 const engine=fs.readFileSync(root+'node-red/active-polling.js','utf8');
 assert.match(engine,/\(\?:dry\|cmd\)/,'engine permits correlated generic request IDs');

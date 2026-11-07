@@ -2252,15 +2252,15 @@ function renderControlConsole(packId,bms,b){
  const viewFresh=scadaWritableBms(packId,bms);
  const cards=rows.map(({def,state})=>{
    const cmd=getControlCommand(packId,bms,def.key);const commandable=commandableControl(packId,bms,def,state);
-   const cls=[!state.available?'na':state.on?'on':'off',commandable?'commandable':'',commandable&&def.critical?'critical-control':'',cmd?.status==='pending'||cmd?.status==='sending'?'command-pending':'',cmd?.status==='success'?'command-success':'',cmd?.status==='error'?'command-error':''].filter(Boolean).join(' ');
+   const cls=[!viewFresh||!state.available?'na':state.on?'on':'off',commandable?'commandable':'',commandable&&def.critical?'critical-control':'',(cmd?.status==='pending'||cmd?.status==='sending')?'command-pending':'',viewFresh&&cmd?.status==='success'?'command-success':'',cmd?.status==='error'?'command-error':''].filter(Boolean).join(' ');
    const value=!viewFresh?'—':!state.available?spParamUi('noEntity'):state.on?'ACTIF':'INACTIF';
    const source=!viewFresh?'DONNÉES PÉRIMÉES':state.source||'—';
-   return `<div class="control-card ${cls}"><div class="control-top"><div class="control-label">${def.label}</div><div class="control-value">${value}</div></div><div class="control-desc">${def.desc}</div><div class="control-source"><span>${source}</span>${controlActionHtml(packId,bms,def,state)}</div>${commandStatusHtml(cmd)}</div>`;
+   return `<div class="control-card ${cls}"><div class="control-top"><div class="control-label">${def.label}</div><div class="control-value">${value}</div></div><div class="control-desc">${def.desc}</div><div class="control-source"><span>${source}</span>${controlActionHtml(packId,bms,def,state)}</div>${!viewFresh&&cmd?.status==='success'?'':commandStatusHtml(cmd)}</div>`;
  }).join('');
  const dryRows=BMS_DRY_STATUS_DEFS.map(def=>({def,state:readDryState(packId,bms,def)}));
  const dryExposed=scadaWritableBms(packId,bms)?dryRows.filter(x=>x.state.available).length:0;
  const dryCards=dryRows.map(({def,state})=>{
-   const cls=!state.available?'na':state.on?'on':'off';
+   const cls=!viewFresh||!state.available?'na':state.on?'on':'off';
    const value=!viewFresh?'—':!state.available?spParamUi('noEntity'):state.on?'ACTIF':'INACTIF';
    return `<div class="control-card ${cls}"><div class="control-top"><div class="control-label">${def.label}</div><div class="control-value">${value}</div></div><div class="control-desc">${def.desc}</div><div class="control-source"><span>${!viewFresh?'DONNÉES PÉRIMÉES':state.source||'—'} · bit ${def.bit}</span><strong class="control-lock">▣ LECTURE</strong></div></div>`;
  }).join('');
