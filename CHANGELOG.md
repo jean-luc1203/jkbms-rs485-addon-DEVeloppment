@@ -1,3 +1,12 @@
+## 1.0.0-dev80.1 — 2026-11-07 — SCADA write interlock and correlated engine result (HAOS TEST ONLY)
+
+- SCADA `switch` / `number` controls send a fresh non-retained MQTT request with a unique `cmd-` request_id. Legacy scalar MQTT/HA commands remain supported and unchanged.
+- Subscribe to the per-BMS non-retained Active Polling engine command_result topic **before** sending. Show confirmed only on a matching request_id, pack, BMS, control and verified physical readback. A successful HA service call or retained/optimistic HA entity state is not confirmation.
+- Decline writes for offline or stale packs/BMS (independent per-BMS HA heartbeat <=20 s, plus existing stricter engine LIVE/session gate). Lock editable switch/number/DRY controls; revalidate before sending; cancel an open confirmation on loss of telemetry.
+- DRY retains its existing correlation and static preconditions, with added BMS communication checks before send and while waiting for results. Command timeouts or lost replies remain unconfirmed.
+- Preserve all 449 Node-RED nodes, the TCP/serial readers, legacy MQTT scalar control payloads, physical BMS addresses (including 0), and the independent production environment.
+- Regression file: `tests/dev80-1-scada-command-correlation.test.cjs`. Candidate for local tests and manual HAOS TEST .184 only; **do not merge or deploy before qualification**.
+
 ## 1.0.0-dev75.7.1 — 2026-11-03 — GLOW visual qualification follow-up (HAOS Test only)
 
 - Correct FR/EN/DE alert and warning plural forms; translate Recorder notice, graph time axis, German expand button, and diagnostic temperature threshold label.

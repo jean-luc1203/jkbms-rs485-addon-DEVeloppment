@@ -510,7 +510,7 @@ class Engine {
   }
   if(s.commands.length>=16)return false;
   if(def.dry && (s.activeDry===addr || s.commands.some(q=>q.addr===addr&&q.def.dry)))return false;
-  if(meta.request_id!==undefined && (typeof meta.request_id!=='string'||!/^dry-[a-zA-Z0-9-]{8,100}$/.test(meta.request_id)))return false;
+  if(meta.request_id!==undefined && (typeof meta.request_id!=='string'||!/^(?:dry|cmd)-[a-zA-Z0-9-]{8,100}$/.test(meta.request_id)))return false;
   if(meta.expected_raw!==undefined && !Number.isInteger(meta.expected_raw))return false;
   if(meta.expected_source!==undefined && (!Number.isInteger(meta.expected_source)||meta.expected_source<0||meta.expected_source>255))return false;
   const c={addr,control,value,def,id:Date.now().toString(36)+'-'+Math.random().toString(16).slice(2,8),expires:performance.now()+15000,sessionEpoch:s.sessionEpoch,requestId:meta.request_id,expectedRaw:meta.expected_raw,expectedSource:meta.expected_source};
