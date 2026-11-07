@@ -1,3 +1,11 @@
+## 1.0.0-dev80.2 — 2026-11-07 — Live SCADA command workspace refresh (HAOS TEST ONLY)
+
+- In an already-open SCADA Controls or Technical Parameters view, re-render on per-BMS writable availability changes only. Live -> stale/offline shows read-only disabled buttons; stale/offline -> live restores controls after new telemetry, without F5.
+- Preserve scroll position. Discard unsent technical parameter drafts upon connection loss rather than silently replaying old values; preserve drafts for regular in-session updates. Suppress false ACTIF/INACTIF telemetry from retained Home Assistant states while stale.
+- Show the actual count of accessible controls instead of a fixed 9/9. DRY live values are also withheld when their pack is stale.
+- Keep the DEV80.1 auto-cancel confirmation, correlated readback, and DEV80.0 TCP session protections unchanged. No Node-RED Active Polling or transport changes.
+- Local tests required before any merge; HAOS Test .184 qualification only. No production changes.
+
 ## 1.0.0-dev80.1 — 2026-11-07 — SCADA write interlock and correlated engine result (HAOS TEST ONLY)
 
 - SCADA `switch` / `number` controls send a fresh non-retained MQTT request with a unique `cmd-` request_id. Legacy scalar MQTT/HA commands remain supported and unchanged.
