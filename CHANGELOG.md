@@ -1,3 +1,9 @@
+## 1.0.0-dev80.3 — 2026-11-07 — Neutral SCADA styling for stale controls (HAOS TEST ONLY)
+
+- Real DEV80.2 lab fault injection on Pack 2/BMS 1 confirmed automatic OFFLINE -> read-only (0/9), cached value masking and reconnect -> LIVE (9/9) without F5. However, cards for previously ACTIVE MOS/Floating retained their green left border during offline, misleading operators.
+- When offline/stale, change both switch controls and DRY status cards to the neutral `na` class; restore normal `on/off` CSS only after fresh BMS telemetry. Keep ERROR/pending command alerts visible; suppress historical green CONFIRMED when offline, without altering the underlying command audit.
+- No changes to the Active Polling engine, command routing, MQTT topics, transport, licence, persistent data or Home Assistant production. New regression `tests/dev80-3-scada-stale-state-neutral-colors.test.cjs`. Qualification on HAOS Test .184 required before merge or release.
+
 ## 1.0.0-dev80.2 — 2026-11-07 — Live SCADA command workspace refresh (HAOS TEST ONLY)
 
 - In an already-open SCADA Controls or Technical Parameters view, re-render on per-BMS writable availability changes only. Live -> stale/offline shows read-only disabled buttons; stale/offline -> live restores controls after new telemetry, without F5.
