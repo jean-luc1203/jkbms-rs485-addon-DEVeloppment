@@ -63,6 +63,7 @@ const renderCtx={
  readControlState:()=>({available:true,on:true,source:'SETUP · ACTIVE POLLING'}),
  readDryState:()=>({available:true,on:true,source:'LIVE'}),
  scadaWritableBms:()=>false,
+ scadaTelemetryFresh:()=>false,
  commandableControl:()=>false,
  getControlCommand:()=>null,
  spParamUi:x=>x,

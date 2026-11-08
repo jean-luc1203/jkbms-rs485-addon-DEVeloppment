@@ -54,6 +54,7 @@ const hass={
  }}
 };
 const ctx={
+ COMM_MODE:'active_polling',
  currentPacks:[pack],
  getHass:()=>enabled?hass:null,
  memberHeartbeatAge:()=>age,
