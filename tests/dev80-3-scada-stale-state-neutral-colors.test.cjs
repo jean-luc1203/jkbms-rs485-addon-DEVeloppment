@@ -7,7 +7,7 @@ const html=fs.readFileSync('rootfs/etc/smartphoton_jkbms_multipack/www/scada/ind
 const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert.ok(script,'SCADA inline JS missing');
 new vm.Script(script,{filename:'scada dev80.3'});
-assert.match(fs.readFileSync('config.yaml','utf8'),/version: 1\.0\.0-dev80\.3/);
+assert.match(fs.readFileSync('config.yaml','utf8'),/version: 1\.0\.0-(?:dev80\.3|dev81\.0)/);
 
 const begin=script.indexOf('function renderControlConsole(packId,bms,b){');
 const end=script.indexOf('function openBmsControls(',begin);
@@ -22,6 +22,7 @@ const ctx={
  readControlState:()=>({available:true,on:true,source:'SETUP ACTIVE POLLING'}),
  readDryState:()=>({available:true,on:true,source:'LIVE'}),
  scadaWritableBms:()=>fresh,
+ scadaTelemetryFresh:()=>fresh,
  commandableControl:()=>fresh,
  getControlCommand:()=>cmd,
  spParamUi:()=>'-',
