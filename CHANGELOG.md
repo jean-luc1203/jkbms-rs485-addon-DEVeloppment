@@ -1,3 +1,11 @@
+## 1.0.0-dev81.0 — 2026-11-08 — Broadcasting Multi-Pack qualification (HAOS TEST ONLY)
+
+- Adopt the two-TCP-pack laboratory topology in passive Broadcasting: physical Cellar RS485-2 at `192.168.0.131:8887` (master/2), independent Berlin simulator at `192.168.0.175:5032`; both are transport endpoints only, and global Broadcasting/Active Polling mode remains mutually exclusive. **No environment-specific credentials/config are baked into release defaults.**
+- Per-pack Broadcasting discovery/reset reads only recent `broadcast_bms_registry_*.seen` timestamps (120 seconds by default), never persisted stale `ids`. No phantom master in logs when no master frame was seen; no master SETUP/discovery reset on packs that have not actually broadcast a master frame recently.
+- SCADA distinguishes *fresh readable telemetry* from *authorization to write*. Broadcasting stays read-only, even when stale Active Polling HA switch/number entities survive from earlier configurations. Genuine MOS/DRY data remains viewable with a current BMS heartbeat and goes offline/returns live without F5. Active Polling write/confirm protections from DEV80.0–DEV80.3 are unchanged.
+- Technical parameter write controls are absent in broadcasting, while genuine readonly sensor values may still be displayed (not evidence of a freshly read SETUP). Cancel any pending confirmation on a mode change.
+- Regression coverage: `tests/dev81-0-broadcast-readonly-discovery.test.cjs` plus previous tests. On-site HAOS Test .184 validation and simulator broadcasting configuration check required before publishing. No changes to production HAOS .217 or the physical RS485 bus.
+
 ## 1.0.0-dev80.3 — 2026-11-07 — Neutral SCADA styling for stale controls (HAOS TEST ONLY)
 
 - Real DEV80.2 lab fault injection on Pack 2/BMS 1 confirmed automatic OFFLINE -> read-only (0/9), cached value masking and reconnect -> LIVE (9/9) without F5. However, cards for previously ACTIVE MOS/Floating retained their green left border during offline, misleading operators.

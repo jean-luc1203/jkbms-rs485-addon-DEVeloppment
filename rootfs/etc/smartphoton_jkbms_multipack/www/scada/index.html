@@ -2136,6 +2136,13 @@ async function executeDryCommand(c){
 }
 
 function readControlState(packId,bms,def,b){
+ // Broadcasting does not have an Active Polling SETUP/write session. Never
+ // surface a cached HA switch from a previous Active Polling deployment.
+ if(COMM_MODE!=='active_polling'){
+  if(def.fallback&&b&&typeof b[def.fallback]==='boolean')
+   return {available:true,on:b[def.fallback],source:'TÉLÉMÉTRIE BROADCASTING',entity:null,fallback:true};
+  return {available:false,on:null,source:spParamUi('noEntity'),entity:null};
+ }
  const h=getHass();
  if(h){
    for(const id of controlEntityCandidates(packId,bms,def.key)){
@@ -2158,11 +2165,18 @@ const CONTROL_COMMAND_TIMEOUT_MS=15000;
 // DEV80.1: retained Home Assistant entity values are not connection evidence.
 // The engine additionally enforces a stricter per-BMS LIVE/session guard.
 const SCADA_COMMAND_MAX_HEARTBEAT_SEC=20;
-function scadaWritableBms(packId,bms){
+function scadaTelemetryFresh(packId,bms){
  const h=getHass(),pack=currentPacks.find(x=>x.id===String(packId));
  const age=h?memberHeartbeatAge(h,String(packId),String(bms)):null;
- return !!h&&typeof h.callService==='function'&&pack?.online===true&&
+ return !!h&&pack?.online===true&&
    Number.isFinite(age)&&age>=0&&age<=SCADA_COMMAND_MAX_HEARTBEAT_SEC;
+}
+function scadaWritableBms(packId,bms){
+ const h=getHass();
+ // DEV81.0: Broadcasting is physically read-only, regardless of cached
+ // Active Polling entities from a previous add-on configuration.
+ return COMM_MODE==='active_polling'&&!!h&&
+   typeof h.callService==='function'&&scadaTelemetryFresh(packId,bms);
 }
 function scadaCommandRequestId(){
  const suffix=globalThis.crypto?.randomUUID?.()||
@@ -2248,8 +2262,8 @@ function controlActionHtml(packId,bms,def,state){
 }
 function renderControlConsole(packId,bms,b){
  const rows=BMS_CONTROL_DEFS.map(def=>({def,state:readControlState(packId,bms,def,b)}));
- const exposed=scadaWritableBms(packId,bms)?rows.filter(x=>x.state.available).length:0;
- const viewFresh=scadaWritableBms(packId,bms);
+ const exposed=scadaTelemetryFresh(packId,bms)?rows.filter(x=>x.state.available).length:0;
+ const viewFresh=scadaTelemetryFresh(packId,bms);
  const cards=rows.map(({def,state})=>{
    const cmd=getControlCommand(packId,bms,def.key);const commandable=commandableControl(packId,bms,def,state);
    const cls=[!viewFresh||!state.available?'na':state.on?'on':'off',commandable?'commandable':'',commandable&&def.critical?'critical-control':'',(cmd?.status==='pending'||cmd?.status==='sending')?'command-pending':'',viewFresh&&cmd?.status==='success'?'command-success':'',cmd?.status==='error'?'command-error':''].filter(Boolean).join(' ');
@@ -2258,7 +2272,7 @@ function renderControlConsole(packId,bms,b){
    return `<div class="control-card ${cls}"><div class="control-top"><div class="control-label">${def.label}</div><div class="control-value">${value}</div></div><div class="control-desc">${def.desc}</div><div class="control-source"><span>${source}</span>${controlActionHtml(packId,bms,def,state)}</div>${!viewFresh&&cmd?.status==='success'?'':commandStatusHtml(cmd)}</div>`;
  }).join('');
  const dryRows=BMS_DRY_STATUS_DEFS.map(def=>({def,state:readDryState(packId,bms,def)}));
- const dryExposed=scadaWritableBms(packId,bms)?dryRows.filter(x=>x.state.available).length:0;
+ const dryExposed=scadaTelemetryFresh(packId,bms)?dryRows.filter(x=>x.state.available).length:0;
  const dryCards=dryRows.map(({def,state})=>{
    const cls=!viewFresh||!state.available?'na':state.on?'on':'off';
    const value=!viewFresh?'—':!state.available?spParamUi('noEntity'):state.on?'ACTIF':'INACTIF';
@@ -2270,12 +2284,12 @@ function openBmsControls(packId,bms,preserveScroll=false){
  const p=currentPacks.find(x=>x.id===packId);const b=readBms(packId,bms);if(!p||!b)return;
  currentParameterContext=null;currentControlContext={packId:String(packId),bms:String(bms)};
  const rows=BMS_CONTROL_DEFS.map(def=>({def,state:readControlState(packId,bms,def,b)}));
- const exposed=scadaWritableBms(packId,bms)?rows.filter(x=>x.state.available).length:0;
+ const exposed=scadaTelemetryFresh(packId,bms)?rows.filter(x=>x.state.available).length:0;
  const accessible=rows.filter(x=>commandableControl(packId,bms,x.def,x.state)).length;
  document.getElementById('detailEyebrow').textContent=`${p.name} · BMS ${bms} · Conduite`;
  document.getElementById('detailTitle').textContent='Conduite / paramètres BMS';
  document.getElementById('detailBody').innerHTML=`<div class="control-workspace" style="grid-column:1/3"><div class="control-summary"><div class="who">Poste de conduite BMS</div><h3>${p.name} · BMS ${bms}</h3><div class="sub">Adresse JK ${bms} · ${commModeLabel()}</div><div class="control-state-count"><span>États de commande lus</span><b>${exposed}/${rows.length}</b></div><div class="control-pilot"><span>Commandes sûres DEV70</span><b>${accessible}/${rows.length} COMMANDES BOOLÉENNES ACCESSIBLES</b><small>Confirmation explicite · retour réel BMS obligatoire · audit central. MOS charge/décharge conservent l’avertissement renforcé.</small></div><div class="control-console-note" style="margin-top:14px;margin-bottom:0"><b>MODE SÛR.</b><br>Floating, Smart Sleep, enregistrement temporisé et désactivation PCL utilisent désormais le même moteur de commande que les fonctions déjà validées. Dry1 / Dry2 restent volontairement en lecture seule : ce sont des états physiques, pas des bits de commande.</div><div class="param-nav" style="margin-top:14px"><button onclick="openBmsTechnicalParameters('${packId}','${bms}')">⚙ Paramètres techniques</button><button onclick="openCellDiagnostics('${packId}','${bms}')">▦ Cellules</button><button class="full" onclick="openBms('${packId}','${bms}')">← Retour supervision BMS</button></div></div>${renderControlConsole(packId,bms,b)}</div>`;
- scadaWritableViewSignature='control:'+packId+':'+bms+':'+scadaWritableBms(packId,bms);
+ scadaWritableViewSignature='control:'+packId+':'+bms+':'+scadaTelemetryFresh(packId,bms);
  showScadaDetail(preserveScroll);
 }
 function refreshControlWorkspace(packId,bms){
@@ -2339,6 +2353,8 @@ function parameterEntityCandidates(packId,bms,key,writable=true){
 }
 function parameterNumber(v){const n=Number(v);return Number.isFinite(n)?n:null}
 function readParameterState(packId,bms,def,writable=true){
+ // No writable Active Polling number entities while in passive Broadcasting.
+ if(writable&&COMM_MODE!=='active_polling')return {available:false,value:null,entity:null,unit:def.unit||'',min:null,max:null,step:null};
  const h=getHass();if(!h)return {available:false,value:null,entity:null,unit:def.unit||'',min:null,max:null,step:null};
  for(const id of parameterEntityCandidates(packId,bms,def.key,writable)){
   const st=h.states?.[id];if(!st)continue;const value=parameterNumber(st.state);if(value===null)continue;
@@ -2387,13 +2403,13 @@ const SP_PARAM_DEFINITIONS_I18N={"max_charge_current":{"en":{"label":"Maximum ch
 function spParamDefinition(def,field){return SP_PARAM_DEFINITIONS_I18N[def.key]?.[spLanguage]?.[field]||def[field]}
 function renderParameterCard(packId,bms,def){
  const st=readParameterState(packId,bms,def,true),cmd=getParameterCommand(packId,bms,def.key);const cls=[!st.available?'unavailable':'',cmd?.status==='sending'||cmd?.status==='pending'?'pending':'',cmd?.status==='success'?'success':'',cmd?.status==='error'?'error':''].filter(Boolean).join(' ');
- const current=!scadaWritableBms(packId,bms)?'— (donnée ancienne)':st.available?formatParameterValue(st.value,st.unit,st.step):spParamUi('noEntity');
+ const current=!scadaTelemetryFresh(packId,bms)?'— (donnée ancienne)':st.available?formatParameterValue(st.value,st.unit,st.step):spParamUi('noEntity');
  const meta=parameterRangeLabel(st);const source=st.entity||spParamUi('noEntity');
  const writable=scadaWritableBms(packId,bms)&&st.entity?.startsWith('number.')&&st.entity.includes(packId+'_bms_'+bms+'_');
  const input=st.available?`<div class="param-editor"><input id="param-input-${def.key}" type="number" value="${st.value}" ${st.min!=null?`min="${st.min}"`:''} ${st.max!=null?`max="${st.max}"`:''} step="${st.step||'any'}" ${writable?'':'disabled'}><button onclick="requestParameterCommand('${packId}','${bms}','${def.key}')" ${writable?'':'disabled'}>${spParamUi('modify')}</button></div>`:'';
  return `<div class="param-card ${cls}"><div class="param-card-top"><h4>${spParamDefinition(def,'label')}</h4><div class="param-current">${current}</div></div><div class="param-desc">${spParamDefinition(def,'desc')}</div>${input}<div class="param-meta"><span class="param-source" title="${source}">HA</span><span class="param-range">${meta}</span></div>${parameterStatusHtml(cmd)}</div>`;
 }
-function renderReadonlyParameterCard(packId,bms,def){const st=readParameterState(packId,bms,def,false),source=st.entity||spParamUi('noEntity');return `<div class="param-card readonly ${st.available?'':'unavailable'}"><div class="param-card-top"><h4>${spParamDefinition(def,'label')}</h4><div class="param-current">${formatReadonlyParameterValue(def,st)}</div></div><div class="param-desc">${spParamDefinition(def,'desc')}</div><div class="param-meta"><span class="param-source" title="${source}">HA</span><span class="param-range">${spParamUi('readonly')}${st.unit?` · ${st.unit}`:''}</span></div></div>`}
+function renderReadonlyParameterCard(packId,bms,def){const st=readParameterState(packId,bms,def,false),source=st.entity||spParamUi('noEntity');return `<div class="param-card readonly ${st.available?'':'unavailable'}"><div class="param-card-top"><h4>${spParamDefinition(def,'label')}</h4><div class="param-current">${scadaTelemetryFresh(packId,bms)?formatReadonlyParameterValue(def,st):'— (donnée ancienne)'}</div></div><div class="param-desc">${spParamDefinition(def,'desc')}</div><div class="param-meta"><span class="param-source" title="${source}">HA</span><span class="param-range">${spParamUi('readonly')}${st.unit?` · ${st.unit}`:''}</span></div></div>`}
 function openBmsTechnicalParameters(packId,bms,preserveScroll=false){
  const p=currentPacks.find(x=>x.id===packId),b=readBms(packId,bms);if(!p||!b)return;currentParameterContext={packId:String(packId),bms:String(bms)};currentControlContext=null;
  const all=BMS_PARAMETER_SECTIONS.flatMap(s=>s.items),available=scadaWritableBms(packId,bms)?all.filter(d=>readParameterState(packId,bms,d,true).available).length:0;
@@ -2405,7 +2421,7 @@ function openBmsTechnicalParameters(packId,bms,preserveScroll=false){
  document.getElementById('detailEyebrow').textContent=`${p.name} · BMS ${bms} · ${spParamNav('settings')}`;
  document.getElementById('detailTitle').textContent=spParamUi('title');
  document.getElementById('detailBody').innerHTML=`<div class="param-workspace" style="grid-column:1/3"><aside class="param-summary"><div class="who">${spParamUi('config')}</div><h3>${p.name} · BMS ${bms}</h3><div class="sub">Adresse JK ${bms} · ${commModeLabel()}</div><div class="param-count"><span>${spParamUi('accessible')}</span><b>${available}/${all.length}</b><small>${spParamNav('summary')}</small></div><div class="param-warning"><b>${spParamUi('expert')}</b><br>${spParamUi('warn')}</div><div class="param-nav"><button onclick="openBmsControls('${packId}','${bms}')">⚙ ${spParamNav('conduct')}</button><button onclick="openCellDiagnostics('${packId}','${bms}')">▦ ${spParamNav('cells')}</button><button class="full" onclick="openBms('${packId}','${bms}')">← ${spParamNav('back')}</button></div></aside><div class="param-content"><div class="control-console-note"><b>DEV70 · ${spParamNav('heading')}.</b> ${spParamNav('intro')}</div><div class="param-jumpbar"><span>${spParamExtra('quick')}</span>${jump}</div>${sections}<section class="param-section" id="param-sec-dry"><div class="param-section-head"><div><span>${spParamExtra('dryConfig')}</span><b>DRY1 / DRY2</b></div><strong>${dryCfgCount}/6 ${spParamExtra('dryRead')}</strong></div><div class="dry-config-grid">${dryCfg}</div><div class="dry-config-foot" style="margin:12px 2px 0">${spDryConfirm("foot")}</div></section><section class="param-section" id="param-sec-setup"><div class="param-section-head"><div><span>${spParamExtra('setup')}</span><b>${spParamExtra('readonly')}</b></div><strong>DIAGNOSTIC</strong></div><div class="param-grid">${ro}</div></section></div></div>`;
- scadaWritableViewSignature='parameter:'+packId+':'+bms+':'+scadaWritableBms(packId,bms);
+ scadaWritableViewSignature='parameter:'+packId+':'+bms+':'+scadaTelemetryFresh(packId,bms);
  showScadaDetail(preserveScroll);
 }
 function refreshParameterWorkspace(packId,bms,clearDrafts=false){if(!currentParameterContext||currentParameterContext.packId!==String(packId)||currentParameterContext.bms!==String(bms))return;if(!document.getElementById('scadaOverlay').classList.contains('open'))return;const panel=document.querySelector('#scadaOverlay .detail-panel');const at=panel.scrollTop,drafts=clearDrafts?{}:spCaptureParameterDrafts();openBmsTechnicalParameters(packId,bms,true);spRestoreParameterDrafts(drafts);panel.scrollTop=at}
@@ -2514,14 +2530,14 @@ function scadaRefreshWritableWorkspace(){
  if(!c||!overlay?.classList.contains('open'))return;
  if(document.getElementById('controlConfirmLayer')?.classList.contains('open'))return;
  const kind=currentControlContext?'control':'parameter';
- const writable=scadaWritableBms(c.packId,c.bms);
- const signature=kind+':'+c.packId+':'+c.bms+':'+writable;
+ const fresh=scadaTelemetryFresh(c.packId,c.bms);
+ const signature=kind+':'+c.packId+':'+c.bms+':'+fresh;
  if(signature===scadaWritableViewSignature)return;
  scadaWritableViewSignature=signature;
  // Re-render only on connectivity transitions, not every second or every SETUP
  // update: preserve scrolling and unsent edits only while connectivity remains.
  if(kind==='control')refreshControlWorkspace(c.packId,c.bms);
- else refreshParameterWorkspace(c.packId,c.bms,!writable);
+ else refreshParameterWorkspace(c.packId,c.bms,!fresh);
 }
 function scadaCancelStaleConfirmation(){
  const c=controlConfirmContext;

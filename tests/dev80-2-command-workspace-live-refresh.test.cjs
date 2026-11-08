@@ -7,7 +7,7 @@ const html=fs.readFileSync('rootfs/etc/smartphoton_jkbms_multipack/www/scada/ind
 const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert.ok(script,'SCADA inline script missing');
 new vm.Script(script,{filename:'SCADA DEV80.2'});
-assert.match(fs.readFileSync('config.yaml','utf8'),/version: 1\.0\.0-dev80\.[23]/);
+assert.match(fs.readFileSync('config.yaml','utf8'),/version: 1\.0\.0-(?:dev80\.[23]|dev81\.0)/);
 
 // Only redraw a command workspace at actual read/write availability transitions.
 const fnStart=script.indexOf('function scadaRefreshWritableWorkspace(){');
@@ -22,7 +22,7 @@ const ctx={
  currentControlContext:{packId:'pack_2',bms:'1'},
  currentParameterContext:null,
  scadaWritableViewSignature:'control:pack_2:1:true',
- scadaWritableBms:()=>fresh,
+ scadaTelemetryFresh:()=>fresh,
  refreshControlWorkspace:()=>{controls++},
  refreshParameterWorkspace:(p,b,clear)=>{params.push({p,b,clear})}
 };
