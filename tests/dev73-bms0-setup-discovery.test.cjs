@@ -172,8 +172,21 @@ function testHighAddressAndInvalidPayload() {
 }
 
 function main() {
-    assert.equal(flows.length, 441, 'Node-RED node count must remain unchanged');
-    assert.equal(flows.filter(n => n.type === 'function').length, 103);
+    // DEV74 adds exactly four independent Glow sidebar nodes to the 441 DEV73 nodes.
+    // Keep the DEV73 BMS0 functional assertions below unchanged.
+    const glowIds = [
+        '74a0000000000002', // Glow Premium menu function
+        '74a0000000000003', // dashboard JSON file
+        '74a0000000000004', // dashboard upsert
+        '74a0000000000005'  // dashboard delete
+    ];
+    const ids = flows.map(n => n.id);
+    assert.equal(new Set(ids).size, ids.length, 'Duplicate Node-RED node ID');
+    assert.equal(flows.length, 441 + glowIds.length + 4, 'Unexpected Node-RED node count (4 DEV76 journal nodes)');
+    assert.equal(flows.filter(n => n.type === 'function').length, 103 + 1 + 1, 'DEV76 adds one journal Function node');
+    for (const id of glowIds) {
+        assert.equal(flows.filter(n => n.id === id).length, 1, 'Missing or duplicate Glow node: ' + id);
+    }
     testActivePollingZero();
     testReconnectRepublishesZero();
     testOtherAddressesAndPackIsolation();

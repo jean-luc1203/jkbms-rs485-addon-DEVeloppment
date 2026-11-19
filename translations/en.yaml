@@ -9,9 +9,6 @@ configuration:
   multi_pack_section:
     name: ────────── MULTI-PACK ──────────
     description: "Configuration for independent JK-BMS battery packs using Broadcasting or Active Polling. Configuration guide: https://github.com/jean-luc1203/jkbms-rs485-addon-DEVeloppment/blob/main/Documentation/MULTI-PACK-CONFIG.md"
-  multi_pack_enabled:
-    name: 🔷 Multi-Pack → Enable
-    description: Enable the Multi-Pack architecture. Recommended for new installations, even with a single pack. Each pack has a stable technical identity and its own transport.
   multi_pack_active_polling:
     name: 🔷 Multi-Pack → Active Polling
     description: Enable Multi-Pack Active Polling when Broadcasting is disabled. Supports TCP/IP and direct USB/RS485.
@@ -37,21 +34,6 @@ configuration:
       bms_addresses:
         name: BMS addresses
         description: Active Polling only. Use auto (recommended) to scan addresses 1..15 automatically, or enter a comma-separated manual list such as 1,3,7.
-  legacy_section:
-    name: ────────── LEGACY / SINGLE BUS ──────────
-    description: Compatibility configuration for the historical single RS485 bus.
-  jkbms_path:
-    name: 🟪 JK-BMS → Serial port path
-    description: Persistent USB/RS485 path used by Legacy mode and as a compatibility fallback for one Multi-Pack serial pack.
-  jkbms_count:
-    name: 🟪 JK-BMS → Number of BMS modules
-    description: Total number of JK-BMS modules on the Legacy RS485 bus (1 to 15).
-  use_gateway:
-    name: 🟨 JK-BMS → Use TCP gateway
-    description: Use a TCP/IP gateway instead of the local USB/RS485 interface in Legacy mode.
-  gateway_ip_port:
-    name: 🟨 JK-BMS → Gateway IP + port
-    description: "IP address and TCP port of the Legacy JK-BMS gateway, for example 192.168.1.100:5000."
   non_broadcasting_data_interval_s:
     name: ⏱️ JK-BMS → Active Polling interval (s)
     description: "Time between LIVE polling cycles when Broadcasting is disabled. Allowed range: 1 to 30 seconds."
@@ -88,6 +70,3 @@ configuration:
   dashboard_language:
     name: 🎨 Dashboard → Language
     description: Language used by SmartPhoton Premium dashboards.
-  dashboard_mode:
-    name: 🎨 Dashboard → Mode
-    description: "Legacy runtime only: legacy = Home Assistant/Lovelace, html = HTML dashboard, both = both. Multi-Pack Premium uses its dedicated Multi-Pack dashboard."
